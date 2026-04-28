@@ -13,7 +13,7 @@ services:
     environment:
       - MOCK_MODE=false
       - MONGODB_URI=${MONGODB_URI}
-      - MAIN_SYSTEM_URL=http://titita-main:3000  # Docker 內部網路用 container name
+      - MAIN_SYSTEM_URL=http://titita-onecloud:3000 # Docker 內部網路用 container name
       - INTERNAL_API_KEY=${INTERNAL_API_KEY}
       - LINE_CHANNEL_ID=${LINE_CHANNEL_ID}
       - LINE_CHANNEL_SECRET=${LINE_CHANNEL_SECRET}
