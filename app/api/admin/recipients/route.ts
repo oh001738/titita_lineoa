@@ -22,6 +22,8 @@ export async function GET() {
           _id: '$line_user_id',
           lastAction: { $last: '$action' },
           userId: { $last: '$user_id' },
+          line_name: { $last: '$line_name' },
+          student_name: { $last: '$student_name' },
           phone: { $last: '$phone_used' },
           updatedAt: { $last: '$createdAt' }
         }
@@ -29,14 +31,12 @@ export async function GET() {
       { $match: { lastAction: BIND_ACTIONS.BIND } }
     ])
 
-    // 注意：因為 LINE OA 沒存學生姓名（存的是 user_id），
-    // 這裡回傳的基本資訊僅供 Admin 參考。
-    // 在正式環境中，可能還需要透過主系統 Client 批量查詢姓名。
-    
     return Response.json({
       data: activeBindings.map(b => ({
         line_user_id: b._id,
         user_id: b.userId,
+        line_name: b.line_name,
+        student_name: b.student_name,
         last_updated: b.updatedAt
       })),
       error: null

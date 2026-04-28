@@ -7,6 +7,8 @@ type Tab = 'broadcast' | 'individual' | 'multiselect' | 'test'
 interface Recipient {
   line_user_id: string
   user_id: string
+  line_name?: string
+  student_name?: string
   last_updated: string
 }
 
@@ -220,7 +222,7 @@ export default function AdminNotifyPage() {
                       <option value="" disabled>-- 選擇已綁定使用者 --</option>
                       {recipients.map((r) => (
                         <option key={r.line_user_id} value={r.line_user_id}>
-                          {r.line_user_id.substring(0, 12)}... (User: {r.user_id.substring(0, 8)})
+                          {r.student_name ?? r.line_name ?? r.line_user_id.substring(0, 12)}{r.line_name ? ` (${r.line_name})` : ''}
                         </option>
                       ))}
                     </select>
@@ -283,7 +285,7 @@ export default function AdminNotifyPage() {
                   <option value="">-- 請選擇單一已綁定對象 --</option>
                   {recipients.map((r) => (
                     <option key={r.line_user_id} value={r.line_user_id}>
-                      ID: {r.line_user_id.substring(0, 10)}... (User: {r.user_id.substring(0, 8)})
+                      {r.student_name ?? r.line_name ?? r.line_user_id.substring(0, 12)}{r.line_name ? ` (${r.line_name})` : ''}
                     </option>
                   ))}
                 </select>
@@ -309,7 +311,7 @@ export default function AdminNotifyPage() {
                         .filter((r) => !selectedLineIds.includes(r.line_user_id))
                         .map((r) => (
                           <option key={r.line_user_id} value={r.line_user_id}>
-                            User: {r.user_id.substring(0, 8)}
+                            {r.student_name ?? r.line_name ?? r.line_user_id.substring(0, 12)}{r.line_name ? ` (${r.line_name})` : ''}
                           </option>
                         ))}
                     </select>
@@ -326,12 +328,18 @@ export default function AdminNotifyPage() {
                   {selectedLineIds.length === 0 ? (
                     <span className="text-sm text-gray-400 py-1">尚未選擇...</span>
                   ) : (
-                    selectedLineIds.map((id) => (
-                      <span key={id} className="inline-flex items-center bg-indigo-50 border border-indigo-100 text-indigo-800 text-xs rounded-full px-3 py-1.5">
-                        {id.substring(0, 8)}...
-                        <button type="button" onClick={() => toggleSelection(id)} className="ml-2 hover:text-red-600">✕</button>
-                      </span>
-                    ))
+                    selectedLineIds.map((id) => {
+                      const r = recipients.find(x => x.line_user_id === id)
+                      const label = r
+                        ? `${r.student_name ?? r.line_name ?? id.substring(0, 8)}${r.line_name ? ` (${r.line_name})` : ''}`
+                        : id.substring(0, 8)
+                      return (
+                        <span key={id} className="inline-flex items-center bg-indigo-50 border border-indigo-100 text-indigo-800 text-xs rounded-full px-3 py-1.5">
+                          {label}
+                          <button type="button" onClick={() => toggleSelection(id)} className="ml-2 hover:text-red-600">✕</button>
+                        </span>
+                      )
+                    })
                   )}
                 </div>
                 {selectedLineIds.length > 0 && (

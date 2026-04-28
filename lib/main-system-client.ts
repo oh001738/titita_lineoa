@@ -69,7 +69,7 @@ interface LineBindingResult {
 }
 
 interface LookupByLineResult {
-  users: Array<{ _id: string; name: string; role: string }>
+  users: Array<{ _id: string; name: string; student_name: string | null; role: string }>
 }
 
 interface TeacherStudentsResult {

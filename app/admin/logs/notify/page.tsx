@@ -6,12 +6,16 @@ import type { LineNotifyLog } from '@/types'
 export default function NotifyLogsPage() {
   const [logs, setLogs] = useState<LineNotifyLog[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [total, setTotal] = useState(0)
 
   useEffect(() => {
-    fetch('/api/admin/logs/notify')
+    fetch('/api/admin/logs/notify?limit=100')
       .then(res => res.json())
       .then(result => {
-        if (result.data) setLogs(result.data)
+        if (result.data?.logs) {
+          setLogs(result.data.logs)
+          setTotal(result.data.pagination?.total ?? 0)
+        }
       })
       .finally(() => setIsLoading(false))
   }, [])
@@ -21,7 +25,7 @@ export default function NotifyLogsPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">推播紀錄</h1>
-          <p className="text-gray-500 text-sm">監控訊息發送狀態與內容</p>
+          <p className="text-gray-500 text-sm">共 {total} 筆紀錄（顯示最近 100 筆）</p>
         </div>
       </div>
 

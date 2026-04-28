@@ -59,9 +59,13 @@ export async function POST(request: Request) {
 
     // 3. 寫入綁定紀錄到 LINE OA 自己的 DB
     await connectDB()
+    const line_name = verified.name || 'LINE 使用者'
     const bindLogs = users.map((u) => ({
       user_id: u._id,
       line_user_id,
+      line_name,
+      // 優先使用主系統回傳的學生姓名，老師帳號則 fallback 到帳號名稱
+      student_name: u.student_name || u.name || '未命名',
       action: BIND_ACTIONS.BIND,
       operator: BIND_OPERATORS.SELF,
       phone_used: normalizedPhone,

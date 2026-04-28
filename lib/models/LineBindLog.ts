@@ -9,6 +9,8 @@ const LineBindLogSchema = new Schema(
   {
     user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     line_user_id: { type: String, required: true, index: true },
+    line_name: { type: String, default: null }, // 新增：LINE 顯示名稱
+    student_name: { type: String, default: null }, // 新增：對應的學生姓名
     action: { type: String, enum: Object.values(BIND_ACTIONS), required: true },
     operator: { type: String, enum: Object.values(BIND_OPERATORS), required: true },
     operator_id: { type: Schema.Types.ObjectId, ref: 'User', default: null },

@@ -6,7 +6,7 @@ import { verifyAdminToken } from '@/lib/admin-session'
  * Middleware — 保護 /admin 路由
  * 安全：驗證 HMAC 簽名的 admin_token，防止偽造 cookie
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   const isApiRoute = pathname.startsWith('/api/admin')
