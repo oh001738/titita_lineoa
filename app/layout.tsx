@@ -12,9 +12,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+import { SCHOOL_NAME } from "@/lib/site-config";
+
 export const metadata: Metadata = {
-  title: "音樂補習班 LINE OA 系統",
-  description: "音樂補習班 LINE Official Account 整合系統 — 帳號綁定與推播通知",
+  title: `${SCHOOL_NAME} LINE OA 系統`,
+  description: `${SCHOOL_NAME} LINE Official Account 整合系統 — 帳號綁定與推播通知`,
 };
 
 import { LiffProvider } from "@/components/liff/LiffProvider";

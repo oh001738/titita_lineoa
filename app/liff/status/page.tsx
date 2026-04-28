@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { useLiff } from '@/components/liff/LiffProvider'
 import type { BindLookupUser } from '@/types'
 
+const SCHOOL_NAME = process.env.NEXT_PUBLIC_SCHOOL_NAME || '音樂補習班'
+
 export default function StatusPage() {
   const { profile, idToken, isReady, error: liffError } = useLiff()
 
@@ -84,7 +86,7 @@ export default function StatusPage() {
           <span className="text-3xl">🎵</span>
         </div>
         <h1 className="text-xl font-bold text-gray-900">帳號綁定狀態</h1>
-        <p className="text-sm text-gray-500 mt-1">音樂補習班系統</p>
+        <p className="text-sm text-gray-500 mt-1">{SCHOOL_NAME} 系統</p>
       </div>
 
       {/* Profile Card */}

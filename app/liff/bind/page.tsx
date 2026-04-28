@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useLiff } from '@/components/liff/LiffProvider'
 import type { BindLookupUser } from '@/types'
 
+const SCHOOL_NAME = process.env.NEXT_PUBLIC_SCHOOL_NAME || '音樂補習班'
+
 type BindStep = 'phone' | 'select' | 'success' | 'error' | 'already_bound' | 'loading'
 
 export default function BindPage() {
@@ -202,7 +204,7 @@ export default function BindPage() {
         <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <span className="text-3xl">🎵</span>
         </div>
-        <h1 className="text-xl font-bold text-gray-900">音樂補習班</h1>
+        <h1 className="text-xl font-bold text-gray-900">{SCHOOL_NAME}</h1>
         <p className="text-sm text-gray-500 mt-1">LINE 帳號綁定</p>
       </div>
 
