@@ -1,0 +1,25 @@
+services:
+  lineoa:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_LIFF_ID=${NEXT_PUBLIC_LIFF_ID}
+    container_name: titita-lineoa
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - MONGODB_URI=${MONGODB_URI}
+      - MAIN_SYSTEM_URL=http://titita-main:3000  # Docker 內部網路用 container name
+      - INTERNAL_API_KEY=${INTERNAL_API_KEY}
+      - LINE_CHANNEL_ID=${LINE_CHANNEL_ID}
+      - LINE_CHANNEL_SECRET=${LINE_CHANNEL_SECRET}
+      - LINE_CHANNEL_ACCESS_TOKEN=${LINE_CHANNEL_ACCESS_TOKEN}
+      - NEXT_PUBLIC_LIFF_ID=${NEXT_PUBLIC_LIFF_ID}
+    networks:
+      - titita-network
+
+networks:
+  titita-network:
+    external: true
