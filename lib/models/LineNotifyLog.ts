@@ -7,7 +7,7 @@ import { NOTIFY_TYPES, NOTIFY_STATUS } from '@/lib/constants'
  */
 const LineNotifyLogSchema = new Schema(
   {
-    user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    user_id: { type: String, required: true, index: true },
     line_user_id: { type: String, required: true },
     student_name: { type: String, required: true },
     notify_type: { type: String, enum: Object.values(NOTIFY_TYPES), required: true },

@@ -17,7 +17,7 @@ export interface LineBindLog {
 // ── LINE 推播紀錄（LINE OA 自己的 DB）──
 export interface LineNotifyLog {
   _id: string
-  user_id: string
+  user_id: string  // 真實 User ObjectId 字串，或 'admin_test_push' 等特殊識別符
   line_user_id: string
   student_name: string
   notify_type: NotifyType
