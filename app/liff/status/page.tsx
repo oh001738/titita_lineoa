@@ -2,12 +2,16 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useLiff } from '@/components/liff/LiffProvider'
+import { useToast } from '@/components/liff/Toast'
+import { useConfirm } from '@/components/liff/ConfirmDialog'
 import type { BindLookupUser } from '@/types'
 
 const SCHOOL_NAME = process.env.NEXT_PUBLIC_SCHOOL_NAME || '音樂補習班'
 
 export default function StatusPage() {
   const { profile, idToken, isReady, error: liffError } = useLiff()
+  const { showToast } = useToast()
+  const { confirm } = useConfirm()
 
   const [boundUsers, setBoundUsers] = useState<BindLookupUser[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -42,7 +46,17 @@ export default function StatusPage() {
   }, [isReady, profile?.userId, fetchStatus])
 
   const handleUnbind = async (userId: string) => {
-    if (!profile?.userId || !confirm('確定要解除此帳號的 LINE 綁定嗎？')) return
+    if (!profile?.userId) return
+    
+    const isConfirmed = await confirm({
+      title: '確定解除綁定？',
+      message: '確定要解除此帳號的 LINE 綁定嗎？解除後將無法收到相關通知。',
+      confirmText: '確定解除',
+      cancelText: '取消',
+      type: 'danger'
+    })
+
+    if (!isConfirmed) return
 
     setIsUnbinding(userId)
     try {
@@ -57,14 +71,14 @@ export default function StatusPage() {
 
       const result = await res.json()
       if (result.error) {
-        alert(result.error)
+        showToast(result.error, 'error')
       } else {
         // 重新整理清單
         setBoundUsers((prev) => prev.filter((u) => u._id !== userId))
-        alert('已解除綁定')
+        showToast('已解除綁定', 'success')
       }
     } catch {
-      alert('網路錯誤，解綁失敗')
+      showToast('網路錯誤，解綁失敗', 'error')
     } finally {
       setIsUnbinding(null)
     }

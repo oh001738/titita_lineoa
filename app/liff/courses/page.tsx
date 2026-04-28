@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useLiff } from '@/components/liff/LiffProvider'
+import { useToast } from '@/components/liff/Toast'
+import { useConfirm } from '@/components/liff/ConfirmDialog'
 
 interface Course {
   id: string
@@ -21,6 +23,8 @@ interface BoundStudent {
 
 export default function CoursesPage() {
   const { profile, isReady, error: liffError } = useLiff()
+  const { showToast } = useToast()
+  const { confirm } = useConfirm()
   const [boundStudents, setBoundStudents] = useState<BoundStudent[]>([])
   const [selectedStudentId, setSelectedStudentId] = useState<string>('')
   
@@ -69,8 +73,15 @@ export default function CoursesPage() {
   const handleLeaveRequest = async () => {
     if (!selectedCourse || !profile) return
 
-    const confirmLeave = window.confirm(`您確定要請假【${selectedCourse.date} ${selectedCourse.name}】嗎？\n請注意，請假後若需補課請洽行政中心。`)
-    if (!confirmLeave) return
+    const isConfirmed = await confirm({
+      title: '確定申請請假？',
+      message: `您確定要請假【${selectedCourse.date} ${selectedCourse.name}】嗎？\n請注意，請假後若需補課請洽行政中心。`,
+      confirmText: '確定請假',
+      cancelText: '取消',
+      type: 'danger'
+    })
+
+    if (!isConfirmed) return
 
     setIsSubmittingLeave(true)
     try {
@@ -86,14 +97,14 @@ export default function CoursesPage() {
       const data = await res.json()
       
       if (data.error) {
-        alert(`請假失敗: ${data.error}`)
+        showToast(`請假失敗: ${data.error}`, 'error')
       } else {
-        alert('請假手續已完成！')
+        showToast('請假手續已完成！', 'success')
         setSelectedCourse(null)
         setCourses(courses.filter(c => c.id !== selectedCourse.id))
       }
     } catch (err) {
-      alert('網路錯誤，請稍後再試')
+      showToast('網路錯誤，請稍後再試', 'error')
     } finally {
       setIsSubmittingLeave(false)
     }

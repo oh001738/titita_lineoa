@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useLiff } from '@/components/liff/LiffProvider'
+import { useToast } from '@/components/liff/Toast'
+import { useConfirm } from '@/components/liff/ConfirmDialog'
 import type { BindLookupUser } from '@/types'
 
 const SCHOOL_NAME = process.env.NEXT_PUBLIC_SCHOOL_NAME || '音樂補習班'
@@ -10,6 +12,8 @@ type BindStep = 'phone' | 'select' | 'success' | 'error' | 'already_bound' | 'lo
 
 export default function BindPage() {
   const { profile, idToken, isReady, error: liffError } = useLiff()
+  const { showToast } = useToast()
+  const { confirm } = useConfirm()
 
   const [step, setStep] = useState<BindStep>('loading')
   const [phone, setPhone] = useState('')
@@ -150,7 +154,15 @@ export default function BindPage() {
 
   // ── 解除綁定 ──
   const handleUnbind = async (userId: string, userName: string) => {
-    if (!confirm(`確定要解除與【${userName}】的綁定嗎？\n解除後您將無法收到相關的課程通知。`)) return
+    const isConfirmed = await confirm({
+      title: '確定解除綁定？',
+      message: `確定要解除與【${userName}】的綁定嗎？\n解除後您將無法收到相關的課程通知。`,
+      confirmText: '確定解除',
+      cancelText: '我再想想',
+      type: 'danger'
+    })
+
+    if (!isConfirmed) return
 
     setIsLoading(true)
     try {
@@ -164,9 +176,9 @@ export default function BindPage() {
       })
       const result = await res.json()
       if (result.error) {
-        alert(`解除失敗: ${result.error}`)
+        showToast(`解除失敗: ${result.error}`, 'error')
       } else {
-        alert('已成功解除綁定')
+        showToast('已成功解除綁定', 'success')
         // 重新取得最新狀態
         const statusRes = await fetch(`/api/line/bind/status?line_user_id=${profile?.userId}`)
         const statusData = await statusRes.json()
@@ -178,7 +190,7 @@ export default function BindPage() {
         }
       }
     } catch {
-      alert('網路錯誤')
+      showToast('網路錯誤', 'error')
     } finally {
       setIsLoading(false)
     }

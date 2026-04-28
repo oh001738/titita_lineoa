@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useLiff } from '@/components/liff/LiffProvider'
+import { useToast } from '@/components/liff/Toast'
 
 interface PointHistory {
   id: string
@@ -23,6 +24,7 @@ interface BoundStudent {
 
 export default function PointsPage() {
   const { profile, isReady, error: liffError } = useLiff()
+  const { showToast } = useToast()
   const [boundStudents, setBoundStudents] = useState<BoundStudent[]>([])
   const [selectedStudentId, setSelectedStudentId] = useState<string>('')
   
@@ -115,13 +117,13 @@ export default function PointsPage() {
       })
       const result = await res.json()
       if (result.data?.success) {
-        alert(`已成功給予【${student.name}】 ${awardForm.amount} 點！`)
+        showToast(`已成功給予【${student.name}】 ${awardForm.amount} 點！`, 'success')
         setAwardForm({ studentId: '', amount: 10, reason: '' })
       } else {
-        alert('給點失敗')
+        showToast('給點失敗', 'error')
       }
     } catch {
-      alert('網路錯誤')
+      showToast('網路錯誤', 'error')
     } finally {
       setIsAwarding(false)
     }
