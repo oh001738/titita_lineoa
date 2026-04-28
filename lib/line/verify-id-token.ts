@@ -26,9 +26,15 @@ export async function verifyLineIdToken(idToken: string): Promise<VerifyResult |
     return { userId: 'U1234567890mockuser', name: '開發測試員' }
   }
 
-  const channelId = process.env.LINE_CHANNEL_ID
-  if (!channelId) {
-    console.error('[verifyLineIdToken] LINE_CHANNEL_ID not set')
+  const mainChannelId = process.env.LINE_CHANNEL_ID
+  const liffId = process.env.NEXT_PUBLIC_LIFF_ID
+  
+  // 優先使用 LIFF ID 的前綴作為驗證用的 Channel ID (client_id)
+  // 如果 LIFF 與 Messaging API 屬於不同 Channel，必須用 LIFF 的 Channel ID 驗證 idToken
+  const verifyChannelId = liffId?.includes('-') ? liffId.split('-')[0] : mainChannelId
+
+  if (!verifyChannelId) {
+    console.error('[verifyLineIdToken] LINE_CHANNEL_ID or NEXT_PUBLIC_LIFF_ID not set')
     return null
   }
 
@@ -36,7 +42,7 @@ export async function verifyLineIdToken(idToken: string): Promise<VerifyResult |
     const res = await fetch('https://api.line.me/oauth2/v2.1/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ id_token: idToken, client_id: channelId }),
+      body: new URLSearchParams({ id_token: idToken, client_id: verifyChannelId }),
     })
 
     if (!res.ok) {
@@ -47,8 +53,12 @@ export async function verifyLineIdToken(idToken: string): Promise<VerifyResult |
     const payload = (await res.json()) as LineIdTokenPayload
 
     // 基本合理性檢查
-    if (!payload.sub || payload.aud !== channelId) {
-      console.warn('[verifyLineIdToken] Invalid payload:', payload)
+    if (!payload.sub || payload.aud !== verifyChannelId) {
+      console.warn('[verifyLineIdToken] Invalid payload (audience mismatch):', {
+        expected: verifyChannelId,
+        actual: payload.aud,
+        sub: payload.sub
+      })
       return null
     }
 
