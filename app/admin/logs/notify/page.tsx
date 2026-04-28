@@ -3,6 +3,25 @@
 import { useState, useEffect } from 'react'
 import type { LineNotifyLog } from '@/types'
 
+const STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  sent:    { label: '已發送', color: 'bg-green-100 text-green-700' },
+  failed:  { label: '失敗',   color: 'bg-red-100 text-red-700' },
+  pending: { label: '等待中', color: 'bg-yellow-100 text-yellow-700' },
+  skipped: { label: '已略過', color: 'bg-gray-100 text-gray-500' },
+}
+
+const NOTIFY_TYPE_LABELS: Record<string, string> = {
+  leave_approved:   '請假核准',
+  leave_rejected:   '請假馳回',
+  makeup_arranged:  '補課安排',
+  course_change:    '課程變動',
+  tuition_reminder: '學費提醒',
+  tuition_received: '學費收訖',
+  points_earned:    '點數獎勵',
+  broadcast:        '廣播公告',
+  bind_success:     '帳號綁定成功',
+}
+
 export default function NotifyLogsPage() {
   const [logs, setLogs] = useState<LineNotifyLog[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -57,12 +76,14 @@ export default function NotifyLogsPage() {
                       {new Date(log.createdAt).toLocaleString()}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
-                        log.status === 'sent' ? 'bg-green-100 text-green-700' : 
-                        log.status === 'failed' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'
-                      }`}>
-                        {log.status}
-                      </span>
+                      {(() => {
+                        const s = STATUS_LABELS[log.status] ?? { label: log.status, color: 'bg-gray-100 text-gray-600' }
+                        return (
+                          <span className={`px-2 py-1 rounded text-[10px] font-bold ${s.color}`}>
+                            {s.label}
+                          </span>
+                        )
+                      })()}
                       {log.error_message && (
                         <p className="text-[10px] text-red-500 mt-1 max-w-[150px] truncate" title={log.error_message}>
                           {log.error_message}
@@ -73,7 +94,7 @@ export default function NotifyLogsPage() {
                       {log.student_name}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
-                      {log.notify_type}
+                      {NOTIFY_TYPE_LABELS[log.notify_type] ?? log.notify_type}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-400 max-w-[300px] truncate" title={log.message_content}>
                       {log.message_content}

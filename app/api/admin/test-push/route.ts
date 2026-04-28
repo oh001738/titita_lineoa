@@ -65,8 +65,16 @@ export async function POST(request: Request) {
         messages = [bindSuccessMessage([student_name])]
         break
 
-      default:
-        messages = [generalNotifyMessage(student_name, `${type} 通知（試發）`, '這是一則測試訊息，確認推播功能正常運作。')]
+      default: {
+        const NOTIFY_TYPE_TITLES: Record<string, string> = {
+          course_change:    '課程異動通知',
+          tuition_reminder: '學費繳費提醒',
+          tuition_received: '學費收訖通知',
+          broadcast:        '廣播公告',
+        }
+        const chineseTitle = NOTIFY_TYPE_TITLES[type] ?? `${type} 通知`
+        messages = [generalNotifyMessage(student_name, `${chineseTitle}（試發）`, '這是一則測試訊息，確認推播功能正常運作。')]
+      }
     }
 
     const result = await pushMessage({

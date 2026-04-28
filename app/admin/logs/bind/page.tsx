@@ -3,6 +3,17 @@
 import { useState, useEffect } from 'react'
 import type { LineBindLog } from '@/types'
 
+const ACTION_LABELS: Record<string, { label: string; color: string }> = {
+  bind:   { label: '綁定', color: 'bg-green-100 text-green-700' },
+  unbind: { label: '解除綁定', color: 'bg-red-100 text-red-700' },
+}
+
+const OPERATOR_LABELS: Record<string, string> = {
+  self:   '本人',
+  admin:  '管理員',
+  system: '系統',
+}
+
 export default function BindLogsPage() {
   const [logs, setLogs] = useState<LineBindLog[]>([])
   const [adminIds, setAdminIds] = useState<Set<string>>(new Set())
@@ -97,11 +108,14 @@ export default function BindLogsPage() {
                       {new Date(log.createdAt).toLocaleString()}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
-                        log.action === 'bind' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                      }`}>
-                        {log.action}
-                      </span>
+                      {(() => {
+                        const a = ACTION_LABELS[log.action] ?? { label: log.action, color: 'bg-gray-100 text-gray-600' }
+                        return (
+                          <span className={`px-2 py-1 rounded text-[10px] font-bold ${a.color}`}>
+                            {a.label}
+                          </span>
+                        )
+                      })()}
                     </td>
                     <td className="px-6 py-4 text-sm font-mono text-gray-400 truncate max-w-[100px]">
                       {log.user_id}
@@ -110,7 +124,7 @@ export default function BindLogsPage() {
                       {log.line_user_id}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {log.operator}
+                      {OPERATOR_LABELS[log.operator] ?? log.operator}
                     </td>
                     <td className="px-6 py-4">
                       {log.action === 'bind' && (
