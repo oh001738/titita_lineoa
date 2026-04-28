@@ -8,8 +8,6 @@ interface Stats {
   total_notifies: number
   today_notifies: number
   failed_notifies: number
-  line_quota: number | null      // null = 付費無上限方案
-  line_consumption: number | null
 }
 
 export default function AdminDashboard() {
@@ -122,85 +120,52 @@ export default function AdminDashboard() {
           <h1 className="text-2xl font-bold text-gray-900">系統概覽</h1>
           <p className="text-gray-500">監控 LINE OA 系統的運作狀態</p>
         </div>
-        
+
         {/* 推播總開關 UI */}
         <div className="bg-white px-6 py-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
           <div>
             <p className="text-sm font-bold text-gray-800">推播總開關</p>
             <p className="text-xs text-gray-400">{isPushEnabled ? '運行中' : '已關閉'}</p>
           </div>
-          <button 
+          <button
             onClick={togglePush}
             disabled={isUpdating}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-              isPushEnabled ? 'bg-indigo-600' : 'bg-gray-200'
-            }`}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isPushEnabled ? 'bg-indigo-600' : 'bg-gray-200'
+              }`}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                isPushEnabled ? 'translate-x-6' : 'translate-x-1'
-              }`}
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isPushEnabled ? 'translate-x-6' : 'translate-x-1'
+                }`}
             />
           </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard 
-          title="總綁定人數" 
-          value={stats?.total_bindings ?? 0} 
-          icon="👥" 
+        <StatCard
+          title="總綁定人數"
+          value={stats?.total_bindings ?? 0}
+          icon="👥"
           color="bg-blue-500"
         />
-        <StatCard 
-          title="今日新增綁定" 
-          value={stats?.today_bindings ?? 0} 
-          icon="🆕" 
+        <StatCard
+          title="今日新增綁定"
+          value={stats?.today_bindings ?? 0}
+          icon="🆕"
           color="bg-green-500"
         />
-        <StatCard 
-          title="累計發送推播" 
-          value={stats?.total_notifies ?? 0} 
-          icon="🔔" 
+        <StatCard
+          title="累計發送推播"
+          value={stats?.total_notifies ?? 0}
+          icon="🔔"
           color="bg-indigo-500"
         />
-        <StatCard 
-          title="發送失敗次數" 
-          value={stats?.failed_notifies ?? 0} 
-          icon="⚠️" 
+        <StatCard
+          title="發送失敗次數"
+          value={stats?.failed_notifies ?? 0}
+          icon="⚠️"
           color="bg-red-500"
         />
-        {/* LINE 本月額度使用量 */}
-        {stats?.line_consumption !== null && stats?.line_consumption !== undefined && (
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-green-500 flex items-center justify-center text-white text-xl">💬</div>
-              <div>
-                <p className="text-xs text-gray-400">本月 LINE 推播</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.line_consumption.toLocaleString()}</p>
-              </div>
-            </div>
-            {stats.line_quota !== null ? (
-              <>
-                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all ${
-                      (stats.line_consumption / stats.line_quota) > 0.9 ? 'bg-red-500' :
-                      (stats.line_consumption / stats.line_quota) > 0.7 ? 'bg-yellow-400' : 'bg-green-500'
-                    }`}
-                    style={{ width: `${Math.min((stats.line_consumption / stats.line_quota) * 100, 100)}%` }}
-                  />
-                </div>
-                <p className="text-xs text-gray-400">
-                  額度：{stats.line_consumption.toLocaleString()} / {stats.line_quota.toLocaleString()}
-                  （剩 {(stats.line_quota - stats.line_consumption).toLocaleString()} 則）
-                </p>
-              </>
-            ) : (
-              <p className="text-xs text-gray-400">付費方案・無限制</p>
-            )}
-          </div>
-        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -211,9 +176,9 @@ export default function AdminDashboard() {
             <div className="text-gray-500 pb-1">則推播訊息已發送</div>
           </div>
           <div className="mt-4 h-2 bg-gray-100 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-indigo-500 transition-all" 
-              style={{ width: `${Math.min(((stats?.today_notifies ?? 0) / 100) * 100, 100)}%` }} 
+            <div
+              className="h-full bg-indigo-500 transition-all"
+              style={{ width: `${Math.min(((stats?.today_notifies ?? 0) / 100) * 100, 100)}%` }}
             />
           </div>
           <p className="text-xs text-gray-400 mt-2">基於今日 00:00 起的統計</p>
@@ -228,16 +193,14 @@ export default function AdminDashboard() {
             {Object.entries(notifyLabels).map(([key, label]) => (
               <div key={key} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                 <span className="text-sm text-gray-600">{label}</span>
-                <button 
+                <button
                   onClick={() => toggleNotifyType(key)}
-                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
-                    enabledNotifies[key] !== false ? 'bg-indigo-500' : 'bg-gray-200'
-                  }`}
+                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${enabledNotifies[key] !== false ? 'bg-indigo-500' : 'bg-gray-200'
+                    }`}
                 >
                   <span
-                    className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                      enabledNotifies[key] !== false ? 'translate-x-5' : 'translate-x-1'
-                    }`}
+                    className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${enabledNotifies[key] !== false ? 'translate-x-5' : 'translate-x-1'
+                      }`}
                   />
                 </button>
               </div>
