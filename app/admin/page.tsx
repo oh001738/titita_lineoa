@@ -8,6 +8,8 @@ interface Stats {
   total_notifies: number
   today_notifies: number
   failed_notifies: number
+  line_quota: number | null      // null = 付費無上限方案
+  line_consumption: number | null
 }
 
 export default function AdminDashboard() {
@@ -168,6 +170,37 @@ export default function AdminDashboard() {
           icon="⚠️" 
           color="bg-red-500"
         />
+        {/* LINE 本月額度使用量 */}
+        {stats?.line_consumption !== null && stats?.line_consumption !== undefined && (
+          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-green-500 flex items-center justify-center text-white text-xl">💬</div>
+              <div>
+                <p className="text-xs text-gray-400">本月 LINE 推播</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.line_consumption.toLocaleString()}</p>
+              </div>
+            </div>
+            {stats.line_quota !== null ? (
+              <>
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      (stats.line_consumption / stats.line_quota) > 0.9 ? 'bg-red-500' :
+                      (stats.line_consumption / stats.line_quota) > 0.7 ? 'bg-yellow-400' : 'bg-green-500'
+                    }`}
+                    style={{ width: `${Math.min((stats.line_consumption / stats.line_quota) * 100, 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-gray-400">
+                  額度：{stats.line_consumption.toLocaleString()} / {stats.line_quota.toLocaleString()}
+                  （剩 {(stats.line_quota - stats.line_consumption).toLocaleString()} 則）
+                </p>
+              </>
+            ) : (
+              <p className="text-xs text-gray-400">付費方案・無限制</p>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
