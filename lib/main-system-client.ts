@@ -65,7 +65,7 @@ interface LookupByPhoneResult {
 
 interface LineBindingResult {
   modified_count: number
-  users: Array<{ _id: string; name: string }>
+  users: Array<{ _id: string; name: string; student_name: string | null }>
 }
 
 interface LookupByLineResult {

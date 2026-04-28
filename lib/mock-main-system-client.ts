@@ -70,7 +70,7 @@ export function mockUpdateBinding(userIds: string[], lineUserId: string, action:
   return {
     data: {
       modified_count: users.length,
-      users: users.map((u) => ({ _id: u._id, name: u.name })),
+      users: users.map((u) => ({ _id: u._id, name: u.name, student_name: u.student_name ?? null })),
     },
     error: null,
   }
