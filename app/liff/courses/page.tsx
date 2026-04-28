@@ -239,17 +239,15 @@ export default function CoursesPage() {
               </div>
             </div>
 
-            <button
-              onClick={handleLeaveRequest}
-              disabled={isSubmittingLeave}
-              className="w-full bg-red-50 text-red-600 border border-red-200 font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-red-100 active:bg-red-200 transition-colors disabled:opacity-50"
-            >
-              {isSubmittingLeave ? (
-                <span className="w-5 h-5 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
-              ) : (
-                '⚠️ 申請請假'
-              )}
-            </button>
+            <div className="space-y-2">
+              <button
+                disabled
+                className="w-full bg-gray-100 text-gray-400 border border-gray-200 font-bold py-4 rounded-xl flex items-center justify-center gap-2 cursor-not-allowed"
+              >
+                ⚠️ 申請請假
+              </button>
+              <p className="text-center text-xs text-gray-400">此功能即將開放，敬請期待</p>
+            </div>
           </div>
         </div>
       )}
