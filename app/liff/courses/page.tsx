@@ -28,6 +28,7 @@ export default function CoursesPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [isSubmittingLeave, setIsSubmittingLeave] = useState(false)
+  const [isNotBound, setIsNotBound] = useState(false)
 
   // 1. 取得綁定的學生清單
   useEffect(() => {
@@ -39,10 +40,12 @@ export default function CoursesPage() {
             setBoundStudents(result.data)
             setSelectedStudentId(result.data[0].user_id) // 預設選第一個
           } else {
+            setIsNotBound(true)
             setIsLoading(false)
           }
         })
     } else if (isReady && !profile) {
+      setIsNotBound(true)
       setIsLoading(false)
     }
   }, [isReady, profile])
@@ -105,12 +108,20 @@ export default function CoursesPage() {
     )
   }
 
-  if (liffError) {
+  if (liffError || isNotBound) {
+    const liffId = process.env.NEXT_PUBLIC_LIFF_ID
     return (
-      <div className="min-h-screen bg-slate-50 p-6 flex items-center justify-center">
-        <div className="bg-red-50 p-6 rounded-2xl text-center w-full max-w-sm">
-          <p className="text-red-600 font-bold mb-2">無法讀取資料</p>
-          <p className="text-xs text-red-500">{liffError}</p>
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
+        <div className="bg-white w-full max-w-sm rounded-3xl p-8 shadow-xl text-center">
+          <div className="text-5xl mb-4">🔗</div>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">尚未綁定帳號</h2>
+          <p className="text-gray-500 text-sm mb-6">請先完成帳號綁定，才能查看課程資料。</p>
+          <a
+            href={`/liff/bind`}
+            className="block w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors"
+          >
+            立即綁定帳號
+          </a>
         </div>
       </div>
     )
