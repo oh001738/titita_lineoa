@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import { LiffProvider } from '@/components/liff/LiffProvider'
+import { SCHOOL_NAME } from '@/lib/site-config'
 
 export const metadata: Metadata = {
-  title: '音樂補習班 LINE 帳號綁定',
-  description: '綁定您的 LINE 帳號以接收課程通知',
+  title: SCHOOL_NAME,
+  description: `${SCHOOL_NAME} LINE 服務`,
 }
 
 export default function LiffLayout({
