@@ -4,6 +4,9 @@ import {
   leaveResultMessage,
   bindSuccessMessage,
   pointsEarnedMessage,
+  tuitionReminderMessage,
+  tuitionReceivedMessage,
+  courseChangeMessage,
 } from '@/lib/line/templates'
 import { NOTIFY_TYPES, type NotifyType } from '@/lib/constants'
 import type { ApiResponse } from '@/types'
@@ -65,16 +68,34 @@ export async function POST(request: Request) {
         messages = [bindSuccessMessage([student_name])]
         break
 
-      default: {
-        const NOTIFY_TYPE_TITLES: Record<string, string> = {
-          course_change:    '課程異動通知',
-          tuition_reminder: '學費繳費提醒',
-          tuition_received: '學費收訖通知',
-          broadcast:        '廣播公告',
-        }
-        const chineseTitle = NOTIFY_TYPE_TITLES[type] ?? `${type} 通知`
-        messages = [generalNotifyMessage(student_name, `${chineseTitle}（試發）`, '這是一則測試訊息，確認推播功能正常運作。')]
-      }
+      case NOTIFY_TYPES.TUITION_REMINDER:
+        messages = [tuitionReminderMessage({
+          studentName: student_name,
+          amount: 3000,
+          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('zh-TW'),
+        })]
+        break
+
+      case NOTIFY_TYPES.TUITION_RECEIVED:
+        messages = [tuitionReceivedMessage({
+          studentName: student_name,
+          amount: 3000,
+          paidDate: new Date().toLocaleDateString('zh-TW'),
+        })]
+        break
+
+      case NOTIFY_TYPES.COURSE_CHANGE:
+        messages = [courseChangeMessage({
+          studentName: student_name,
+          courseName: '鋼琴基礎班',
+          changeType: '時間調整',
+          originalDate: '2026-05-01 14:00',
+          newDate: '2026-05-03 14:00',
+        })]
+        break
+
+      default:
+        messages = [generalNotifyMessage(student_name, '廣播公告（試發）', '這是一則測試訊息，確認推播功能正常運作。')]
     }
 
     const result = await pushMessage({

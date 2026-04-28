@@ -309,3 +309,241 @@ export function generalNotifyMessage(
     },
   }
 }
+
+// ── 學費繳費提醒 ──
+export function tuitionReminderMessage(params: {
+  studentName: string
+  amount?: number
+  dueDate?: string
+  note?: string
+}): messagingApi.FlexMessage {
+  const { studentName, amount, dueDate, note } = params
+  const bodyContents: messagingApi.FlexComponent[] = [
+    {
+      type: 'box',
+      layout: 'horizontal',
+      contents: [
+        { type: 'text', text: '學生', size: 'sm', color: '#888888', flex: 2 },
+        { type: 'text', text: studentName, size: 'sm', color: '#333333', flex: 3, weight: 'bold' },
+      ],
+    },
+  ]
+  if (amount !== undefined) {
+    bodyContents.push({
+      type: 'box',
+      layout: 'horizontal',
+      contents: [
+        { type: 'text', text: '應繳金額', size: 'sm', color: '#888888', flex: 2 },
+        { type: 'text', text: `NT$ ${amount.toLocaleString()}`, size: 'sm', color: '#ea580c', flex: 3, weight: 'bold' },
+      ],
+    })
+  }
+  if (dueDate) {
+    bodyContents.push({
+      type: 'box',
+      layout: 'horizontal',
+      contents: [
+        { type: 'text', text: '繳費期限', size: 'sm', color: '#888888', flex: 2 },
+        { type: 'text', text: dueDate, size: 'sm', color: '#dc2626', flex: 3, weight: 'bold' },
+      ],
+    })
+  }
+  bodyContents.push({ type: 'separator', margin: 'lg' })
+  bodyContents.push({
+    type: 'text',
+    text: note ?? '請於期限前完成繳費，如有疑問請聯絡補習班。',
+    size: 'xs',
+    color: '#888888',
+    wrap: true,
+    margin: 'lg',
+  })
+
+  return {
+    type: 'flex',
+    altText: `【${studentName}】學費繳費提醒`,
+    contents: {
+      type: 'bubble',
+      header: {
+        type: 'box',
+        layout: 'vertical',
+        backgroundColor: '#ea580c',
+        paddingAll: '20px',
+        contents: [
+          { type: 'text', text: '💰 學費繳費提醒', color: '#ffffff', size: 'lg', weight: 'bold' },
+        ],
+      },
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        spacing: 'md',
+        contents: bodyContents,
+      },
+    },
+  }
+}
+
+// ── 學費收訖通知 ──
+export function tuitionReceivedMessage(params: {
+  studentName: string
+  amount?: number
+  paidDate?: string
+  note?: string
+}): messagingApi.FlexMessage {
+  const { studentName, amount, paidDate, note } = params
+  const bodyContents: messagingApi.FlexComponent[] = [
+    {
+      type: 'box',
+      layout: 'horizontal',
+      contents: [
+        { type: 'text', text: '學生', size: 'sm', color: '#888888', flex: 2 },
+        { type: 'text', text: studentName, size: 'sm', color: '#333333', flex: 3, weight: 'bold' },
+      ],
+    },
+  ]
+  if (amount !== undefined) {
+    bodyContents.push({
+      type: 'box',
+      layout: 'horizontal',
+      contents: [
+        { type: 'text', text: '收款金額', size: 'sm', color: '#888888', flex: 2 },
+        { type: 'text', text: `NT$ ${amount.toLocaleString()}`, size: 'sm', color: '#16a34a', flex: 3, weight: 'bold' },
+      ],
+    })
+  }
+  if (paidDate) {
+    bodyContents.push({
+      type: 'box',
+      layout: 'horizontal',
+      contents: [
+        { type: 'text', text: '繳費日期', size: 'sm', color: '#888888', flex: 2 },
+        { type: 'text', text: paidDate, size: 'sm', color: '#333333', flex: 3 },
+      ],
+    })
+  }
+  bodyContents.push({ type: 'separator', margin: 'lg' })
+  bodyContents.push({
+    type: 'text',
+    text: note ?? '感謝您的繳費！如有任何問題，歡迎聯絡我們。',
+    size: 'xs',
+    color: '#888888',
+    wrap: true,
+    margin: 'lg',
+  })
+
+  return {
+    type: 'flex',
+    altText: `【${studentName}】學費已收訖`,
+    contents: {
+      type: 'bubble',
+      header: {
+        type: 'box',
+        layout: 'vertical',
+        backgroundColor: '#16a34a',
+        paddingAll: '20px',
+        contents: [
+          { type: 'text', text: '✅ 學費收訖通知', color: '#ffffff', size: 'lg', weight: 'bold' },
+        ],
+      },
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        spacing: 'md',
+        contents: bodyContents,
+      },
+    },
+  }
+}
+
+// ── 課程異動通知 ──
+export function courseChangeMessage(params: {
+  studentName: string
+  courseName?: string
+  changeType?: string
+  originalDate?: string
+  newDate?: string
+  note?: string
+}): messagingApi.FlexMessage {
+  const { studentName, courseName, changeType, originalDate, newDate, note } = params
+  const bodyContents: messagingApi.FlexComponent[] = [
+    {
+      type: 'box',
+      layout: 'horizontal',
+      contents: [
+        { type: 'text', text: '學生', size: 'sm', color: '#888888', flex: 2 },
+        { type: 'text', text: studentName, size: 'sm', color: '#333333', flex: 3, weight: 'bold' },
+      ],
+    },
+  ]
+  if (courseName) {
+    bodyContents.push({
+      type: 'box',
+      layout: 'horizontal',
+      contents: [
+        { type: 'text', text: '課程', size: 'sm', color: '#888888', flex: 2 },
+        { type: 'text', text: courseName, size: 'sm', color: '#333333', flex: 3 },
+      ],
+    })
+  }
+  if (changeType) {
+    bodyContents.push({
+      type: 'box',
+      layout: 'horizontal',
+      contents: [
+        { type: 'text', text: '異動類型', size: 'sm', color: '#888888', flex: 2 },
+        { type: 'text', text: changeType, size: 'sm', color: '#2563eb', flex: 3, weight: 'bold' },
+      ],
+    })
+  }
+  if (originalDate) {
+    bodyContents.push({
+      type: 'box',
+      layout: 'horizontal',
+      contents: [
+        { type: 'text', text: '原定時間', size: 'sm', color: '#888888', flex: 2 },
+        { type: 'text', text: originalDate, size: 'sm', color: '#6b7280', flex: 3, decoration: 'line-through' },
+      ],
+    })
+  }
+  if (newDate) {
+    bodyContents.push({
+      type: 'box',
+      layout: 'horizontal',
+      contents: [
+        { type: 'text', text: '更新時間', size: 'sm', color: '#888888', flex: 2 },
+        { type: 'text', text: newDate, size: 'sm', color: '#2563eb', flex: 3, weight: 'bold' },
+      ],
+    })
+  }
+  bodyContents.push({ type: 'separator', margin: 'lg' })
+  bodyContents.push({
+    type: 'text',
+    text: note ?? '如有任何疑問，請聯絡補習班確認。',
+    size: 'xs',
+    color: '#888888',
+    wrap: true,
+    margin: 'lg',
+  })
+
+  return {
+    type: 'flex',
+    altText: `【${studentName}】課程異動通知`,
+    contents: {
+      type: 'bubble',
+      header: {
+        type: 'box',
+        layout: 'vertical',
+        backgroundColor: '#2563eb',
+        paddingAll: '20px',
+        contents: [
+          { type: 'text', text: '📅 課程異動通知', color: '#ffffff', size: 'lg', weight: 'bold' },
+        ],
+      },
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        spacing: 'md',
+        contents: bodyContents,
+      },
+    },
+  }
+}
