@@ -1,5 +1,6 @@
 import { connectDB } from '@/lib/db/mongoose'
 import LineNotifyLog from '@/lib/models/LineNotifyLog'
+import { checkAdminAuth } from '@/lib/admin-session'
 import type { ApiResponse } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -18,6 +19,11 @@ export const dynamic = 'force-dynamic'
  *   date_to    = ISO 日期字串（含）
  */
 export async function GET(request: Request) {
+  const adminId = await checkAdminAuth()
+  if (!adminId) {
+    return Response.json({ data: null, error: '未經授權' }, { status: 401 })
+  }
+
   try {
     await connectDB()
 

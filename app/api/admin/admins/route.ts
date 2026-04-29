@@ -1,5 +1,6 @@
 import { connectDB } from '@/lib/db/mongoose'
 import AdminUser from '@/lib/models/AdminUser'
+import { checkAdminAuth } from '@/lib/admin-session'
 import type { ApiResponse } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -9,6 +10,11 @@ export const dynamic = 'force-dynamic'
  * 列出所有管理員
  */
 export async function GET() {
+  const adminId = await checkAdminAuth()
+  if (!adminId) {
+    return Response.json({ data: null, error: '未經授權' }, { status: 401 })
+  }
+
   try {
     await connectDB()
     const admins = await AdminUser.find({ is_active: true }).lean()
@@ -23,6 +29,11 @@ export async function GET() {
  * 新增管理員 (從綁定日誌提升)
  */
 export async function POST(request: Request) {
+  const adminId = await checkAdminAuth()
+  if (!adminId) {
+    return Response.json({ data: null, error: '未經授權' }, { status: 401 })
+  }
+
   try {
     const { line_user_id, name } = await request.json()
 
@@ -61,6 +72,11 @@ export async function POST(request: Request) {
  * 移除管理員權限
  */
 export async function DELETE(request: Request) {
+  const adminId = await checkAdminAuth()
+  if (!adminId) {
+    return Response.json({ data: null, error: '未經授權' }, { status: 401 })
+  }
+
   try {
     const { line_user_id } = await request.json()
     await connectDB()

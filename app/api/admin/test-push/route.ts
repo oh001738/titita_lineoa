@@ -9,6 +9,7 @@ import {
   courseChangeMessage,
 } from '@/lib/line/templates'
 import { NOTIFY_TYPES, type NotifyType } from '@/lib/constants'
+import { checkAdminAuth } from '@/lib/admin-session'
 import type { ApiResponse } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -21,6 +22,11 @@ export const dynamic = 'force-dynamic'
  * Body: { line_user_id, notify_type, student_name? }
  */
 export async function POST(request: Request) {
+  const adminId = await checkAdminAuth()
+  if (!adminId) {
+    return Response.json({ data: null, error: '未經授權' }, { status: 401 })
+  }
+
   try {
     const { line_user_id, notify_type, student_name = '測試學生' } = await request.json()
 

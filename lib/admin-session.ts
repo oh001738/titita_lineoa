@@ -1,8 +1,17 @@
+import { cookies } from 'next/headers'
+
 /**
  * Admin Session Token — 用 Web Crypto API（Edge + Node.js 18+ 皆可）
  * 格式：{adminId}.{timestamp}.{base64url(HMAC-SHA256)}
  * 優點：不需外部套件，無狀態，可在 middleware（edge runtime）驗證
  */
+
+export async function checkAdminAuth(): Promise<string | null> {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('admin_token')?.value
+  if (!token) return null
+  return verifyAdminToken(token)
+}
 
 const SEP = '.'
 const MAX_AGE_MS = 24 * 60 * 60 * 1000 // 24 小時

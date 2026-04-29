@@ -1,6 +1,7 @@
 import { connectDB } from '@/lib/db/mongoose'
 import LineBindLog from '@/lib/models/LineBindLog'
 import { BIND_ACTIONS } from '@/lib/constants'
+import { checkAdminAuth } from '@/lib/admin-session'
 import type { ApiResponse } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -10,6 +11,11 @@ export const dynamic = 'force-dynamic'
  * 取得所有「目前有效綁定」的 LINE 使用者清單
  */
 export async function GET() {
+  const adminId = await checkAdminAuth()
+  if (!adminId) {
+    return Response.json({ data: null, error: '未經授權' }, { status: 401 })
+  }
+
   try {
     await connectDB()
 

@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/db/mongoose'
 import LineBindLog from '@/lib/models/LineBindLog'
 import LineNotifyLog from '@/lib/models/LineNotifyLog'
 import { BIND_ACTIONS, NOTIFY_STATUS } from '@/lib/constants'
+import { checkAdminAuth } from '@/lib/admin-session'
 import type { ApiResponse } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -11,8 +12,10 @@ export const dynamic = 'force-dynamic'
  * 取得管理後台概覽數據
  */
 export async function GET() {
-  // 這裡應有管理員驗證邏輯
-  // 基於「不依賴主系統」原則，這裡未來可實作簡單的獨立密碼驗證
+  const adminId = await checkAdminAuth()
+  if (!adminId) {
+    return Response.json({ data: null, error: '未經授權' }, { status: 401 })
+  }
 
   try {
     await connectDB()

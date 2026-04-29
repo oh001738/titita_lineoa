@@ -1,6 +1,7 @@
 import { connectDB } from '@/lib/db/mongoose'
 import SystemSetting, { getSetting, setSetting } from '@/lib/models/SystemSetting'
 import { clearSettingsCache } from '@/lib/line/push'
+import { checkAdminAuth } from '@/lib/admin-session'
 import type { ApiResponse } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -10,6 +11,11 @@ export const dynamic = 'force-dynamic'
  * 取得系統設定
  */
 export async function GET() {
+  const adminId = await checkAdminAuth()
+  if (!adminId) {
+    return Response.json({ data: null, error: '未經授權' }, { status: 401 })
+  }
+
   try {
     await connectDB()
     const isPushEnabled = await getSetting('is_push_enabled', true)
@@ -42,6 +48,11 @@ export async function GET() {
  * 更新系統設定
  */
 export async function PATCH(request: Request) {
+  const adminId = await checkAdminAuth()
+  if (!adminId) {
+    return Response.json({ data: null, error: '未經授權' }, { status: 401 })
+  }
+
   try {
     const { is_push_enabled, enabled_notifies } = await request.json()
     

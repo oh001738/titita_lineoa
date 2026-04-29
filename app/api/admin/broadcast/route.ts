@@ -5,6 +5,7 @@ import { connectDB } from '@/lib/db/mongoose'
 import LineNotifyLog from '@/lib/models/LineNotifyLog'
 import { getSetting } from '@/lib/models/SystemSetting'
 import { NOTIFY_TYPES, NOTIFY_STATUS } from '@/lib/constants'
+import { checkAdminAuth } from '@/lib/admin-session'
 import type { ApiResponse } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -24,6 +25,11 @@ interface Recipient {
  * 邏輯與 /api/line/notify/broadcast 相同，但驗證方式不同
  */
 export async function POST(request: Request) {
+  const adminId = await checkAdminAuth()
+  if (!adminId) {
+    return Response.json({ data: null, error: '未經授權的操作' }, { status: 401 })
+  }
+
   try {
     const { recipients, title, message, notify_type = NOTIFY_TYPES.BROADCAST } = await request.json()
 
