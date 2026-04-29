@@ -38,6 +38,7 @@ export default function PointsPage() {
   const [isAwarding, setIsAwarding] = useState(false)
   const [awardForm, setAwardForm] = useState({ studentId: '', amount: 10, reason: '' })
   const [isNotBound, setIsNotBound] = useState(false)
+  const [availableRoles, setAvailableRoles] = useState<string[]>([])
 
   // 1. 取得綁定的學生清單與偵測身份
   useEffect(() => {
@@ -46,9 +47,14 @@ export default function PointsPage() {
       fetch(`/api/line/status?id_token=${idToken}`)
         .then(res => res.json())
         .then(result => {
-          if (result.data?.is_bound) {
-            const teacher = result.data.users.find((u: any) => u.role === 'teacher')
-            if (teacher) {
+          if (result.data?.users && result.data.users.length > 0) {
+            const roles = Array.from(new Set(result.data.users.map((u: any) => u.role)))
+            setAvailableRoles(roles as string[])
+
+            const hasTeacher = roles.includes('teacher')
+            const hasFamily = roles.includes('family')
+
+            if (hasTeacher) {
               setUserRole('teacher')
               // 老師身分：抓取今日學生
               fetch(`/api/points/teacher/students?id_token=${idToken}`)
@@ -57,7 +63,7 @@ export default function PointsPage() {
                   if (sResult.data?.students) setTeacherStudents(sResult.data.students)
                   setIsLoading(false)
                 })
-            } else {
+            } else if (hasFamily) {
               setUserRole('family')
               // 家長身分：抓取綁定的小孩清單
               fetch(`/api/internal/users/bound-students?id_token=${idToken}`)
@@ -80,7 +86,34 @@ export default function PointsPage() {
       setIsNotBound(true)
       setIsLoading(false)
     }
-  }, [isReady, profile])
+  }, [isReady, idToken])
+
+  // 當手動切換身份時的操作
+  const toggleRole = () => {
+    const nextRole = userRole === 'teacher' ? 'family' : 'teacher'
+    setUserRole(nextRole)
+    setIsLoading(true)
+
+    if (nextRole === 'teacher') {
+      fetch(`/api/points/teacher/students?id_token=${idToken}`)
+        .then(r => r.json())
+        .then(sResult => {
+          if (sResult.data?.students) setTeacherStudents(sResult.data.students)
+          setIsLoading(false)
+        })
+    } else {
+      fetch(`/api/internal/users/bound-students?id_token=${idToken}`)
+        .then(res => res.json())
+        .then(childResult => {
+          if (childResult.data && childResult.data.length > 0) {
+            setBoundStudents(childResult.data)
+            setSelectedStudentId(childResult.data[0].user_id)
+          } else {
+            setIsLoading(false)
+          }
+        })
+    }
+  }
 
   // 2. 當選擇的學生改變時，取得該學生的點數 (僅家長模式)
   useEffect(() => {
@@ -166,8 +199,16 @@ export default function PointsPage() {
   if (userRole === 'teacher') {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col">
-        <header className="bg-gradient-to-br from-indigo-600 to-violet-700 text-white p-8 rounded-b-[40px] shadow-lg">
-          <div className="flex items-center justify-between mb-2">
+        <header className="bg-gradient-to-br from-indigo-600 to-violet-700 text-white p-8 rounded-b-[40px] shadow-lg relative">
+          {availableRoles.length > 1 && (
+            <button 
+              onClick={toggleRole}
+              className="absolute top-6 left-6 bg-white/20 backdrop-blur-sm text-[10px] px-3 py-1.5 rounded-full font-bold border border-white/30 active:scale-95 transition-all"
+            >
+              🔄 切換至家長模式
+            </button>
+          )}
+          <div className="flex items-center justify-between mb-2 mt-4">
             <h1 className="text-xl font-bold">教師給點中心</h1>
             <span className="bg-white/20 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">Teacher Mode</span>
           </div>
@@ -273,6 +314,14 @@ export default function PointsPage() {
 
       {/* Balance Header */}
       <header className="bg-gradient-to-br from-amber-400 to-orange-500 text-white p-8 rounded-b-[40px] shadow-lg text-center relative overflow-hidden">
+        {availableRoles.length > 1 && (
+          <button 
+            onClick={toggleRole}
+            className="absolute top-6 left-6 bg-white/20 backdrop-blur-sm text-[10px] px-3 py-1.5 rounded-full font-bold border border-white/30 active:scale-95 transition-all z-20"
+          >
+            🔄 切換至教師模式
+          </button>
+        )}
         {/* Decorative background circles */}
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
         <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
