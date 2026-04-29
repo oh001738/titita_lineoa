@@ -3,6 +3,7 @@ import LineBindLog from '@/lib/models/LineBindLog'
 import LineNotifyLog from '@/lib/models/LineNotifyLog'
 import { BIND_ACTIONS, NOTIFY_STATUS } from '@/lib/constants'
 import { checkAdminAuth } from '@/lib/admin-session'
+import { getAllLineBindings } from '@/lib/main-system-client'
 import type { ApiResponse } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -24,24 +25,14 @@ export async function GET() {
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 
     const [
-      activeBindingsCount,
+      allBindingsRes,
       todayBindings,
       totalNotifies,
       todayNotifies,
       failedNotifies
     ] = await Promise.all([
-      // 1. 總綁定人數：計算目前處於「已綁定」狀態的唯一 (user_id + line_user_id) 對數
-      LineBindLog.aggregate([
-        { $sort: { createdAt: 1 } },
-        {
-          $group: {
-            _id: { user_id: '$user_id', line_user_id: '$line_user_id' },
-            lastAction: { $last: '$action' }
-          }
-        },
-        { $match: { lastAction: BIND_ACTIONS.BIND } },
-        { $count: 'count' }
-      ]).then(res => res[0]?.count || 0),
+      // 1. 總綁定人數：從主系統取得所有目前已綁定的使用者
+      getAllLineBindings(),
 
       // 2. 今日新增綁定：今日有發生過 BIND 動作的唯一對數（排除重複操作）
       LineBindLog.aggregate([
@@ -61,7 +52,7 @@ export async function GET() {
 
     return Response.json({
       data: {
-        total_bindings: activeBindingsCount,
+        total_bindings: allBindingsRes.data?.users.length || 0,
         today_bindings: todayBindings,
         total_notifies: totalNotifies,
         today_notifies: todayNotifies,

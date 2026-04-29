@@ -4,10 +4,16 @@ import LineBindLog from '@/lib/models/LineBindLog'
 import { BIND_ACTIONS, BIND_OPERATORS } from '@/lib/constants'
 import { client } from '@/lib/line/config'
 import { unbindNotifyMessage } from '@/lib/line/templates'
+import { checkAdminAuth } from '@/lib/admin-session'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
+  const adminId = await checkAdminAuth()
+  if (!adminId) {
+    return Response.json({ data: null, error: '未經授權' }, { status: 401 })
+  }
+
   try {
     const result = await getAllLineBindings()
     return Response.json(result)
@@ -17,6 +23,11 @@ export async function GET() {
 }
 
 export async function DELETE(request: Request) {
+  const adminId = await checkAdminAuth()
+  if (!adminId) {
+    return Response.json({ data: null, error: '未經授權' }, { status: 401 })
+  }
+
   try {
     const { user_id, line_user_id, name } = await request.json()
     if (!user_id || !line_user_id) {

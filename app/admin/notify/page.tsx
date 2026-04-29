@@ -47,7 +47,7 @@ export default function AdminNotifyPage() {
   useEffect(() => {
     fetch('/api/admin/recipients')
       .then((res) => res.json())
-      .then((r) => { if (r.data) setRecipients(r.data) })
+      .then((r) => { if (r.data?.users) setRecipients(r.data.users) })
       .finally(() => setIsLoadingRecipients(false))
   }, [])
 
