@@ -36,6 +36,7 @@ export function LiffProvider({ children }: { children: ReactNode }) {
   const [idToken, setIdToken] = useState<string | null>(null)
   const [isReady, setIsReady] = useState(false)
   const [isInClient, setIsInClient] = useState(false)
+  const [isExternalBrowser, setIsExternalBrowser] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -66,7 +67,15 @@ export function LiffProvider({ children }: { children: ReactNode }) {
 
         await liff.init({ liffId })
         setLiffInstance(liff)
-        setIsInClient(liff.isInClient())
+
+        const inClient = liff.isInClient()
+        setIsInClient(inClient)
+
+        if (!inClient) {
+          setIsExternalBrowser(true)
+          setIsReady(true)
+          return
+        }
 
         if (!liff.isLoggedIn()) {
           liff.login()
@@ -93,6 +102,24 @@ export function LiffProvider({ children }: { children: ReactNode }) {
 
     initLiff()
   }, [])
+
+  if (isExternalBrowser) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
+        <div className="bg-white w-full max-w-sm rounded-3xl p-8 shadow-xl text-center">
+          <div className="text-5xl mb-4">💬</div>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">請在 LINE 中開啟</h2>
+          <p className="text-gray-500 text-sm mb-6">
+            此頁面僅支援在 LINE App 中使用。<br />
+            請回到 LINE 聊天室，透過選單開啟此功能。
+          </p>
+          <div className="bg-slate-50 rounded-xl p-4 text-xs text-gray-400">
+            如需協助，請在 LINE 聊天室輸入「綁定」或「狀態」
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <LiffContext.Provider value={{ liff: liffInstance, profile, idToken, isReady, isInClient, error }}>
