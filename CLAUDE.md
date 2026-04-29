@@ -55,33 +55,79 @@ titita_lineoa/
 ├── app/
 │   ├── api/
 │   │   ├── health/route.ts            # ✅ 健康檢查（含 DB 連線）
+│   │   ├── admin/                     # ✅ 管理員 API
+│   │   │   ├── login/route.ts         #    登入
+│   │   │   ├── logout/route.ts        #    登出
+│   │   │   ├── broadcast/route.ts     #    廣播推播
+│   │   │   ├── recipients/route.ts    #    已綁定用戶清單
+│   │   │   ├── stats/route.ts         #    統計數據
+│   │   │   ├── test-push/route.ts     #    試發推播
+│   │   │   ├── settings/route.ts      #    系統設定
+│   │   │   └── logs/
+│   │   │       ├── bind/route.ts      #    綁定日誌
+│   │   │       └── notify/route.ts    #    推播日誌
+│   │   ├── internal/users/            # ✅ 代轉主系統查詢（LIFF 用）
+│   │   │   ├── bound-students/route.ts#    已綁定學生
+│   │   │   ├── courses/route.ts       #    課表
+│   │   │   ├── points/route.ts        #    點數
+│   │   │   └── leave/route.ts         #    請假申請
+│   │   ├── points/teacher/            # ✅ 教師點數操作
+│   │   │   ├── students/route.ts      #    教師學生清單
+│   │   │   └── award/route.ts         #    獎勵點數
 │   │   └── line/
-│   │       ├── webhook/route.ts       # ✅ LINE Webhook（follow/unfollow/message）
+│   │       ├── webhook/route.ts       # ✅ LINE Webhook（follow/unfollow/message/postback）
 │   │       ├── bind/route.ts          # ✅ 確認綁定（POST）
 │   │       ├── bind/lookup/route.ts   # ✅ 電話查詢（POST）
+│   │       ├── bind/status/route.ts   # ✅ 綁定狀態查詢（GET）
 │   │       ├── unbind/route.ts        # ✅ 管理員解綁（POST）
-│   │       └── notify/route.ts        # ✅ 推播通知（POST + GET）
+│   │       ├── unbind/self/route.ts   # ✅ 用戶自行解綁（POST）
+│   │       ├── notify/route.ts        # ✅ 推播通知（POST + GET）
+│   │       └── notify/broadcast/route.ts # ✅ 廣播推播（POST）
+│   ├── admin/                         # ✅ 管理員 UI
+│   │   ├── layout.tsx                 #    管理員 layout
+│   │   ├── page.tsx                   #    儀表板
+│   │   ├── login/page.tsx             #    登入頁
+│   │   ├── notify/page.tsx            #    推播管理頁
+│   │   └── logs/
+│   │       ├── bind/page.tsx          #    綁定日誌頁
+│   │       └── notify/page.tsx        #    推播日誌頁
 │   ├── liff/
 │   │   ├── layout.tsx                 # ✅ LIFF layout（LiffProvider）
-│   │   └── bind/page.tsx              # ✅ 綁定頁面（三步驟流程）
+│   │   ├── bind/page.tsx              # ✅ 綁定頁面（三步驟流程）
+│   │   ├── status/page.tsx            # ✅ 綁定狀態頁
+│   │   ├── courses/page.tsx           # ✅ 課表頁（含請假功能）
+│   │   └── points/page.tsx            # ✅ 點數頁
 │   ├── layout.tsx                     # ✅ Root layout
 │   ├── page.tsx                       # 首頁（預設）
 │   └── globals.css
 ├── components/
+│   ├── admin/
+│   │   └── AdminLogoutButton.tsx      # ✅ 管理員登出按鈕
 │   └── liff/
-│       └── LiffProvider.tsx           # ✅ LIFF SDK 初始化 Context
+│       ├── LiffProvider.tsx           # ✅ LIFF SDK 初始化 Context
+│       ├── Toast.tsx                  # ✅ 全域 Toast 元件
+│       └── ConfirmDialog.tsx          # ✅ 全域確認對話框
 ├── lib/
 │   ├── db/
 │   │   └── mongoose.ts                # ✅ LINE OA 自己的 MongoDB 連線
-│   ├── models/                        # ⚠ 只有 LINE OA 自己的 Model
+│   ├── models/
 │   │   ├── LineBindLog.ts             # ✅ 綁定操作紀錄
-│   │   └── LineNotifyLog.ts           # ✅ 推播紀錄
+│   │   ├── LineNotifyLog.ts           # ✅ 推播紀錄
+│   │   ├── AdminUser.ts              # ✅ 管理員帳號
+│   │   └── SystemSetting.ts          # ✅ 系統設定
 │   ├── line/
 │   │   ├── client.ts                  # ✅ LINE Messaging API client
 │   │   ├── signature.ts               # ✅ Webhook 簽名驗證
-│   │   ├── templates.ts               # ✅ Flex Message 模板
-│   │   └── push.ts                    # ✅ 推播函式封裝
+│   │   ├── templates.ts               # ✅ 文字訊息模板
+│   │   ├── flex-templates.ts          # ✅ Flex Message 模板
+│   │   ├── push.ts                    # ✅ 推播函式封裝
+│   │   └── verify-id-token.ts         # ✅ LIFF ID Token 驗證
 │   ├── main-system-client.ts          # ✅ 主系統 Internal API Client
+│   ├── mock-main-system-client.ts     # ✅ Mock 資料（MOCK_MODE 用）
+│   ├── admin-session.ts               # ✅ 管理員 Session 管理
+│   ├── rate-limit.ts                  # ✅ API 速率限制
+│   ├── site-config.ts                 # ✅ 站台設定
+│   ├── env.ts                         # ✅ 環境變數輔助
 │   └── constants.ts                   # ✅ 常數定義
 ├── types/
 │   └── index.ts                       # ✅ TypeScript 型別定義
@@ -97,13 +143,18 @@ titita_lineoa/
 
 ## 3. 主系統 Internal API 依賴
 
-本系統需要主系統提供以下 3 支 Internal API：
+本系統需要主系統提供以下 Internal API：
 
 | 主系統端點 | 方法 | 用途 | LINE OA 呼叫位置 |
 |-----------|------|------|-----------------|
 | `/api/internal/users/lookup-by-phone` | POST | 用電話查詢 User+Student | bind/lookup |
 | `/api/internal/users/line-binding` | PATCH | 更新 line_user_id | bind, unbind |
 | `/api/internal/users/lookup-by-line` | POST | 用 LINE ID 查詢已綁定 User | webhook (unfollow, 狀態查詢) |
+| `/api/internal/users/courses` | GET | 查詢學生/教師課表 | liff/courses |
+| `/api/internal/users/points` | GET | 查詢學生點數餘額與歷史 | liff/points |
+| `/api/internal/users/leave` | POST | 提交請假申請 | liff/courses（請假） |
+| `/api/internal/users/teacher-students` | GET | 查詢教師的學生清單 | points/teacher |
+| `/api/internal/points/award` | POST | 教師獎勵點數 | points/teacher/award |
 
 所有 Internal API 使用 `X-Internal-Key` header 驗證。
 呼叫邏輯封裝在 `lib/main-system-client.ts`。
@@ -118,9 +169,22 @@ titita_lineoa/
 | `/api/line/webhook` | POST | LINE 事件接收 | X-Line-Signature |
 | `/api/line/bind/lookup` | POST | 電話查詢可綁定帳號 | LIFF（LINE userId） |
 | `/api/line/bind` | POST | 確認綁定 | LIFF（LINE userId） |
+| `/api/line/bind/status` | GET | 查詢綁定狀態 | LIFF（LINE userId） |
 | `/api/line/unbind` | POST | 管理員解綁 | X-Internal-Key |
+| `/api/line/unbind/self` | POST | 用戶自行解綁 | LIFF（LINE userId） |
 | `/api/line/notify` | POST | 推播通知（主系統呼叫） | X-Internal-Key |
 | `/api/line/notify` | GET | 查詢推播紀錄 | X-Internal-Key |
+| `/api/line/notify/broadcast` | POST | 廣播推播 | X-Internal-Key |
+| `/api/internal/users/bound-students` | GET | 查詢 LINE 用戶已綁定學生 | LIFF |
+| `/api/internal/users/courses` | GET | 代轉主系統課表查詢 | LIFF |
+| `/api/internal/users/points` | GET | 代轉主系統點數查詢 | LIFF |
+| `/api/internal/users/leave` | POST | 代轉主系統請假申請 | LIFF |
+| `/api/admin/login` | POST | 管理員登入 | 帳號密碼 |
+| `/api/admin/broadcast` | POST | 管理員廣播推播 | Session |
+| `/api/admin/logs/bind` | GET | 綁定日誌查詢 | Session |
+| `/api/admin/logs/notify` | GET | 推播日誌查詢 | Session |
+| `/api/admin/stats` | GET | 統計數據 | Session |
+| `/api/admin/test-push` | POST | 試發推播 | Session |
 
 ---
 
@@ -192,24 +256,27 @@ NEXT_PUBLIC_LIFF_ID      — LIFF App ID（前端使用）
 | LineBindLog / LineNotifyLog Model | ✅ |
 | 主系統 API Client (`main-system-client.ts`) | ✅ |
 | LINE Client + 簽名驗證 | ✅ |
-| Flex Message 模板 (4 種) | ✅ |
+| Flex Message 模板 | ✅ |
 | 推播函式封裝與優化 | ✅ |
-| Webhook API (follow/unfollow/message) | ✅ |
+| Webhook API (follow/unfollow/message/postback) | ✅ |
 | 綁定查詢 + 確認 + 解綁 API | ✅ |
 | 推播 API (含錯誤處理) | ✅ |
+| 廣播 API (Batch Push) | ✅ |
 | LIFF Provider + 綁定頁面 | ✅ |
-| 綁定狀態頁 (LIFF) | ✅ |
+| LIFF 綁定狀態頁 | ✅ |
+| LIFF 課表頁（含請假功能） | ✅ |
+| LIFF 點數頁 | ✅ |
+| 全域 UI 元件 (Toast + ConfirmDialog) | ✅ |
+| 管理員後台 (登入/廣播/日誌/統計) | ✅ |
+| 請假 API 主系統串接 | ✅ |
+| 主系統 Internal API 全部串接 | ✅ |
 | 健康檢查 API | ✅ |
 | Docker 部署設定 | ✅ |
 | TypeScript 編譯 0 errors | ✅ |
-| 廣播 API (Batch Push) | ✅ |
 
 ### 9.2 待完成
 
 | 項目 | 說明 |
 |------|------|
-| 主系統 Internal API 3 支 | 需主系統團隊實作 |
-| LINE Developer Console 設定 | 申請 Channel + LIFF App |
 | Rich Menu 設計與上傳 | 6 格選單圖片 |
-| ngrok 測試 | 本地 Webhook 測試 |
-| 實際部署 | Docker 容器啟動 |
+| 實際部署 | NAS Docker 容器啟動 |

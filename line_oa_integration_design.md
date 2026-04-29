@@ -505,20 +505,38 @@ async function notifyLeaveRequestResult(leaveRequest: LeaveRequestWithRefs) {
 
 ## 15. 開發狀態與後續串接 (2026-04 最新狀態)
 
-LINE OA 系統目前已完成前端 UI、LINE SDK 整合、Webhooks 及 Mock 測試環境建立。
+LINE OA 系統已完成所有核心功能開發與主系統 Internal API 串接。
 
 ### LINE OA 系統 (本系統) 目前狀態：
-1. **Mock 模式啟用**：
-   系統已實裝 `MOCK_MODE=true` (`lib/main-system-client.ts`)。在沒有主系統 API 的情況下，仍能用測試帳號 (如 `0912345678`) 完成整個綁定流程。
-2. **解決開發環境的 Hydration 問題**：
-   在開發期使用 `ngrok` 時，其警告頁面會阻擋 Next.js 15 的 JavaScript 載入 (導致畫面有載入中圖示，但 JS 完全卡死)。**強烈建議解決方案**：
-   - 使用 **Pinggy** (`ssh -p 443 -R0:localhost:3000 a.pinggy.io`) 替代 ngrok，因為它沒有警告頁面。
-   - 或使用正式環境啟動 (`npm run build && npm run start`) 來繞過開發模式的安全檢查。
-3. **資料庫獨立**：
+1. **主系統串接完成**：
+   `MOCK_MODE=false`，所有 Internal API 已與主系統 (`titita_onecloud`) 完成串接：
+   - 帳號綁定（lookup-by-phone / line-binding / lookup-by-line）
+   - 課表查詢（courses）
+   - 點數查詢（points）
+   - 請假申請（leave）— 2026-04-29 完成，LIFF 課表頁面可直接提交請假
+   - 教師操作（teacher-students / points/award）
+2. **LIFF 頁面完整**：
+   綁定、狀態查詢、課表（含請假）、點數共 4 個 LIFF 頁面。
+3. **管理員後台**：
+   登入、廣播推播、綁定/推播日誌查看、統計數據、試發推播。
+4. **資料庫獨立**：
    已經完全與主系統 DB 解耦。LINE OA 擁有獨立的 MongoDB 用以存放 `LineBindLog` (綁定紀錄) 和 `LineNotifyLog` (推播紀錄)。
+5. **開發環境注意事項**：
+   使用隧道工具時，建議用 **Pinggy** (`ssh -p 443 -R0:localhost:3001 a.pinggy.io`) 替代 ngrok，避免警告頁面阻擋 Next.js JS 載入。
 
-### 下一步：主系統串接步驟
-1. 主系統團隊依照 `main_system_internal_api_spec.md` 規格實作 `/api/internal/users/*` 這 3 支 API。
-2. 將 LINE OA `.env.local` 中的 `MAIN_SYSTEM_URL` 換成主系統的正式/測試網址。
-3. 將 LINE OA `.env.local` 中的 `MOCK_MODE` 設為 `false`。
-4. 設定統一的 `INTERNAL_API_KEY`，雙方系統開始對接測試。
+### 主系統 Internal API（已實作於 `titita_onecloud`）
+
+| 端點 | 方法 | 用途 |
+|------|------|------|
+| `/api/internal/users/lookup-by-phone` | POST | 電話查詢 User |
+| `/api/internal/users/line-binding` | PATCH | 更新 line_user_id |
+| `/api/internal/users/lookup-by-line` | POST | LINE ID 查詢已綁定 User |
+| `/api/internal/users/courses` | GET | 學生/教師課表 |
+| `/api/internal/users/points` | GET | 點數餘額與歷史 |
+| `/api/internal/users/leave` | POST | 請假申請（user_id + lesson_id + reason） |
+| `/api/internal/users/teacher-students` | GET | 教師學生清單 |
+| `/api/internal/points/award` | POST | 獎勵點數 |
+
+### 待完成
+1. Rich Menu 設計與上傳（6 格選單圖片）。
+2. NAS Docker 容器實際部署。

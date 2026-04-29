@@ -1,24 +1,30 @@
 import { NextResponse } from 'next/server'
+import { submitLeaveRequest } from '@/lib/main-system-client'
 
 export async function POST(request: Request) {
   try {
-    const { line_user_id, course_id, reason } = await request.json()
+    const { line_user_id, user_id, course_id, reason } = await request.json()
 
-    if (!line_user_id || !course_id) {
+    if (!line_user_id || !user_id || !course_id) {
       return NextResponse.json({ data: null, error: '缺少必要參數' }, { status: 400 })
     }
 
-    if (process.env.MOCK_MODE === 'true') {
-      await new Promise(resolve => setTimeout(resolve, 1000)) // 模擬處理時間
-      
-      // 這裡可以選擇是否觸發一個 Flex Message 推播給家長，確認請假成功
-      // 但為了單純，這裡我們只回傳成功
-      return NextResponse.json({ data: { success: true, message: '請假申請已送出' }, error: null })
+    const result = await submitLeaveRequest({
+      user_id,
+      lesson_id: course_id,
+      reason: reason ?? '家長透過 LINE 請假',
+    })
+
+    if (result.error) {
+      return NextResponse.json({ data: null, error: result.error }, { status: 400 })
     }
 
-    // TODO: 串接主系統 API
-    return NextResponse.json({ data: null, error: '主系統尚未串接' })
+    return NextResponse.json({
+      data: { success: true, leave_request_id: result.data?.leave_request_id },
+      error: null,
+    })
   } catch (err) {
+    console.error('[leave] Error:', err)
     return NextResponse.json({ data: null, error: '伺服器錯誤' }, { status: 500 })
   }
 }

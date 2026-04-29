@@ -76,6 +76,10 @@ interface TeacherStudentsResult {
   students: Array<{ user_id: string; name: string; student_id: string }>
 }
 
+interface LeaveRequestResult {
+  leave_request_id: string
+}
+
 interface AwardPointsResult {
   success: boolean
   log_id: string
@@ -124,6 +128,17 @@ export async function getTeacherStudents(
     `/api/internal/users/teacher-students?teacher_id=${teacherId}`,
     'GET'
   )
+}
+
+export async function submitLeaveRequest(data: {
+  user_id: string
+  lesson_id: string
+  reason: string
+}): Promise<InternalApiResponse<LeaveRequestResult>> {
+  if (isMockMode()) {
+    return { data: { leave_request_id: 'mock_leave_' + Date.now() }, error: null }
+  }
+  return callInternal<LeaveRequestResult>('/api/internal/users/leave', 'POST', data)
 }
 
 export async function awardPoints(data: {
