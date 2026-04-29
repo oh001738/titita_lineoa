@@ -11,7 +11,7 @@ const SCHOOL_NAME = process.env.NEXT_PUBLIC_SCHOOL_NAME || '音樂補習班'
 type BindStep = 'phone' | 'select' | 'success' | 'error' | 'already_bound' | 'loading'
 
 export default function BindPage() {
-  const { profile, idToken, isReady, error: liffError } = useLiff()
+  const { liff, profile, idToken, isReady, error: liffError } = useLiff()
   const { showToast } = useToast()
   const { confirm } = useConfirm()
 
@@ -409,9 +409,15 @@ export default function BindPage() {
               </div>
             ))}
           </div>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400 mb-6">
             您將透過 LINE 接收課程通知、學費提醒等訊息。
           </p>
+          <button
+            onClick={() => liff?.closeWindow()}
+            className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+          >
+            完成，返回聊天室
+          </button>
         </div>
       )}
     </div>
