@@ -10,7 +10,7 @@ export function createPointsAwardFlex(data: {
 }) {
   return {
     type: "bubble",
-    size: "medium",
+    size: "mega",
     header: {
       type: "box",
       layout: "vertical",
