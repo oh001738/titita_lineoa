@@ -299,6 +299,11 @@ export default function CoursesPage() {
                           已完課
                         </div>
                       )}
+                      {course.isMakeup && (
+                        <div className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded">
+                          補課
+                        </div>
+                      )}
                     </div>
                     <div className="text-gray-400 text-sm font-medium">
                       {course.startTime} - {course.endTime}
