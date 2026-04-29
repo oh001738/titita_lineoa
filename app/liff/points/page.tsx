@@ -251,9 +251,8 @@ export default function PointsPage() {
           <div className="absolute top-6 right-6 z-10">
             {renderRoleSelector('indigo')}
           </div>
-          <div className="flex items-center justify-between mb-2">
+          <div className="mb-2">
             <h1 className="text-xl font-bold">教師給點中心</h1>
-            <span className="bg-white/20 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">Teacher</span>
           </div>
           <p className="text-indigo-100 text-xs opacity-90">為今日上課的學生發放獎勵點數</p>
         </header>

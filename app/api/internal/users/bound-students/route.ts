@@ -24,12 +24,14 @@ export async function GET(request: Request) {
       return NextResponse.json({ data: null, error: result.error || '無法取得綁定資料' }, { status: 500 })
     }
 
-    // 將回傳的使用者轉為前端需要的格式
-    const boundStudents = result.data.users.map(u => ({
-      user_id: u._id,
-      student_name: u.name || '未命名',
-      role: u.role
-    }))
+    // 將回傳的使用者轉為前端需要的格式（排除教師帳號，只保留學生/家長）
+    const boundStudents = result.data.users
+      .filter(u => u.role !== 'teacher')
+      .map(u => ({
+        user_id: u._id,
+        student_name: u.student_name || u.name || '未命名',
+        role: u.role
+      }))
 
     return NextResponse.json({
       data: boundStudents,
