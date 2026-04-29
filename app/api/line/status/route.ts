@@ -1,24 +1,34 @@
 import { lookupUsersByLineId } from '@/lib/main-system-client'
+import { verifyLineIdToken } from '@/lib/line/verify-id-token'
 import type { ApiResponse } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
 /**
- * GET /api/line/status?line_user_id=xxx
+ * GET /api/line/status?id_token=xxx
  * 查詢目前 LINE 帳號綁定的系統帳號
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const lineUserId = searchParams.get('line_user_id')
+  const idToken = searchParams.get('id_token')
 
-  if (!lineUserId) {
+  if (!idToken) {
     return Response.json(
-      { data: null, error: '缺少 line_user_id' } satisfies ApiResponse<null>,
+      { data: null, error: '缺少 id_token 參數' } satisfies ApiResponse<null>,
       { status: 400 }
     )
   }
 
   try {
+    const verified = await verifyLineIdToken(idToken)
+    if (!verified) {
+      return Response.json(
+        { data: null, error: '身份驗證失敗' } satisfies ApiResponse<null>,
+        { status: 401 }
+      )
+    }
+    const lineUserId = verified.userId
+
     const result = await lookupUsersByLineId(lineUserId)
     return Response.json(result)
   } catch (err) {

@@ -20,5 +20,9 @@ const LineBindLogSchema = new Schema(
   { timestamps: true }
 )
 
+// 建立複合索引以優化統計數據的聚合查詢效能
+LineBindLogSchema.index({ user_id: 1, line_user_id: 1, createdAt: -1 })
+LineBindLogSchema.index({ action: 1, createdAt: -1 }) // 優化今日新增統計
+
 const LineBindLog = models.LineBindLog || model('LineBindLog', LineBindLogSchema)
 export default LineBindLog

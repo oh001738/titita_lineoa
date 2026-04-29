@@ -22,7 +22,7 @@ interface BoundStudent {
 }
 
 export default function CoursesPage() {
-  const { profile, isReady, error: liffError } = useLiff()
+  const { profile, idToken, isReady, error: liffError } = useLiff()
   const { showToast } = useToast()
   const { confirm } = useConfirm()
   const [boundStudents, setBoundStudents] = useState<BoundStudent[]>([])
@@ -36,8 +36,8 @@ export default function CoursesPage() {
 
   // 1. 取得綁定的學生清單
   useEffect(() => {
-    if (isReady && profile?.userId) {
-      fetch(`/api/internal/users/bound-students?line_user_id=${profile.userId}`)
+    if (isReady && idToken) {
+      fetch(`/api/internal/users/bound-students?id_token=${idToken}`)
         .then(res => res.json())
         .then(result => {
           if (result.data && result.data.length > 0) {
@@ -56,10 +56,10 @@ export default function CoursesPage() {
 
   // 2. 當選擇的學生改變時，取得該學生的課表
   useEffect(() => {
-    if (!profile?.userId || !selectedStudentId) return
+    if (!idToken || !selectedStudentId) return
     
     setIsLoading(true)
-    fetch(`/api/internal/users/courses?line_user_id=${profile.userId}&user_id=${selectedStudentId}`)
+    fetch(`/api/internal/users/courses?id_token=${idToken}&user_id=${selectedStudentId}`)
       .then(res => res.json())
       .then(result => {
         if (result.data) {
@@ -89,7 +89,7 @@ export default function CoursesPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          line_user_id: profile.userId,
+          id_token: idToken,
           user_id: selectedStudentId,
           course_id: selectedCourse.id,
           reason: '家長透過 LINE 請假'

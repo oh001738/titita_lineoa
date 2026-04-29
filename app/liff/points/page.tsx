@@ -23,7 +23,7 @@ interface BoundStudent {
 }
 
 export default function PointsPage() {
-  const { profile, isReady, error: liffError } = useLiff()
+  const { profile, idToken, isReady, error: liffError } = useLiff()
   const { showToast } = useToast()
   const [boundStudents, setBoundStudents] = useState<BoundStudent[]>([])
   const [selectedStudentId, setSelectedStudentId] = useState<string>('')
@@ -41,9 +41,9 @@ export default function PointsPage() {
 
   // 1. 取得綁定的學生清單與偵測身份
   useEffect(() => {
-    if (isReady && profile?.userId) {
+    if (isReady && idToken) {
       // 先查綁定狀態與身份
-      fetch(`/api/line/bind/status?line_user_id=${profile.userId}`)
+      fetch(`/api/line/status?id_token=${idToken}`)
         .then(res => res.json())
         .then(result => {
           if (result.data?.is_bound) {
@@ -51,7 +51,7 @@ export default function PointsPage() {
             if (teacher) {
               setUserRole('teacher')
               // 老師身分：抓取今日學生
-              fetch(`/api/points/teacher/students?line_user_id=${profile.userId}`)
+              fetch(`/api/points/teacher/students?id_token=${idToken}`)
                 .then(r => r.json())
                 .then(sResult => {
                   if (sResult.data?.students) setTeacherStudents(sResult.data.students)
@@ -60,7 +60,7 @@ export default function PointsPage() {
             } else {
               setUserRole('family')
               // 家長身分：抓取綁定的小孩清單
-              fetch(`/api/internal/users/bound-students?line_user_id=${profile.userId}`)
+              fetch(`/api/internal/users/bound-students?id_token=${idToken}`)
                 .then(res => res.json())
                 .then(childResult => {
                   if (childResult.data && childResult.data.length > 0) {
@@ -84,10 +84,10 @@ export default function PointsPage() {
 
   // 2. 當選擇的學生改變時，取得該學生的點數 (僅家長模式)
   useEffect(() => {
-    if (userRole !== 'family' || !profile?.userId || !selectedStudentId) return
+    if (userRole !== 'family' || !idToken || !selectedStudentId) return
     
     setIsLoading(true)
-    fetch(`/api/internal/users/points?line_user_id=${profile.userId}&user_id=${selectedStudentId}`)
+    fetch(`/api/internal/users/points?id_token=${idToken}&user_id=${selectedStudentId}`)
       .then(res => res.json())
       .then(result => {
         if (result.data) {
@@ -107,7 +107,7 @@ export default function PointsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          line_user_id: profile?.userId,
+          id_token: idToken,
           target_user_id: student.user_id,
           target_line_user_id: student.line_user_id,
           target_name: student.name,

@@ -18,11 +18,11 @@ export default function StatusPage() {
   const [error, setError] = useState<string | null>(null)
   const [isUnbinding, setIsUnbinding] = useState<string | null>(null)
 
-  const fetchStatus = useCallback(async (lineUserId: string) => {
+  const fetchStatus = useCallback(async (token: string) => {
     setIsLoading(true)
     setError(null)
     try {
-      const res = await fetch(`/api/line/status?line_user_id=${lineUserId}`)
+      const res = await fetch(`/api/line/status?id_token=${token}`)
       const result = await res.json()
       if (result.error) {
         setError(result.error)
@@ -37,9 +37,9 @@ export default function StatusPage() {
   }, [])
 
   useEffect(() => {
-    if (isReady && profile?.userId) {
-      fetchStatus(profile.userId)
-    } else if (isReady && !profile?.userId) {
+    if (isReady && idToken) {
+      fetchStatus(idToken)
+    } else if (isReady && !idToken) {
       setIsLoading(false)
       setError('無法取得 LINE 使用者資訊')
     }
@@ -136,7 +136,7 @@ export default function StatusPage() {
           <div className="text-center py-8">
             <p className="text-red-500 text-sm mb-2">⚠️ {error}</p>
             <button
-              onClick={() => profile?.userId && fetchStatus(profile.userId)}
+              onClick={() => idToken && fetchStatus(idToken)}
               className="text-indigo-600 text-sm font-medium"
             >
               再試一次

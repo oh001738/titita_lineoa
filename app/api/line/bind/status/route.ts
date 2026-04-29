@@ -1,15 +1,22 @@
 import { NextResponse } from 'next/server'
 import { lookupUsersByLineId } from '@/lib/main-system-client'
+import { verifyLineIdToken } from '@/lib/line/verify-id-token'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const lineUserId = searchParams.get('line_user_id')
+  const idToken = searchParams.get('id_token')
 
-  if (!lineUserId) {
-    return NextResponse.json({ data: null, error: '缺少 LINE ID 參數' }, { status: 400 })
+  if (!idToken) {
+    return NextResponse.json({ data: null, error: '缺少 id_token 參數' }, { status: 400 })
   }
 
   try {
+    const verified = await verifyLineIdToken(idToken)
+    if (!verified) {
+      return NextResponse.json({ data: null, error: '身份驗證失敗' }, { status: 401 })
+    }
+    const lineUserId = verified.userId
+
     const result = await lookupUsersByLineId(lineUserId)
     
     if (result.error) {

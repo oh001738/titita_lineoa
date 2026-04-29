@@ -2,16 +2,24 @@ import { NextResponse } from 'next/server'
 import { lookupUsersByLineId, awardPoints } from '@/lib/main-system-client'
 import { pushMessage } from '@/lib/line/push'
 import { NOTIFY_TYPES } from '@/lib/constants'
+import { verifyLineIdToken } from '@/lib/line/verify-id-token'
 
 export async function POST(request: Request) {
   try {
-    const { line_user_id, target_user_id, target_line_user_id, target_name, amount, reason } = await request.json()
+    const { id_token, target_user_id, target_line_user_id, target_name, amount, reason } = await request.json()
 
-    if (!line_user_id || !target_user_id || !amount) {
+    if (!id_token || !target_user_id || !amount) {
       return NextResponse.json({ error: '缺少參數' }, { status: 400 })
     }
 
-    // 1. 找出老師 ID
+    // 1. 驗證 ID Token
+    const verified = await verifyLineIdToken(id_token)
+    if (!verified) {
+      return NextResponse.json({ error: '身份驗證失敗' }, { status: 401 })
+    }
+    const line_user_id = verified.userId
+
+    // 2. 找出老師 ID
     const userResult = await lookupUsersByLineId(line_user_id)
     const teacher = userResult.data?.users.find(u => u.role === 'teacher')
 

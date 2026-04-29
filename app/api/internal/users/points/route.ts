@@ -20,20 +20,25 @@ const MOCK_POINTS_DATA_S2 = {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const lineUserId = searchParams.get('line_user_id')
+  const idToken = searchParams.get('id_token')
   const userId = searchParams.get('user_id')
 
-  if (!lineUserId || !userId) {
+  if (!idToken || !userId) {
     return NextResponse.json({ data: null, error: 'Missing parameters' }, { status: 400 })
   }
 
-  if (process.env.MOCK_MODE === 'true') {
-    await new Promise(resolve => setTimeout(resolve, 600))
-    const data = userId === 's2' ? MOCK_POINTS_DATA_S2 : MOCK_POINTS_DATA_S1;
-    return NextResponse.json({ data, error: null })
-  }
-
   try {
+    const verified = await verifyLineIdToken(idToken)
+    if (!verified) {
+      return NextResponse.json({ data: null, error: '身份驗證失敗' }, { status: 401 })
+    }
+
+    if (process.env.MOCK_MODE === 'true') {
+      await new Promise(resolve => setTimeout(resolve, 600))
+      const data = userId === 's2' ? MOCK_POINTS_DATA_S2 : MOCK_POINTS_DATA_S1;
+      return NextResponse.json({ data, error: null })
+    }
+
     const url = process.env.MAIN_SYSTEM_URL
     const key = process.env.INTERNAL_API_KEY
     

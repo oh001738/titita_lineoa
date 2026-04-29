@@ -65,6 +65,7 @@ export function LiffProvider({ children }: { children: ReactNode }) {
         const liffId = process.env.NEXT_PUBLIC_LIFF_ID
         if (!liffId) {
           setError('LIFF ID 未設定')
+          setIsReady(true)
           return
         }
 
@@ -100,6 +101,7 @@ export function LiffProvider({ children }: { children: ReactNode }) {
       } catch (err: any) {
         console.error('[LIFF ERROR]', err)
         setError(`LIFF 錯誤: ${err?.message || String(err)}`)
+        setIsReady(true)
       }
     }
 

@@ -1,13 +1,20 @@
 import { NextResponse } from 'next/server'
 import { submitLeaveRequest } from '@/lib/main-system-client'
+import { verifyLineIdToken } from '@/lib/line/verify-id-token'
 
 export async function POST(request: Request) {
   try {
-    const { line_user_id, user_id, course_id, reason } = await request.json()
+    const { id_token, user_id, course_id, reason } = await request.json()
 
-    if (!line_user_id || !user_id || !course_id) {
+    if (!id_token || !user_id || !course_id) {
       return NextResponse.json({ data: null, error: '缺少必要參數' }, { status: 400 })
     }
+
+    const verified = await verifyLineIdToken(id_token)
+    if (!verified) {
+      return NextResponse.json({ data: null, error: '身份驗證失敗' }, { status: 401 })
+    }
+    const line_user_id = verified.userId
 
     const result = await submitLeaveRequest({
       user_id,
