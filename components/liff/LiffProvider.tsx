@@ -1,6 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { usePathname } from 'next/navigation'
 
 export interface LiffProfile {
   userId: string
@@ -31,6 +32,8 @@ export function useLiff() {
 }
 
 export function LiffProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname()
+  const isAdminPage = pathname?.startsWith('/admin')
   const [liffInstance, setLiffInstance] = useState<any>(null)
   const [profile, setProfile] = useState<LiffProfile | null>(null)
   const [idToken, setIdToken] = useState<string | null>(null)
@@ -40,7 +43,7 @@ export function LiffProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined' || isAdminPage) return
 
     const initLiff = async () => {
       try {
@@ -103,7 +106,7 @@ export function LiffProvider({ children }: { children: ReactNode }) {
     initLiff()
   }, [])
 
-  if (isExternalBrowser) {
+  if (isExternalBrowser && !isAdminPage) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
         <div className="bg-white w-full max-w-sm rounded-3xl p-8 shadow-xl text-center">

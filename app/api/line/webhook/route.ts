@@ -136,9 +136,8 @@ async function handleMessage(event: WebhookEvent): Promise<void> {
     return
   }
 
-  await replyMessage(event.replyToken, [
-    { type: 'text', text: '請使用下方選單操作 📋\n\n輸入「綁定」可綁定帳號\n輸入「狀態」可查看綁定狀態' },
-  ])
+  // 其他訊息不自動回覆，由真人客服處理
+  console.log(`[Webhook] Ignoring non-keyword message from ${lineUserId}: ${text}`)
 }
 
 /**
