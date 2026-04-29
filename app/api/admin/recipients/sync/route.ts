@@ -38,7 +38,7 @@ export async function POST(request: Request) {
               statusMessage: profile.statusMessage,
               lastUpdated: new Date()
             },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: 'after' }
           )
           results.push({ line_user_id: line_id, success: true, displayName: profile.displayName })
         }
