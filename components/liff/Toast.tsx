@@ -31,7 +31,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-full max-w-[90%] space-y-3 pointer-events-none">
+      <div className="fixed bottom-2 left-1/2 -translate-x-1/2 z-[100] w-full max-w-[80%] space-y-2 pointer-events-none">
         {toasts.map((toast) => (
           <ToastItem key={toast.id} toast={toast} onRemove={removeToast} />
         ))}
@@ -61,9 +61,9 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
   }[toast.type]
 
   return (
-    <div className={`${bgColor} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300 pointer-events-auto mx-auto w-fit min-w-[200px]`}>
-      <span className="text-lg">{icon}</span>
-      <p className="text-sm font-bold">{toast.message}</p>
+    <div className={`${bgColor} text-white px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-300 pointer-events-auto mx-auto w-fit`}>
+      <span className="text-sm">{icon}</span>
+      <p className="text-xs font-medium">{toast.message}</p>
     </div>
   )
 }

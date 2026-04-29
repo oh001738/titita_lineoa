@@ -338,6 +338,16 @@ export default function BindPage() {
         </div>
       )}
 
+      {/* 所有步驟都顯示返回聊天室按鈕（除了 loading） */}
+      {step !== 'loading' && step !== 'already_bound' && (
+        <button
+          onClick={() => liff?.closeWindow()}
+          className="w-full mt-4 text-gray-400 text-sm font-medium hover:text-gray-600 transition-colors py-2"
+        >
+          ✕ 返回聊天室
+        </button>
+      )}
+
       {/* Step: Select Users */}
       {step === 'select' && (
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
