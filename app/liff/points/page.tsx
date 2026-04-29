@@ -38,45 +38,72 @@ export default function PointsPage() {
   const [isAwarding, setIsAwarding] = useState(false)
   const [awardForm, setAwardForm] = useState({ studentId: '', amount: 10, reason: '' })
   const [isNotBound, setIsNotBound] = useState(false)
-  const [availableRoles, setAvailableRoles] = useState<string[]>([])
+  const [hasTeacherRole, setHasTeacherRole] = useState(false)
 
-  // 1. 取得綁定的學生清單與偵測身份
+  // 統一下拉選單的值：'teacher' 代表教師模式，其他值代表學生 user_id
+  const selectorValue = userRole === 'teacher' ? 'teacher' : selectedStudentId
+
+  const handleSelectorChange = (value: string) => {
+    if (value === 'teacher') {
+      setUserRole('teacher')
+    } else {
+      setUserRole('family')
+      setSelectedStudentId(value)
+    }
+  }
+
+  // 1. 初始化：偵測身份並預先載入所有資料
   useEffect(() => {
     if (isReady && idToken) {
-      // 先查綁定狀態與身份
       fetch(`/api/line/status?id_token=${idToken}`)
         .then(res => res.json())
-        .then(result => {
+        .then(async (result) => {
           if (result.data?.users && result.data.users.length > 0) {
-            const roles = Array.from(new Set(result.data.users.map((u: any) => u.role)))
-            setAvailableRoles(roles as string[])
+            const roles = Array.from(new Set(result.data.users.map((u: any) => u.role))) as string[]
+            const isTeacher = roles.includes('teacher')
+            const isFamily = roles.includes('family')
+            setHasTeacherRole(isTeacher)
 
-            const hasTeacher = roles.includes('teacher')
-            const hasFamily = roles.includes('family')
+            // 並行載入所有資料，讓切換時不用等待
+            const promises: Promise<void>[] = []
 
-            if (hasTeacher) {
-              setUserRole('teacher')
-              // 老師身分：抓取今日學生
-              fetch(`/api/points/teacher/students?id_token=${idToken}`)
-                .then(r => r.json())
-                .then(sResult => {
-                  if (sResult.data?.students) setTeacherStudents(sResult.data.students)
-                  setIsLoading(false)
-                })
-            } else if (hasFamily) {
-              setUserRole('family')
-              // 家長身分：抓取綁定的小孩清單
-              fetch(`/api/internal/users/bound-students?id_token=${idToken}`)
-                .then(res => res.json())
-                .then(childResult => {
-                  if (childResult.data && childResult.data.length > 0) {
-                    setBoundStudents(childResult.data)
-                    setSelectedStudentId(childResult.data[0].user_id)
-                  } else {
-                    setIsLoading(false)
-                  }
-                })
+            if (isTeacher) {
+              promises.push(
+                fetch(`/api/points/teacher/students?id_token=${idToken}`)
+                  .then(r => r.json())
+                  .then(sResult => {
+                    if (sResult.data?.students) setTeacherStudents(sResult.data.students)
+                  })
+              )
             }
+
+            if (isFamily) {
+              promises.push(
+                fetch(`/api/internal/users/bound-students?id_token=${idToken}`)
+                  .then(res => res.json())
+                  .then(childResult => {
+                    if (childResult.data && childResult.data.length > 0) {
+                      setBoundStudents(childResult.data)
+                      // 如果不是教師優先，就預設選第一個學生
+                      if (!isTeacher) {
+                        setSelectedStudentId(childResult.data[0].user_id)
+                      } else {
+                        setSelectedStudentId(childResult.data[0].user_id)
+                      }
+                    }
+                  })
+              )
+            }
+
+            await Promise.all(promises)
+
+            // 預設模式：有教師身分就先進教師模式
+            if (isTeacher) {
+              setUserRole('teacher')
+            } else if (isFamily) {
+              setUserRole('family')
+            }
+            setIsLoading(false)
           } else {
             setIsNotBound(true)
             setIsLoading(false)
@@ -87,33 +114,6 @@ export default function PointsPage() {
       setIsLoading(false)
     }
   }, [isReady, idToken])
-
-  // 當手動切換身份時的操作
-  const toggleRole = () => {
-    const nextRole = userRole === 'teacher' ? 'family' : 'teacher'
-    setUserRole(nextRole)
-    setIsLoading(true)
-
-    if (nextRole === 'teacher') {
-      fetch(`/api/points/teacher/students?id_token=${idToken}`)
-        .then(r => r.json())
-        .then(sResult => {
-          if (sResult.data?.students) setTeacherStudents(sResult.data.students)
-          setIsLoading(false)
-        })
-    } else {
-      fetch(`/api/internal/users/bound-students?id_token=${idToken}`)
-        .then(res => res.json())
-        .then(childResult => {
-          if (childResult.data && childResult.data.length > 0) {
-            setBoundStudents(childResult.data)
-            setSelectedStudentId(childResult.data[0].user_id)
-          } else {
-            setIsLoading(false)
-          }
-        })
-    }
-  }
 
   // 2. 當選擇的學生改變時，取得該學生的點數 (僅家長模式)
   useEffect(() => {
@@ -195,22 +195,65 @@ export default function PointsPage() {
     return h.type === activeTab
   }) || []
 
+  // ── 統一下拉選單元件（教師+學生） ──
+  const renderRoleSelector = (theme: 'indigo' | 'amber') => {
+    // 只有當同時有教師身分+學生時才顯示下拉選單
+    if (!hasTeacherRole && boundStudents.length <= 1) return null
+    if (!hasTeacherRole && boundStudents.length > 1) {
+      // 純家長，多小孩 → 只顯示學生切換
+      return (
+        <select
+          value={selectedStudentId}
+          onChange={(e) => handleSelectorChange(e.target.value)}
+          className={`bg-white/20 backdrop-blur-sm text-white text-xs font-bold border border-white/30 rounded-xl px-3 py-1.5 focus:outline-none appearance-none pr-7 ${
+            theme === 'amber' ? 'focus:ring-2 focus:ring-amber-300' : 'focus:ring-2 focus:ring-indigo-300'
+          }`}
+          style={{ backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right .5rem top 50%', backgroundSize: '.5rem auto' }}
+        >
+          {boundStudents.map(s => (
+            <option key={s.user_id} value={s.user_id} className="text-gray-900">
+              {s.student_name}
+            </option>
+          ))}
+        </select>
+      )
+    }
+
+    // 有教師身分 → 顯示完整選單（教師模式 + 學生）
+    return (
+      <select
+        value={selectorValue}
+        onChange={(e) => handleSelectorChange(e.target.value)}
+        className={`bg-white/20 backdrop-blur-sm text-white text-xs font-bold border border-white/30 rounded-xl px-3 py-1.5 focus:outline-none appearance-none pr-7 ${
+          theme === 'amber' ? 'focus:ring-2 focus:ring-amber-300' : 'focus:ring-2 focus:ring-indigo-300'
+        }`}
+        style={{ backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right .5rem top 50%', backgroundSize: '.5rem auto' }}
+      >
+        <option value="teacher" className="text-gray-900">👨‍🏫 教師給點</option>
+        {boundStudents.length > 0 && (
+          <optgroup label="── 學生點數 ──">
+            {boundStudents.map(s => (
+              <option key={s.user_id} value={s.user_id} className="text-gray-900">
+                👨‍🎓 {s.student_name}
+              </option>
+            ))}
+          </optgroup>
+        )}
+      </select>
+    )
+  }
+
   // ── 教師給點模式 ──
   if (userRole === 'teacher') {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col">
         <header className="bg-gradient-to-br from-indigo-600 to-violet-700 text-white p-8 rounded-b-[40px] shadow-lg relative">
-          {availableRoles.length > 1 && (
-            <button 
-              onClick={toggleRole}
-              className="absolute top-6 left-6 bg-white/20 backdrop-blur-sm text-[10px] px-3 py-1.5 rounded-full font-bold border border-white/30 active:scale-95 transition-all"
-            >
-              🔄 切換至家長模式
-            </button>
-          )}
-          <div className="flex items-center justify-between mb-2 mt-4">
+          <div className="absolute top-6 right-6 z-10">
+            {renderRoleSelector('indigo')}
+          </div>
+          <div className="flex items-center justify-between mb-2">
             <h1 className="text-xl font-bold">教師給點中心</h1>
-            <span className="bg-white/20 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">Teacher Mode</span>
+            <span className="bg-white/20 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">Teacher</span>
           </div>
           <p className="text-indigo-100 text-xs opacity-90">為今日上課的學生發放獎勵點數</p>
         </header>
@@ -314,35 +357,14 @@ export default function PointsPage() {
 
       {/* Balance Header */}
       <header className="bg-gradient-to-br from-amber-400 to-orange-500 text-white p-8 rounded-b-[40px] shadow-lg text-center relative overflow-hidden">
-        {availableRoles.length > 1 && (
-          <button 
-            onClick={toggleRole}
-            className="absolute top-6 left-6 bg-white/20 backdrop-blur-sm text-[10px] px-3 py-1.5 rounded-full font-bold border border-white/30 active:scale-95 transition-all z-20"
-          >
-            🔄 切換至教師模式
-          </button>
-        )}
         {/* Decorative background circles */}
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
         <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
         
-        {/* 學生切換器放置於頂部 */}
-        {boundStudents.length > 0 && (
-          <div className="absolute top-6 right-6 z-10">
-            <select
-              value={selectedStudentId}
-              onChange={(e) => setSelectedStudentId(e.target.value)}
-              className="bg-white/20 backdrop-blur-sm text-white text-xs font-bold border border-white/30 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-300 appearance-none text-right pr-6 relative"
-              style={{ backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right .5rem top 50%', backgroundSize: '.5rem auto' }}
-            >
-              {boundStudents.map(s => (
-                <option key={s.user_id} value={s.user_id} className="text-gray-900">
-                  {s.student_name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+        {/* 統一下拉選單 */}
+        <div className="absolute top-6 right-6 z-10">
+          {renderRoleSelector('amber')}
+        </div>
         
         <p className="text-amber-100 text-sm font-medium mb-1 mt-2">目前可用點數</p>
         <div className="flex items-center justify-center gap-2 mb-2">
