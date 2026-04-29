@@ -1,7 +1,7 @@
 import { validateSignature } from '@/lib/line/signature'
 import { lookupUsersByLineId, updateLineBinding } from '@/lib/main-system-client'
 import { replyMessage } from '@/lib/line/push'
-import { welcomeMessage } from '@/lib/line/templates'
+import { welcomeMessage, bindStatusMessage, notBoundMessage } from '@/lib/line/templates'
 
 export const dynamic = 'force-dynamic'
 
@@ -129,13 +129,10 @@ async function handleMessage(event: WebhookEvent): Promise<void> {
     const users = result.data?.users || []
 
     if (users.length === 0) {
-      await replyMessage(event.replyToken, [
-        { type: 'text', text: '您尚未綁定帳號。\n請點擊選單「綁定帳號」開始綁定。' },
-      ])
+      await replyMessage(event.replyToken, [notBoundMessage()])
     } else {
-      const names = users.map((u) => `• ${u.name || '未命名'} (${u.role})`).join('\n')
       await replyMessage(event.replyToken, [
-        { type: 'text', text: `已綁定帳號：\n${names}` },
+        bindStatusMessage(users.map((u) => ({ name: u.name || '未命名', role: u.role }))),
       ])
     }
     return

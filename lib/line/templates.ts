@@ -116,6 +116,122 @@ export function welcomeMessage(): messagingApi.FlexMessage {
   }
 }
 
+// ── 角色中文標籤 ──
+function roleLabel(role: string): string {
+  switch (role) {
+    case 'family': return '家長'
+    case 'teacher': return '教師'
+    case 'admin': return '管理員'
+    default: return role
+  }
+}
+
+// ── 綁定狀態查詢（已綁定）──
+export function bindStatusMessage(
+  users: Array<{ name: string; role: string }>
+): messagingApi.FlexMessage {
+  const userItems: messagingApi.FlexComponent[] = users.map((u) => ({
+    type: 'box',
+    layout: 'horizontal',
+    contents: [
+      { type: 'text', text: u.role === 'teacher' ? '👨‍🏫' : '👨‍🎓', size: 'sm', flex: 0 },
+      { type: 'text', text: u.name, size: 'sm', color: '#333333', margin: 'sm', flex: 3 },
+      { type: 'text', text: roleLabel(u.role), size: 'xs', color: '#888888', align: 'end' as const, flex: 1 },
+    ],
+  }))
+
+  return {
+    type: 'flex',
+    altText: '帳號綁定狀態',
+    contents: {
+      type: 'bubble',
+      header: {
+        type: 'box',
+        layout: 'vertical',
+        backgroundColor: '#6366f1',
+        paddingAll: '20px',
+        contents: [
+          { type: 'text', text: '📋 帳號綁定狀態', color: '#ffffff', size: 'lg', weight: 'bold' },
+        ],
+      },
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        spacing: 'md',
+        contents: [
+          { type: 'text', text: '已綁定帳號：', size: 'sm', color: '#888888', weight: 'bold' },
+          ...userItems,
+          { type: 'separator', margin: 'lg' },
+          {
+            type: 'text',
+            text: '如需解除綁定，請至綁定頁面操作。',
+            size: 'xs',
+            color: '#aaaaaa',
+            margin: 'lg',
+            wrap: true,
+          },
+        ],
+      },
+    },
+  }
+}
+
+// ── 綁定狀態查詢（未綁定）──
+export function notBoundMessage(): messagingApi.FlexMessage {
+  const liffId = process.env.NEXT_PUBLIC_LIFF_ID
+
+  const contents: messagingApi.FlexComponent[] = [
+    {
+      type: 'text',
+      text: '您尚未綁定任何帳號。\n綁定後即可收到課程通知、學費提醒等訊息。',
+      size: 'sm',
+      color: '#555555',
+      wrap: true,
+    },
+  ]
+
+  const footer = liffId ? {
+    type: 'box' as const,
+    layout: 'vertical' as const,
+    contents: [
+      {
+        type: 'button' as const,
+        style: 'primary' as const,
+        color: '#6366f1',
+        action: {
+          type: 'uri' as const,
+          label: '立即綁定帳號',
+          uri: `https://liff.line.me/${liffId}/bind`,
+        },
+      },
+    ],
+  } : undefined
+
+  return {
+    type: 'flex',
+    altText: '您尚未綁定帳號',
+    contents: {
+      type: 'bubble',
+      header: {
+        type: 'box',
+        layout: 'vertical',
+        backgroundColor: '#6366f1',
+        paddingAll: '20px',
+        contents: [
+          { type: 'text', text: '📋 帳號綁定狀態', color: '#ffffff', size: 'lg', weight: 'bold' },
+        ],
+      },
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        spacing: 'md',
+        contents,
+      },
+      ...(footer ? { footer } : {}),
+    },
+  }
+}
+
 // ── 請假結果通知 ──
 export function leaveResultMessage(params: {
   studentName: string
