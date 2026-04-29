@@ -108,6 +108,20 @@ export async function updateLineBinding(
   })
 }
 
+export async function getAllLineBindings(): Promise<InternalApiResponse<{ users: MainSystemUser[] }>> {
+  if (isMockMode()) {
+    return {
+      data: {
+        users: [
+          { _id: 'mock_1', name: '王大同', role: 'family', phone: '0912345678', disabled: false, line_user_id: 'U12345', student_name: '王小明', student_id: 's1' }
+        ]
+      },
+      error: null
+    }
+  }
+  return callInternal<{ users: MainSystemUser[] }>('/api/internal/users/line-binding', 'GET')
+}
+
 export async function lookupUsersByLineId(
   lineUserId: string
 ): Promise<InternalApiResponse<LookupByLineResult>> {

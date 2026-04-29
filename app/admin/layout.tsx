@@ -21,7 +21,13 @@ export default function AdminLayout({
               href="/admin" 
               className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors"
             >
-              📊 概覽
+              📊 系統概覽
+            </Link>
+            <Link 
+              href="/admin/recipients" 
+              className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors"
+            >
+              👥 綁定成員
             </Link>
             <Link 
               href="/admin/logs/bind" 
