@@ -117,7 +117,7 @@ export function welcomeMessage(): messagingApi.FlexMessage {
 }
 
 // ── 綁定引導（按鈕開啟 LIFF）──
-export function bindGuideMessage(liffId: string, path = '/bind'): messagingApi.FlexMessage {
+export function bindGuideMessage(liffId: string, path = '/'): messagingApi.FlexMessage {
   return {
     type: 'flex',
     altText: '請點擊按鈕進行帳號綁定',
