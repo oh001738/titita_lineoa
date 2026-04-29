@@ -1,6 +1,7 @@
 import { getAllLineBindings, updateLineBinding } from '@/lib/main-system-client'
 import { connectDB } from '@/lib/db/mongoose'
 import LineBindLog from '@/lib/models/LineBindLog'
+import LineProfile from '@/lib/models/LineProfile'
 import { BIND_ACTIONS, BIND_OPERATORS } from '@/lib/constants'
 import { getLineClient } from '@/lib/line/client'
 import { unbindNotifyMessage } from '@/lib/line/templates'
@@ -21,26 +22,34 @@ export async function GET() {
     await connectDB()
     const users = result.data.users
 
-    // 取得所有 user_id 列表
-    const userIds = users.map(u => u._id)
+    // 取得所有 line_user_id 列表
+    const lineUserIds = users.map(u => u.line_user_id).filter(id => !!id)
     
-    // 從 LineBindLog 找出這些使用者的 line_name (取最後一筆有紀錄的)
-    const logs = await LineBindLog.find({ 
-      user_id: { $in: userIds },
-      line_name: { $ne: null }
-    }).sort({ createdAt: -1 }).lean()
+    // 1. 先從 LineProfile (快取) 找
+    const cachedProfiles = await LineProfile.find({ 
+      line_user_id: { $in: lineUserIds }
+    }).lean()
+    
+    const profileMap = new Map(cachedProfiles.map((p: any) => [p.line_user_id, p.displayName]))
 
-    const lineNameMap = new Map()
-    logs.forEach((log: any) => {
-      const uid = log.user_id.toString()
-      if (!lineNameMap.has(uid)) {
-        lineNameMap.set(uid, log.line_name)
-      }
-    })
+    // 2. 沒找到的再從 LineBindLog 找 (備援)
+    const missingIds = lineUserIds.filter(id => !profileMap.has(id))
+    if (missingIds.length > 0) {
+      const logs = await LineBindLog.find({ 
+        line_user_id: { $in: missingIds },
+        line_name: { $ne: null }
+      }).sort({ createdAt: -1 }).lean()
+
+      logs.forEach((log: any) => {
+        if (!profileMap.has(log.line_user_id)) {
+          profileMap.set(log.line_user_id, log.line_name)
+        }
+      })
+    }
 
     const enrichedUsers = users.map(u => ({
       ...u,
-      line_name: lineNameMap.get(u._id.toString()) || null
+      line_name: u.line_user_id ? profileMap.get(u.line_user_id) : null
     }))
 
     return Response.json({ data: { users: enrichedUsers }, error: null })
