@@ -14,5 +14,18 @@ export function validateSignature(
     .update(body)
     .digest('base64')
 
-  return hash === signature
+  // 使用 timingSafeEqual 防禦計時攻擊 (Timing Attack)
+  // 這確保了比對字串時花費的時間是固定的，不會因為前面字元匹配而變快
+  try {
+    const hashBuffer = Buffer.from(hash)
+    const signatureBuffer = Buffer.from(signature)
+    
+    if (hashBuffer.length !== signatureBuffer.length) {
+      return false
+    }
+    
+    return crypto.timingSafeEqual(hashBuffer, signatureBuffer)
+  } catch (err) {
+    return false
+  }
 }

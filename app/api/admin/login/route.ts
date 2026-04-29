@@ -4,6 +4,8 @@ import { verifyLineIdToken } from '@/lib/line/verify-id-token'
 import { createAdminToken } from '@/lib/admin-session'
 import type { ApiResponse } from '@/types'
 import { cookies } from 'next/headers'
+import { isRateLimited } from '@/lib/rate-limit'
+import { RATE_LIMIT } from '@/lib/constants'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,6 +18,12 @@ export const dynamic = 'force-dynamic'
 export async function POST(request: Request) {
   try {
     const { id_token, master_password, username, password } = await request.json()
+
+    // ── 0. 速率限制 ──
+    const rateLimitKey = username ? `login_${username}` : `login_token_${id_token?.slice(-10)}`
+    if (isRateLimited(rateLimitKey, RATE_LIMIT.LOGIN_MAX, RATE_LIMIT.LOGIN_WINDOW)) {
+      return Response.json({ data: null, error: '嘗試次數過多，請於 15 分鐘後再試' }, { status: 429 })
+    }
 
     // ── 1. 帳密手動登入 ──
     if (username && password) {

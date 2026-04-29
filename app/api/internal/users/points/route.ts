@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { verifyLineIdToken } from '@/lib/line/verify-id-token'
 
 const MOCK_POINTS_DATA_S1 = {
   balance: 1250,

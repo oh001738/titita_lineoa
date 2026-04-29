@@ -29,14 +29,13 @@ export async function GET(request: Request) {
     }
     const lineUserId = verified.userId
 
-  // 檢查是否為 MOCK_MODE
-  if (process.env.MOCK_MODE === 'true') {
-    await new Promise(resolve => setTimeout(resolve, 800))
-    const data = userId === 's2' ? MOCK_COURSES_S2 : MOCK_COURSES_S1;
-    return NextResponse.json({ data, error: null })
-  }
+    // 檢查是否為 MOCK_MODE
+    if (process.env.MOCK_MODE === 'true') {
+      await new Promise(resolve => setTimeout(resolve, 800))
+      const data = userId === 's2' ? MOCK_COURSES_S2 : MOCK_COURSES_S1;
+      return NextResponse.json({ data, error: null })
+    }
 
-  try {
     const url = process.env.MAIN_SYSTEM_URL
     const key = process.env.INTERNAL_API_KEY
     

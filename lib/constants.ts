@@ -63,4 +63,6 @@ export function normalizePhone(phone: string): string {
 export const RATE_LIMIT = {
   BIND_LOOKUP_MAX: 5,        // 每分鐘最多查詢次數
   BIND_LOOKUP_WINDOW: 60000, // 視窗大小 (ms)
+  LOGIN_MAX: 10,             // 15 分鐘內最多嘗試次數
+  LOGIN_WINDOW: 15 * 60 * 1000,
 } as const
