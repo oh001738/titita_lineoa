@@ -13,7 +13,8 @@ interface Course {
   endTime: string
   teacher: string
   room: string
-  status: string
+  status?: string
+  isMakeup?: boolean
 }
 
 interface BoundStudent {
