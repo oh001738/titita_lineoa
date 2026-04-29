@@ -3,6 +3,8 @@ import LineBindLog from '@/lib/models/LineBindLog'
 import { updateLineBinding } from '@/lib/main-system-client'
 import { verifyLineIdToken } from '@/lib/line/verify-id-token'
 import { BIND_ACTIONS, BIND_OPERATORS } from '@/lib/constants'
+import { client } from '@/lib/line/config'
+import { unbindNotifyMessage } from '@/lib/line/templates'
 import type { ApiResponse } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -33,6 +35,16 @@ export async function POST(request: Request) {
       )
     }
     const line_user_id = verified.userId
+
+    // 先傳送通知
+    try {
+      await client.pushMessage({
+        to: line_user_id,
+        messages: [unbindNotifyMessage('您的帳號', 'self')]
+      })
+    } catch (pushErr) {
+      console.error('[Self Unbind Push Failed]', pushErr)
+    }
 
     // 2. 透過主系統 Internal API 解除綁定
     const result = await updateLineBinding([user_id], line_user_id, 'unbind')

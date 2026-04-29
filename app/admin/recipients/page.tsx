@@ -42,7 +42,8 @@ export default function RecipientsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: user._id,
-          line_user_id: user.line_user_id
+          line_user_id: user.line_user_id,
+          name: user.student_name || user.name
         })
       })
       const result = await res.json()

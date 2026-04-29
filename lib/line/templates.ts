@@ -63,6 +63,67 @@ export function bindSuccessMessage(
   }
 }
 
+// ── 解除綁定通知 ──
+export function unbindNotifyMessage(
+  userName: string,
+  operator: 'self' | 'admin'
+): messagingApi.FlexMessage {
+  return {
+    type: 'flex',
+    altText: '帳號已解除 LINE 綁定',
+    contents: {
+      type: 'bubble',
+      header: {
+        type: 'box',
+        layout: 'vertical',
+        backgroundColor: '#ef4444',
+        paddingAll: '20px',
+        contents: [
+          {
+            type: 'text',
+            text: '⚠️ 帳號解除綁定',
+            color: '#ffffff',
+            size: 'lg',
+            weight: 'bold',
+          },
+        ],
+      },
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        spacing: 'md',
+        contents: [
+          {
+            type: 'text',
+            text: `成員：${userName}`,
+            size: 'sm',
+            color: '#333333',
+            weight: 'bold',
+          },
+          {
+            type: 'text',
+            text: operator === 'self' 
+              ? '您已手動解除此帳號的 LINE 連結。' 
+              : '管理員已解除此帳號的 LINE 連結。',
+            size: 'sm',
+            color: '#555555',
+            wrap: true,
+          },
+          { type: 'separator', margin: 'lg' },
+          {
+            type: 'text',
+            text: '即日起您將不再收到該成員的課程與學費推播。如需重新接收通知，請再次進行帳號綁定。',
+            size: 'xs',
+            color: '#888888',
+            wrap: true,
+            margin: 'lg',
+          },
+        ],
+      },
+    },
+  }
+}
+
 // ── 歡迎訊息（加入好友時發送）──
 export function welcomeMessage(): messagingApi.FlexMessage {
   return {
