@@ -174,19 +174,19 @@ async function handlePostback(event: WebhookEvent): Promise<void> {
 
     case 'status':
       await replyMessage(event.replyToken, [
-        liffGuideMessage({ liffId, path: '/status', title: '綁定狀態', icon: '📋', description: '查看目前與此 LINE 帳號連動的系統帳號。', buttonLabel: '查看綁定狀態' }),
+        liffGuideMessage({ liffId, path: '/liff/status', title: '綁定狀態', icon: '📋', description: '查看目前與此 LINE 帳號連動的系統帳號。', buttonLabel: '查看綁定狀態' }),
       ])
       break
 
     case 'courses':
       await replyMessage(event.replyToken, [
-        liffGuideMessage({ liffId, path: '/courses', title: '課表查詢', icon: '📅', description: '查看未來兩週的課程安排，也可以直接申請請假。', buttonLabel: '查看課表' }),
+        liffGuideMessage({ liffId, path: '/liff/courses', title: '課表查詢', icon: '📅', description: '查看未來兩週的課程安排，也可以直接申請請假。', buttonLabel: '查看課表' }),
       ])
       break
 
     case 'points':
       await replyMessage(event.replyToken, [
-        liffGuideMessage({ liffId, path: '/points', title: '點數查詢', icon: '⭐', description: '查看目前累計點數與獲得紀錄。', buttonLabel: '查看點數', color: '#f59e0b' }),
+        liffGuideMessage({ liffId, path: '/liff/points', title: '點數查詢', icon: '⭐', description: '查看目前累計點數與獲得紀錄。', buttonLabel: '查看點數', color: '#f59e0b' }),
       ])
       break
 

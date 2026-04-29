@@ -117,7 +117,7 @@ export function welcomeMessage(): messagingApi.FlexMessage {
 }
 
 // ── 綁定引導（按鈕開啟 LIFF）──
-export function bindGuideMessage(liffId: string, path = '/'): messagingApi.FlexMessage {
+export function bindGuideMessage(liffId: string, path = '/liff/bind'): messagingApi.FlexMessage {
   return {
     type: 'flex',
     altText: '請點擊按鈕進行帳號綁定',
@@ -304,7 +304,7 @@ export function notBoundMessage(): messagingApi.FlexMessage {
         action: {
           type: 'uri' as const,
           label: '立即綁定帳號',
-          uri: `https://liff.line.me/${liffId}/bind`,
+          uri: `https://liff.line.me/${liffId}/liff/bind`,
         },
       },
     ],
