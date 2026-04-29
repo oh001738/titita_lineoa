@@ -116,6 +116,109 @@ export function welcomeMessage(): messagingApi.FlexMessage {
   }
 }
 
+// ── 綁定引導（按鈕開啟 LIFF）──
+export function bindGuideMessage(liffId: string, path = '/bind'): messagingApi.FlexMessage {
+  return {
+    type: 'flex',
+    altText: '請點擊按鈕進行帳號綁定',
+    contents: {
+      type: 'bubble',
+      header: {
+        type: 'box',
+        layout: 'vertical',
+        backgroundColor: '#6366f1',
+        paddingAll: '20px',
+        contents: [
+          { type: 'text', text: '🔗 帳號綁定', color: '#ffffff', size: 'lg', weight: 'bold' },
+        ],
+      },
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        spacing: 'md',
+        contents: [
+          {
+            type: 'text',
+            text: '請點擊下方按鈕，依照步驟完成帳號綁定。',
+            size: 'sm',
+            color: '#555555',
+            wrap: true,
+          },
+        ],
+      },
+      footer: {
+        type: 'box',
+        layout: 'vertical',
+        contents: [
+          {
+            type: 'button',
+            style: 'primary',
+            color: '#6366f1',
+            action: {
+              type: 'uri',
+              label: '開始綁定帳號',
+              uri: `https://liff.line.me/${liffId}${path}`,
+            },
+          },
+        ],
+      },
+    },
+  }
+}
+
+// ── LIFF 頁面引導（通用）──
+export function liffGuideMessage(params: {
+  liffId: string
+  path: string
+  title: string
+  icon: string
+  description: string
+  buttonLabel: string
+  color?: string
+}): messagingApi.FlexMessage {
+  const { liffId, path, title, icon, description, buttonLabel, color = '#6366f1' } = params
+  return {
+    type: 'flex',
+    altText: title,
+    contents: {
+      type: 'bubble',
+      header: {
+        type: 'box',
+        layout: 'vertical',
+        backgroundColor: color,
+        paddingAll: '20px',
+        contents: [
+          { type: 'text', text: `${icon} ${title}`, color: '#ffffff', size: 'lg', weight: 'bold' },
+        ],
+      },
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        spacing: 'md',
+        contents: [
+          { type: 'text', text: description, size: 'sm', color: '#555555', wrap: true },
+        ],
+      },
+      footer: {
+        type: 'box',
+        layout: 'vertical',
+        contents: [
+          {
+            type: 'button',
+            style: 'primary',
+            color,
+            action: {
+              type: 'uri',
+              label: buttonLabel,
+              uri: `https://liff.line.me/${liffId}${path}`,
+            },
+          },
+        ],
+      },
+    },
+  }
+}
+
 // ── 角色中文標籤 ──
 function roleLabel(role: string): string {
   switch (role) {

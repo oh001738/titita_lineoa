@@ -1,7 +1,7 @@
 import { validateSignature } from '@/lib/line/signature'
 import { lookupUsersByLineId, updateLineBinding } from '@/lib/main-system-client'
 import { replyMessage } from '@/lib/line/push'
-import { welcomeMessage, bindStatusMessage, notBoundMessage } from '@/lib/line/templates'
+import { welcomeMessage, bindStatusMessage, notBoundMessage, bindGuideMessage, liffGuideMessage } from '@/lib/line/templates'
 
 export const dynamic = 'force-dynamic'
 
@@ -117,9 +117,7 @@ async function handleMessage(event: WebhookEvent): Promise<void> {
   if (text === '綁定' || text === '綁定帳號') {
     const liffId = process.env.NEXT_PUBLIC_LIFF_ID
     if (liffId) {
-      await replyMessage(event.replyToken, [
-        { type: 'text', text: `請點擊以下連結進行帳號綁定：\nhttps://liff.line.me/${liffId}` },
-      ])
+      await replyMessage(event.replyToken, [bindGuideMessage(liffId)])
     }
     return
   }
@@ -167,37 +165,29 @@ async function handlePostback(event: WebhookEvent): Promise<void> {
 
   console.log(`[Webhook] Postback from ${lineUserId}: action=${action}`)
 
+  if (!liffId) return
+
   switch (action) {
     case 'bind':
-      if (liffId) {
-        await replyMessage(event.replyToken, [
-          { type: 'text', text: `請點擊以下連結進行帳號綁定：\nhttps://liff.line.me/${liffId}/bind` },
-        ])
-      }
+      await replyMessage(event.replyToken, [bindGuideMessage(liffId)])
       break
 
     case 'status':
-      if (liffId) {
-        await replyMessage(event.replyToken, [
-          { type: 'text', text: `請點擊以下連結查看綁定狀態：\nhttps://liff.line.me/${liffId}/status` },
-        ])
-      }
+      await replyMessage(event.replyToken, [
+        liffGuideMessage({ liffId, path: '/status', title: '綁定狀態', icon: '📋', description: '查看目前與此 LINE 帳號連動的系統帳號。', buttonLabel: '查看綁定狀態' }),
+      ])
       break
 
     case 'courses':
-      if (liffId) {
-        await replyMessage(event.replyToken, [
-          { type: 'text', text: `請點擊以下連結查看課表：\nhttps://liff.line.me/${liffId}/courses` },
-        ])
-      }
+      await replyMessage(event.replyToken, [
+        liffGuideMessage({ liffId, path: '/courses', title: '課表查詢', icon: '📅', description: '查看未來兩週的課程安排，也可以直接申請請假。', buttonLabel: '查看課表' }),
+      ])
       break
 
     case 'points':
-      if (liffId) {
-        await replyMessage(event.replyToken, [
-          { type: 'text', text: `請點擊以下連結查看點數：\nhttps://liff.line.me/${liffId}/points` },
-        ])
-      }
+      await replyMessage(event.replyToken, [
+        liffGuideMessage({ liffId, path: '/points', title: '點數查詢', icon: '⭐', description: '查看目前累計點數與獲得紀錄。', buttonLabel: '查看點數', color: '#f59e0b' }),
+      ])
       break
 
     default:
