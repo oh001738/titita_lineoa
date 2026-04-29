@@ -3,7 +3,7 @@ import LineBindLog from '@/lib/models/LineBindLog'
 import { updateLineBinding } from '@/lib/main-system-client'
 import { verifyLineIdToken } from '@/lib/line/verify-id-token'
 import { BIND_ACTIONS, BIND_OPERATORS } from '@/lib/constants'
-import { client } from '@/lib/line/config'
+import { getLineClient } from '@/lib/line/client'
 import { unbindNotifyMessage } from '@/lib/line/templates'
 import type { ApiResponse } from '@/types'
 
@@ -38,6 +38,7 @@ export async function POST(request: Request) {
 
     // 先傳送通知
     try {
+      const client = getLineClient()
       await client.pushMessage({
         to: line_user_id,
         messages: [unbindNotifyMessage('您的帳號', 'self')]

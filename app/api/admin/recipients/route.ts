@@ -2,7 +2,7 @@ import { getAllLineBindings, updateLineBinding } from '@/lib/main-system-client'
 import { connectDB } from '@/lib/db/mongoose'
 import LineBindLog from '@/lib/models/LineBindLog'
 import { BIND_ACTIONS, BIND_OPERATORS } from '@/lib/constants'
-import { client } from '@/lib/line/config'
+import { getLineClient } from '@/lib/line/client'
 import { unbindNotifyMessage } from '@/lib/line/templates'
 import { checkAdminAuth } from '@/lib/admin-session'
 
@@ -36,6 +36,7 @@ export async function DELETE(request: Request) {
 
     // 先傳送通知
     try {
+      const client = getLineClient()
       await client.pushMessage({
         to: line_user_id,
         messages: [unbindNotifyMessage(name || '系統成員', 'admin')]
