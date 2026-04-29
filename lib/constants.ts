@@ -31,6 +31,8 @@ export const NOTIFY_TYPES = {
   COURSE_CHANGE: 'course_change',
   TUITION_REMINDER: 'tuition_reminder',
   TUITION_RECEIVED: 'tuition_received',
+  TUITION_NOTICE: 'tuition_notice',
+  CLASS_REMINDER: 'class_reminder',
   POINTS_EARNED: 'points_earned',
   BROADCAST: 'broadcast',
   BIND_SUCCESS: 'bind_success',

@@ -85,11 +85,16 @@ export async function POST(request: Request) {
         break;
 
       case NOTIFY_TYPES.TUITION_REMINDER:
+      case NOTIFY_TYPES.TUITION_NOTICE:
         lineMessages = [generalNotifyMessage(student_name, '學費繳費提醒', message)]
         break;
 
       case NOTIFY_TYPES.TUITION_RECEIVED:
         lineMessages = [generalNotifyMessage(student_name, '學費收訖通知', message)]
+        break;
+
+      case NOTIFY_TYPES.CLASS_REMINDER:
+        lineMessages = [generalNotifyMessage(student_name, '上課提醒', message)]
         break;
 
       case NOTIFY_TYPES.COURSE_CHANGE:
