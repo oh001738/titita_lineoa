@@ -103,6 +103,7 @@ export async function POST(request: Request) {
             amount: payload?.amount ?? 0,
             reason: payload?.reason ?? message,
             balance: payload?.balance,
+            teacherName: payload?.teacherName,
           }),
         ]
         break;

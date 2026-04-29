@@ -428,70 +428,181 @@ export function pointsEarnedMessage(params: {
   amount: number
   reason: string
   balance?: number
+  teacherName?: string
 }): messagingApi.FlexMessage {
-  const { studentName, amount, reason, balance } = params
-
-  const bodyContents: messagingApi.FlexComponent[] = [
-    {
-      type: 'box',
-      layout: 'horizontal',
-      contents: [
-        { type: 'text', text: '學生', size: 'sm', color: '#888888', flex: 2 },
-        { type: 'text', text: studentName, size: 'sm', color: '#333333', flex: 3, weight: 'bold' },
-      ],
-    },
-    {
-      type: 'box',
-      layout: 'horizontal',
-      contents: [
-        { type: 'text', text: '獲得點數', size: 'sm', color: '#888888', flex: 2 },
-        { type: 'text', text: `+${amount} 點`, size: 'sm', color: '#16a34a', flex: 3, weight: 'bold' },
-      ],
-    },
-    {
-      type: 'box',
-      layout: 'horizontal',
-      contents: [
-        { type: 'text', text: '原因', size: 'sm', color: '#888888', flex: 2 },
-        { type: 'text', text: reason, size: 'sm', color: '#555555', flex: 3, wrap: true },
-      ],
-    },
-  ]
-
-  if (balance !== undefined) {
-    bodyContents.push({ type: 'separator', margin: 'md' })
-    bodyContents.push({
-      type: 'box',
-      layout: 'horizontal',
-      margin: 'md',
-      contents: [
-        { type: 'text', text: '累計點數', size: 'sm', color: '#888888', flex: 2 },
-        { type: 'text', text: `${balance} 點`, size: 'sm', color: '#6366f1', flex: 3, weight: 'bold' },
-      ],
-    })
-  }
+  const { studentName, amount, reason, balance, teacherName = '老師' } = params
 
   return {
     type: 'flex',
     altText: `【${studentName}】獲得 ${amount} 點獎勵！`,
     contents: {
-      type: 'bubble',
+      type: "bubble",
+      size: "mega",
       header: {
-        type: 'box',
-        layout: 'vertical',
-        backgroundColor: '#f59e0b',
-        paddingAll: '20px',
+        type: "box",
+        layout: "vertical",
         contents: [
-          { type: 'text', text: '⭐ 獲得點數獎勵！', color: '#ffffff', size: 'lg', weight: 'bold' },
+          {
+            type: "text",
+            text: "點數獎勵通知",
+            weight: "bold",
+            color: "#ffffff",
+            size: "sm"
+          }
         ],
+        backgroundColor: "#F59E0B", // 琥珀金
+        paddingAll: "15px"
       },
       body: {
-        type: 'box',
-        layout: 'vertical',
-        spacing: 'md',
-        contents: bodyContents,
+        type: "box",
+        layout: "vertical",
+        contents: [
+          {
+            type: "text",
+            text: `+${amount}`,
+            weight: "bold",
+            size: "4xl",
+            color: "#F59E0B",
+            align: "center",
+            margin: "md"
+          },
+          {
+            type: "text",
+            text: "點",
+            size: "md",
+            color: "#F59E0B",
+            align: "center",
+            weight: "bold"
+          },
+          {
+            type: "separator",
+            margin: "lg"
+          },
+          {
+            type: "box",
+            layout: "vertical",
+            margin: "lg",
+            spacing: "sm",
+            contents: [
+              {
+                type: "box",
+                layout: "baseline",
+                spacing: "sm",
+                contents: [
+                  {
+                    type: "text",
+                    text: "學生姓名",
+                    color: "#aaaaaa",
+                    size: "xs",
+                    flex: 2
+                  },
+                  {
+                    type: "text",
+                    text: studentName,
+                    wrap: true,
+                    color: "#666666",
+                    size: "xs",
+                    flex: 5
+                  }
+                ]
+              },
+              {
+                type: "box",
+                layout: "baseline",
+                spacing: "sm",
+                contents: [
+                  {
+                    type: "text",
+                    text: "獎勵原因",
+                    color: "#aaaaaa",
+                    size: "xs",
+                    flex: 2
+                  },
+                  {
+                    type: "text",
+                    text: reason,
+                    wrap: true,
+                    color: "#666666",
+                    size: "xs",
+                    flex: 5
+                  }
+                ]
+              },
+              {
+                type: "box",
+                layout: "baseline",
+                spacing: "sm",
+                contents: [
+                  {
+                    type: "text",
+                    text: "發放老師",
+                    color: "#aaaaaa",
+                    size: "xs",
+                    flex: 2
+                  },
+                  {
+                    type: "text",
+                    text: teacherName,
+                    wrap: true,
+                    color: "#666666",
+                    size: "xs",
+                    flex: 5
+                  }
+                ]
+              },
+              ...(balance !== undefined ? [
+                {
+                  type: "box" as const,
+                  layout: "baseline" as const,
+                  spacing: "sm" as const,
+                  contents: [
+                    {
+                      type: "text" as const,
+                      text: "目前累計",
+                      color: "#aaaaaa",
+                      size: "xs" as const,
+                      flex: 2
+                    },
+                    {
+                      type: "text" as const,
+                      text: `${balance} 點`,
+                      wrap: true,
+                      color: "#6366f1",
+                      size: "xs" as const,
+                      flex: 5,
+                      weight: "bold" as const
+                    }
+                  ]
+                }
+              ] : [])
+            ]
+          }
+        ]
       },
-    },
+      footer: {
+        type: "box",
+        layout: "vertical",
+        spacing: "sm",
+        contents: [
+          {
+            type: "button",
+            style: "primary",
+            height: "sm",
+            color: "#F59E0B",
+            action: {
+              type: "uri",
+              label: "查看點數存摺",
+              uri: `https://liff.line.me/${process.env.NEXT_PUBLIC_LIFF_ID}/liff/points`
+            }
+          }
+        ]
+      },
+      styles: {
+        footer: {
+          separator: true
+        }
+      }
+    }
   }
 }
 
