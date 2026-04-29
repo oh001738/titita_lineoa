@@ -281,33 +281,43 @@ export default function CoursesPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {courses.map(course => (
-              <div 
-                key={course.id} 
-                onClick={() => !isTeacherMode && setSelectedCourse(course)}
-                className={`bg-white p-4 rounded-2xl shadow-sm border border-gray-100 transition-colors ${!isTeacherMode ? 'cursor-pointer hover:border-indigo-300 active:scale-[0.98]' : ''}`}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div className={`${isTeacherMode ? 'bg-violet-50 text-violet-700' : 'bg-indigo-50 text-indigo-700'} text-xs font-bold px-2 py-1 rounded`}>
-                    {course.date}
+            {courses.map(course => {
+              const isCompleted = course.status === 'completed'
+              return (
+                <div 
+                  key={course.id} 
+                  onClick={() => !isTeacherMode && !isCompleted && setSelectedCourse(course)}
+                  className={`bg-white p-4 rounded-2xl shadow-sm border border-gray-100 transition-colors ${!isTeacherMode && !isCompleted ? 'cursor-pointer hover:border-indigo-300 active:scale-[0.98]' : ''} ${isCompleted ? 'opacity-70' : ''}`}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex gap-2">
+                      <div className={`${isTeacherMode ? 'bg-violet-50 text-violet-700' : 'bg-indigo-50 text-indigo-700'} text-xs font-bold px-2 py-1 rounded`}>
+                        {course.date}
+                      </div>
+                      {isCompleted && (
+                        <div className="bg-gray-100 text-gray-500 text-[10px] font-bold px-2 py-1 rounded">
+                          已完課
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-gray-400 text-sm font-medium">
+                      {course.startTime} - {course.endTime}
+                    </div>
                   </div>
-                  <div className="text-gray-400 text-sm font-medium">
-                    {course.startTime} - {course.endTime}
-                  </div>
-                </div>
-                <h3 className="text-lg font-bold text-gray-800">{course.name}</h3>
-                <div className="flex gap-4 mt-2 text-xs text-gray-500">
-                  {isTeacherMode ? (
-                    <span className="flex items-center gap-1">📍 {course.room}</span>
-                  ) : (
-                    <>
-                      <span className="flex items-center gap-1">👤 {course.teacher}</span>
+                  <h3 className="text-lg font-bold text-gray-800">{course.name}</h3>
+                  <div className="flex gap-4 mt-2 text-xs text-gray-500">
+                    {isTeacherMode ? (
                       <span className="flex items-center gap-1">📍 {course.room}</span>
-                    </>
-                  )}
+                    ) : (
+                      <>
+                        <span className="flex items-center gap-1">👤 {course.teacher}</span>
+                        <span className="flex items-center gap-1">📍 {course.room}</span>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </main>
