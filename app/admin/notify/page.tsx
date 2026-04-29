@@ -7,6 +7,7 @@ type Tab = 'broadcast' | 'individual' | 'multiselect' | 'test'
 interface Recipient {
   line_user_id: string
   user_id: string
+  name: string
   line_name?: string
   student_name?: string
   last_updated: string
@@ -222,7 +223,7 @@ export default function AdminNotifyPage() {
                       <option value="" disabled>-- 選擇已綁定使用者 --</option>
                       {recipients.map((r) => (
                         <option key={r.line_user_id} value={r.line_user_id}>
-                          {r.student_name ?? r.line_name ?? r.line_user_id.substring(0, 12)}{r.line_name ? ` (${r.line_name})` : ''}
+                          {r.student_name || r.name}{r.line_name ? ` (${r.line_name})` : ''}
                         </option>
                       ))}
                     </select>
@@ -285,7 +286,7 @@ export default function AdminNotifyPage() {
                   <option value="">-- 請選擇單一已綁定對象 --</option>
                   {recipients.map((r) => (
                     <option key={r.line_user_id} value={r.line_user_id}>
-                      {r.student_name ?? r.line_name ?? r.line_user_id.substring(0, 12)}{r.line_name ? ` (${r.line_name})` : ''}
+                      {r.student_name || r.name}{r.line_name ? ` (${r.line_name})` : ''}
                     </option>
                   ))}
                 </select>
@@ -311,7 +312,7 @@ export default function AdminNotifyPage() {
                         .filter((r) => !selectedLineIds.includes(r.line_user_id))
                         .map((r) => (
                           <option key={r.line_user_id} value={r.line_user_id}>
-                            {r.student_name ?? r.line_name ?? r.line_user_id.substring(0, 12)}{r.line_name ? ` (${r.line_name})` : ''}
+                            {r.student_name || r.name}{r.line_name ? ` (${r.line_name})` : ''}
                           </option>
                         ))}
                     </select>
@@ -331,7 +332,7 @@ export default function AdminNotifyPage() {
                     selectedLineIds.map((id) => {
                       const r = recipients.find(x => x.line_user_id === id)
                       const label = r
-                        ? `${r.student_name ?? r.line_name ?? id.substring(0, 8)}${r.line_name ? ` (${r.line_name})` : ''}`
+                        ? `${r.student_name || r.name}${r.line_name ? ` (${r.line_name})` : ''}`
                         : id.substring(0, 8)
                       return (
                         <span key={id} className="inline-flex items-center bg-indigo-50 border border-indigo-100 text-indigo-800 text-xs rounded-full px-3 py-1.5">

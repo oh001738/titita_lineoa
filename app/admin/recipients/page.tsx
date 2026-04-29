@@ -9,6 +9,7 @@ interface BoundUser {
   line_user_id: string
   line_bound_at: string
   student_name: string | null
+  line_name?: string | null
 }
 
 export default function RecipientsPage() {
@@ -121,9 +122,18 @@ export default function RecipientsPage() {
                   <tr key={user._id} className="hover:bg-gray-50/30 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
-                        <span className="text-sm font-semibold text-gray-900">{user.name}</span>
-                        {user.student_name && (
-                          <span className="text-xs text-gray-400">學生：{user.student_name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-gray-900">
+                            {user.student_name || user.name}
+                          </span>
+                          {user.line_name && (
+                            <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">
+                              LINE: {user.line_name}
+                            </span>
+                          )}
+                        </div>
+                        {user.student_name && user.name !== user.student_name && (
+                          <span className="text-xs text-gray-400">家長：{user.name}</span>
                         )}
                       </div>
                     </td>

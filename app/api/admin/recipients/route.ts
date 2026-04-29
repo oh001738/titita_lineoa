@@ -16,8 +16,36 @@ export async function GET() {
 
   try {
     const result = await getAllLineBindings()
-    return Response.json(result)
+    if (!result.data?.users) return Response.json(result)
+
+    await connectDB()
+    const users = result.data.users
+
+    // 取得所有 user_id 列表
+    const userIds = users.map(u => u._id)
+    
+    // 從 LineBindLog 找出這些使用者的 line_name (取最後一筆有紀錄的)
+    const logs = await LineBindLog.find({ 
+      user_id: { $in: userIds },
+      line_name: { $ne: null }
+    }).sort({ createdAt: -1 }).lean()
+
+    const lineNameMap = new Map()
+    logs.forEach((log: any) => {
+      const uid = log.user_id.toString()
+      if (!lineNameMap.has(uid)) {
+        lineNameMap.set(uid, log.line_name)
+      }
+    })
+
+    const enrichedUsers = users.map(u => ({
+      ...u,
+      line_name: lineNameMap.get(u._id.toString()) || null
+    }))
+
+    return Response.json({ data: { users: enrichedUsers }, error: null })
   } catch (err) {
+    console.error('[Admin Recipients GET] Error:', err)
     return Response.json({ data: null, error: 'Server Error' }, { status: 500 })
   }
 }
