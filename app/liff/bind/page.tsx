@@ -290,6 +290,12 @@ export default function BindPage() {
           >
             ✚ 繼續綁定其他帳號
           </button>
+          <button
+            onClick={() => liff?.closeWindow()}
+            className="w-full mt-3 bg-gray-100 text-gray-600 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+          >
+            ✕ 返回聊天室
+          </button>
         </div>
       )}
 

@@ -9,7 +9,7 @@ import type { BindLookupUser } from '@/types'
 const SCHOOL_NAME = process.env.NEXT_PUBLIC_SCHOOL_NAME || '音樂補習班'
 
 export default function StatusPage() {
-  const { profile, idToken, isReady, error: liffError } = useLiff()
+  const { liff, profile, idToken, isReady, error: liffError } = useLiff()
   const { showToast } = useToast()
   const { confirm } = useConfirm()
 
@@ -194,6 +194,14 @@ export default function StatusPage() {
           </div>
         </div>
       )}
+
+      {/* 返回聊天室按鈕 */}
+      <button
+        onClick={() => liff?.closeWindow()}
+        className="mt-6 w-full bg-gray-100 text-gray-600 py-3 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+      >
+        ✕ 返回聊天室
+      </button>
     </div>
   )
 }
