@@ -27,13 +27,13 @@ export default function BindPage() {
   // ── 檢查是否已綁定 ──
   useEffect(() => {
     let isMounted = true;
-    if (isReady && profile?.userId) {
-      fetch(`/api/line/bind/status?line_user_id=${profile.userId}`)
+    if (isReady && idToken) {
+      fetch(`/api/line/status?id_token=${idToken}`)
         .then(res => res.json())
         .then(result => {
           if (!isMounted) return;
-          if (result && result.data && result.data.is_bound) {
-            setAlreadyBoundUsers(result.data.users || []);
+          if (result && result.data && result.data.users && result.data.users.length > 0) {
+            setAlreadyBoundUsers(result.data.users);
             setStep('already_bound');
           } else {
             setStep('phone');
@@ -144,7 +144,15 @@ export default function BindPage() {
       }
 
       setBoundNames(result.data.names)
-      setStep('success')
+      
+      // 成功後，重新抓取狀態並切換到「已綁定」列表畫面，方便用戶直接管理（如解綁）
+      const statusRes = await fetch(`/api/line/status?id_token=${idToken}`)
+      const statusData = await statusRes.json()
+      if (statusData.data?.users) {
+        setAlreadyBoundUsers(statusData.data.users)
+      }
+      setStep('already_bound')
+      showToast('綁定成功！', 'success')
     } catch {
       setError('網路錯誤，請稍後再試')
     } finally {
@@ -180,9 +188,9 @@ export default function BindPage() {
       } else {
         showToast('已成功解除綁定', 'success')
         // 重新取得最新狀態
-        const statusRes = await fetch(`/api/line/bind/status?line_user_id=${profile?.userId}`)
+        const statusRes = await fetch(`/api/line/status?id_token=${idToken}`)
         const statusData = await statusRes.json()
-        if (statusData.data?.is_bound) {
+        if (statusData.data?.users && statusData.data.users.length > 0) {
           setAlreadyBoundUsers(statusData.data.users)
         } else {
           setAlreadyBoundUsers([])
