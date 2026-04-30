@@ -6,7 +6,7 @@ type Tab = 'broadcast' | 'individual' | 'multiselect' | 'test'
 
 interface Recipient {
   line_user_id: string
-  user_id: string
+  _id: string
   name: string
   line_name?: string
   student_name?: string
@@ -74,7 +74,7 @@ export default function AdminNotifyPage() {
       if (activeTab === 'broadcast') {
         endpoint = '/api/admin/broadcast'
         body = {
-          recipients: recipients.map((r) => ({ line_user_id: r.line_user_id, user_id: r.user_id, student_name: '系統公告對象' })),
+          recipients: recipients.map((r) => ({ line_user_id: r.line_user_id, user_id: r._id, student_name: '系統公告對象' })),
           title: title || '系統公告',
           message,
         }
@@ -83,7 +83,7 @@ export default function AdminNotifyPage() {
         body = {
           recipients: recipients
             .filter((r) => selectedLineIds.includes(r.line_user_id))
-            .map((r) => ({ line_user_id: r.line_user_id, user_id: r.user_id, student_name: '系統通知' })),
+            .map((r) => ({ line_user_id: r.line_user_id, user_id: r._id, student_name: '系統通知' })),
           title: title || '系統通知',
           message,
         }
@@ -91,7 +91,7 @@ export default function AdminNotifyPage() {
         endpoint = '/api/admin/broadcast'
         const target = recipients.find((r) => r.line_user_id === targetLineId)
         body = {
-          recipients: target ? [{ line_user_id: target.line_user_id, user_id: target.user_id, student_name: '個別通知' }] : [],
+          recipients: target ? [{ line_user_id: target.line_user_id, user_id: target._id, student_name: '個別通知' }] : [],
           title: title || '個別通知',
           message,
         }

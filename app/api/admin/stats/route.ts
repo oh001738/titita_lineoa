@@ -29,7 +29,8 @@ export async function GET() {
       todayBindings,
       totalNotifies,
       todayNotifies,
-      failedNotifies
+      failedNotifies,
+      notifyTypeStats
     ] = await Promise.all([
       // 1. 總綁定人數：從主系統取得所有目前已綁定的使用者
       getAllLineBindings(),
@@ -47,7 +48,18 @@ export async function GET() {
 
       LineNotifyLog.countDocuments({}),
       LineNotifyLog.countDocuments({ createdAt: { $gte: startOfToday } }),
-      LineNotifyLog.countDocuments({ status: NOTIFY_STATUS.FAILED })
+      LineNotifyLog.countDocuments({ status: NOTIFY_STATUS.FAILED }),
+      
+      // 6. 推播分類統計
+      LineNotifyLog.aggregate([
+        {
+          $group: {
+            _id: '$notify_type',
+            count: { $sum: 1 }
+          }
+        },
+        { $sort: { count: -1 } }
+      ]).then(res => res.map(item => ({ type: item._id, count: item.count })))
     ])
 
     return Response.json({
@@ -57,6 +69,7 @@ export async function GET() {
         total_notifies: totalNotifies,
         today_notifies: todayNotifies,
         failed_notifies: failedNotifies,
+        notify_types_stats: notifyTypeStats,
       },
       error: null
     })

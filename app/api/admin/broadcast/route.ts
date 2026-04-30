@@ -86,8 +86,9 @@ export async function POST(request: Request) {
           const client = getLineClient()
           await client.multicast({ to: batch, messages: [flexMsg] })
           successCount += batch.length
-        } catch (err) {
-          console.error('[Admin Broadcast Multicast] Batch failed:', err)
+        } catch (err: any) {
+          const apiError = err.originalError?.response?.data
+          console.error('[Admin Broadcast Multicast] Batch failed:', apiError || err)
           failCount += batch.length
         }
       }

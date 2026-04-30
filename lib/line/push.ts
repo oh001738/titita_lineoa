@@ -90,8 +90,9 @@ export async function pushMessage(params: {
       })
 
       return { success: true }
-    } catch (err) {
-      lastError = err instanceof Error ? err.message : 'Unknown error'
+    } catch (err: any) {
+      const apiError = err.originalError?.response?.data
+      lastError = apiError ? JSON.stringify(apiError) : (err instanceof Error ? err.message : 'Unknown error')
       console.warn(`[LINE Push] Attempt ${attempt + 1} failed for ${lineUserId}:`, lastError)
     }
   }

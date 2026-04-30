@@ -8,6 +8,7 @@ interface Stats {
   total_notifies: number
   today_notifies: number
   failed_notifies: number
+  notify_types_stats: { type: string; count: number }[]
 }
 
 export default function AdminDashboard() {
@@ -233,6 +234,50 @@ export default function AdminDashboard() {
               </span>
             </li>
           </ul>
+        </div>
+
+        {/* 新增：推播訊息分佈儀表板 */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <span>📊 推播分佈佔比</span>
+          </h3>
+          {stats?.notify_types_stats && stats.notify_types_stats.length > 0 ? (
+            <div className="space-y-5">
+              {stats.notify_types_stats.map((stat, index) => {
+                const percentage = stats.total_notifies > 0 
+                  ? ((stat.count / stats.total_notifies) * 100).toFixed(1)
+                  : 0;
+                
+                // 為不同項目配置不同顏色的進度條 (前3名特別標示)
+                const barColors = ['bg-blue-500', 'bg-indigo-500', 'bg-purple-500'];
+                const barColor = index < barColors.length ? barColors[index] : 'bg-gray-400';
+
+                return (
+                  <div key={stat.type}>
+                    <div className="flex justify-between text-sm mb-1.5">
+                      <span className="text-gray-700 font-medium">
+                        {notifyLabels[stat.type] || stat.type}
+                      </span>
+                      <span className="text-gray-500 font-mono text-xs">
+                        {stat.count.toLocaleString()} 次 ({percentage}%)
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-2">
+                      <div 
+                        className={`${barColor} h-2 rounded-full transition-all duration-500`} 
+                        style={{ width: `${percentage}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+              <span className="text-3xl mb-2">📭</span>
+              <p className="text-sm">目前尚無推播數據</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
