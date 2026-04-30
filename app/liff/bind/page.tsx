@@ -220,27 +220,26 @@ export default function BindPage() {
   return (
     <div className="max-w-md mx-auto px-4 py-8">
       {/* Header */}
-      <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-3xl">🎵</span>
-        </div>
-        <h1 className="text-xl font-bold text-gray-900">{SCHOOL_NAME}</h1>
-        <p className="text-sm text-gray-500 mt-1">LINE 帳號綁定</p>
+      <div className="text-center mb-6 pt-2">
+        <h1 className="text-2xl font-bold text-[#5C6B62] tracking-wide">{SCHOOL_NAME}</h1>
+        <p className="text-xs text-[#7B8B82] mt-1 font-medium tracking-widest">系統帳號綁定</p>
       </div>
 
       {/* Profile Card */}
       {profile && (
-        <div className="flex items-center gap-3 bg-white rounded-xl p-4 shadow-sm mb-6 border border-gray-100">
-          {profile.pictureUrl && (
+        <div className="flex items-center gap-4 bg-white rounded-2xl p-4 shadow-sm mb-8 border border-[#E8EDE9]">
+          {profile.pictureUrl ? (
             <img
               src={profile.pictureUrl}
               alt={profile.displayName}
-              className="w-10 h-10 rounded-full"
+              className="w-12 h-12 rounded-full border-2 border-[#D0DDD5]"
             />
+          ) : (
+            <div className="w-12 h-12 rounded-full border-2 border-[#D0DDD5] bg-gray-50 flex items-center justify-center text-xl">👤</div>
           )}
           <div>
-            <p className="font-medium text-gray-900">{profile.displayName}</p>
-            <p className="text-xs text-gray-400">LINE 帳號</p>
+            <p className="font-bold text-gray-800 text-lg leading-tight">{profile.displayName}</p>
+            <p className="text-[10px] text-[#7B8B82] font-medium uppercase mt-0.5">當前 LINE 帳號</p>
           </div>
         </div>
       )}
