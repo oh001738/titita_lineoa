@@ -5,10 +5,8 @@ import { useLiff } from '@/components/liff/LiffProvider'
 import { useRouter } from 'next/navigation'
 
 export default function AdminLoginPage() {
-  const { profile, idToken, isReady, error: liffError } = useLiff()
+  const { liff, profile, idToken, isReady, error: liffError } = useLiff()
   const [isLoading, setIsLoading] = useState(false)
-  const [masterPassword, setMasterPassword] = useState('')
-  const [showMaster, setShowMaster] = useState(false)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -21,9 +19,11 @@ export default function AdminLoginPage() {
     try {
       const payload: any = {}
       if (type === 'line') {
-        if (!idToken) return
+        if (!idToken) {
+          if (liff) liff.login()
+          return
+        }
         payload.id_token = idToken
-        payload.master_password = masterPassword.trim() || undefined
       } else {
         payload.username = username
         payload.password = password
@@ -103,7 +103,7 @@ export default function AdminLoginPage() {
                 )}
                 <button
                   onClick={() => handleLogin('line')}
-                  disabled={isLoading || !profile}
+                  disabled={isLoading}
                   className="w-full bg-[#06C755] text-white py-3 rounded-xl font-bold shadow-lg shadow-green-100 hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                 >
                   {isLoading ? (
@@ -161,30 +161,6 @@ export default function AdminLoginPage() {
             </button>
           </div>
 
-          <div className="text-center">
-            <button
-              onClick={() => setShowMaster(!showMaster)}
-              className="text-[10px] text-gray-400 underline"
-            >
-              首次使用 LINE 登入授權？
-            </button>
-          </div>
-
-          {showMaster && (
-            <div className="space-y-2 p-4 bg-amber-50 rounded-xl border border-amber-100">
-              <p className="text-[10px] text-amber-700 font-bold uppercase">Master Setup</p>
-              <input
-                type="password"
-                value={masterPassword}
-                onChange={(e) => setMasterPassword(e.target.value)}
-                placeholder="請輸入系統金鑰 (INTERNAL_API_KEY)"
-                className="w-full px-3 py-2 text-sm border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
-              <p className="text-[9px] text-amber-600 leading-tight">
-                在 LINE 內開啟此頁面並輸入金鑰登入，可自動提升您的 LINE 帳號為管理員。
-              </p>
-            </div>
-          )}
         </div>
       </div>
     </div>

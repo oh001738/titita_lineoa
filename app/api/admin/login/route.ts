@@ -12,12 +12,10 @@ export const dynamic = 'force-dynamic'
 /**
  * POST /api/admin/login
  * 管理員登入驗證
- * 安全：LINE 登入必須驗證 idToken，不信任前端傳來的 userId
- *       Cookie 改用 HMAC 簽名 token，防止偽造
  */
 export async function POST(request: Request) {
   try {
-    const { id_token, master_password, username, password } = await request.json()
+    const { id_token, username, password } = await request.json()
 
     // ── 0. 速率限制 ──
     const rateLimitKey = username ? `login_${username}` : `login_token_${id_token?.slice(-10)}`
@@ -63,17 +61,7 @@ export async function POST(request: Request) {
 
       await connectDB()
 
-      let admin = await AdminUser.findOne({ line_user_id, is_active: true })
-
-      // 初次設定：用 master_password 自動升格
-      if (!admin && master_password && master_password === process.env.INTERNAL_API_KEY) {
-        console.log('[Login API] Master Setup triggered for:', line_user_id)
-        admin = await AdminUser.create({
-          line_user_id,
-          name: verified.name || '初始管理員',
-          added_by: 'master_password',
-        })
-      }
+      const admin = await AdminUser.findOne({ line_user_id, is_active: true })
 
       if (!admin) {
         console.warn('[Login API] Unauthorized LINE ID:', line_user_id)

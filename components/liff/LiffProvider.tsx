@@ -43,7 +43,8 @@ export function LiffProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (typeof window === 'undefined' || isAdminPage) return
+    const isLoginPage = pathname === '/admin/login'
+    if (typeof window === 'undefined' || (isAdminPage && !isLoginPage)) return
 
     const initLiff = async () => {
       try {
@@ -82,6 +83,10 @@ export function LiffProvider({ children }: { children: ReactNode }) {
         }
 
         if (!liff.isLoggedIn()) {
+          if (isAdminPage) {
+            setIsReady(true)
+            return
+          }
           liff.login()
           return
         }
