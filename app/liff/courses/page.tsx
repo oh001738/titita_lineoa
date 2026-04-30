@@ -250,15 +250,15 @@ export default function CoursesPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className={`${isTeacherMode ? 'bg-gradient-to-br from-indigo-600 to-violet-700' : 'bg-indigo-600'} text-white p-6 pb-8 rounded-b-3xl shadow-md`}>
+      <header className={`sticky top-0 z-20 bg-gradient-to-br ${isTeacherMode ? 'from-[#D3C7B6] to-[#B3A48F] text-slate-800' : 'from-[#7B8B82] to-[#5C6B62] text-white'} p-6 pb-6 rounded-b-2xl shadow-md`}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
             {profile?.pictureUrl && (
-              <img src={profile.pictureUrl} className="w-10 h-10 rounded-full border-2 border-indigo-300" alt="" />
+              <img src={profile.pictureUrl} className={`w-10 h-10 rounded-full border-2 ${isTeacherMode ? 'border-[#8B7D6B]/50' : 'border-[#A3B1A9]/50'}`} alt="" />
             )}
             <div>
               <h1 className="text-lg font-bold">{headerTitle}</h1>
-              <p className="text-indigo-200 text-xs">{headerSubtitle}</p>
+              <p className={`text-xs ${isTeacherMode ? 'text-slate-600' : 'text-[#D0DDD5]'}`}>{headerSubtitle}</p>
             </div>
           </div>
           
@@ -268,7 +268,7 @@ export default function CoursesPage() {
       </header>
 
       {/* Main Content */}
-      <main className="p-4 -mt-4 relative z-10">
+      <main className="p-4 relative z-10">
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map(i => (
@@ -288,11 +288,11 @@ export default function CoursesPage() {
                 <div 
                   key={course.id} 
                   onClick={() => !isTeacherMode && !isCompleted && setSelectedCourse(course)}
-                  className={`bg-white p-4 rounded-2xl shadow-sm border border-gray-100 transition-colors ${!isTeacherMode && !isCompleted ? 'cursor-pointer hover:border-indigo-300 active:scale-[0.98]' : ''} ${isCompleted ? 'opacity-70' : ''}`}
+                  className={`bg-white p-4 rounded-2xl shadow-sm border border-gray-100 transition-colors ${!isTeacherMode && !isCompleted ? 'cursor-pointer hover:border-[#7B8B82] active:scale-[0.98]' : ''} ${isCompleted ? 'opacity-70' : ''}`}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex gap-2">
-                      <div className={`${isTeacherMode ? 'bg-violet-50 text-violet-700' : 'bg-indigo-50 text-indigo-700'} text-xs font-bold px-2 py-1 rounded`}>
+                      <div className={`${isTeacherMode ? 'bg-[#F5F2ED] text-[#8B7D6B]' : 'bg-[#E8EDE9] text-[#5C6B62]'} text-xs font-bold px-2 py-1 rounded`}>
                         {course.date}
                       </div>
                       {isCompleted && (
@@ -345,7 +345,7 @@ export default function CoursesPage() {
             <div className="space-y-4 mb-8">
               <div className="bg-slate-50 p-4 rounded-xl space-y-2">
                 <p className="text-sm text-gray-500">課程名稱</p>
-                <p className="font-bold text-lg text-indigo-900">{selectedCourse.name}</p>
+                <p className="font-bold text-lg text-[#5C6B62]">{selectedCourse.name}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-slate-50 p-3 rounded-xl">

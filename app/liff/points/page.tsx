@@ -247,14 +247,14 @@ export default function PointsPage() {
   if (userRole === 'teacher') {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col">
-        <header className="bg-gradient-to-br from-indigo-600 to-violet-700 text-white p-8 rounded-b-[40px] shadow-lg relative">
+        <header className="bg-gradient-to-br from-[#D3C7B6] to-[#B3A48F] text-slate-800 p-8 rounded-b-[40px] shadow-lg relative">
           <div className="absolute top-6 right-6 z-10">
             {renderRoleSelector('indigo')}
           </div>
           <div className="mb-2">
             <h1 className="text-xl font-bold">教師給點中心</h1>
           </div>
-          <p className="text-indigo-100 text-xs opacity-90">為今日上課的學生發放獎勵點數</p>
+          <p className="text-slate-600 text-xs opacity-90">為今日上課的學生發放獎勵點數</p>
         </header>
 
         <main className="flex-1 p-6 space-y-6 overflow-y-auto">
@@ -274,13 +274,13 @@ export default function PointsPage() {
                     onClick={() => setAwardForm({ ...awardForm, studentId: s.user_id })}
                     className={`flex items-center justify-between p-4 rounded-2xl transition-all ${
                       awardForm.studentId === s.user_id
-                      ? 'bg-indigo-600 text-white shadow-lg scale-[1.02]'
+                      ? 'bg-[#B3A48F] text-white shadow-lg scale-[1.02]'
                       : 'bg-white text-gray-800 border border-gray-100'
                     }`}
                   >
                     <div className="flex items-center gap-3 text-left">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                        awardForm.studentId === s.user_id ? 'bg-white/20' : 'bg-indigo-50 text-indigo-600'
+                        awardForm.studentId === s.user_id ? 'bg-white/20' : 'bg-[#F5F2ED] text-[#8B7D6B]'
                       }`}>
                         👨‍🎓
                       </div>
@@ -315,7 +315,7 @@ export default function PointsPage() {
                         key={val}
                         onClick={() => setAwardForm({ ...awardForm, amount: val })}
                         className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${
-                          awardForm.amount === val ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                          awardForm.amount === val ? 'bg-[#B3A48F] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                         }`}
                       >
                         +{val}
@@ -338,7 +338,7 @@ export default function PointsPage() {
                 <button
                   onClick={handleAward}
                   disabled={isAwarding}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 disabled:opacity-50 transition-all mt-2"
+                  className="w-full bg-gradient-to-r from-[#D3C7B6] to-[#B3A48F] text-slate-800 py-4 rounded-2xl font-bold shadow-lg active:scale-95 disabled:opacity-50 transition-all mt-2"
                 >
                   {isAwarding ? '正在發送獎勵...' : '確認發放獎勵'}
                 </button>
@@ -355,7 +355,7 @@ export default function PointsPage() {
     <div className="min-h-screen bg-slate-50 flex flex-col">
 
       {/* Balance Header */}
-      <header className="bg-gradient-to-br from-amber-400 to-orange-500 text-white p-8 rounded-b-[40px] shadow-lg text-center relative overflow-hidden">
+      <header className="sticky top-0 z-20 bg-gradient-to-br from-[#C89F9C] to-[#A37B78] text-white p-6 pb-6 rounded-b-[32px] shadow-lg text-center relative overflow-hidden">
         {/* Decorative background circles */}
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
         <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
@@ -365,25 +365,25 @@ export default function PointsPage() {
           {renderRoleSelector('amber')}
         </div>
         
-        <p className="text-amber-100 text-sm font-medium mb-1 mt-2">目前可用點數</p>
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <span className="text-5xl font-black tracking-tight shadow-sm">
+        <p className="text-[#F1E6E5] text-xs font-medium mb-1 mt-2">目前可用點數</p>
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <span className="text-4xl font-black tracking-tight shadow-sm">
             {isLoading ? '...' : data?.balance.toLocaleString() || '0'}
           </span>
-          <span className="text-xl font-bold mt-2">點</span>
+          <span className="text-lg font-bold mt-1">點</span>
         </div>
-        <p className="text-xs text-amber-100 opacity-80">
+        <p className="text-[10px] text-[#F1E6E5] opacity-80">
           {boundStudents.find(s => s.user_id === selectedStudentId)?.student_name || profile?.displayName} 的專屬帳戶
         </p>
       </header>
 
       {/* Tabs */}
-      <div className="flex px-4 mt-6 gap-2">
+      <div className="sticky top-[152px] z-10 flex px-4 mt-4 gap-2 bg-slate-50/80 backdrop-blur-md py-2">
         <button
           onClick={() => setActiveTab('all')}
           className={`flex-1 py-2.5 rounded-full text-xs font-bold transition-all ${
             activeTab === 'all' 
-            ? 'bg-slate-800 text-white shadow-md' 
+            ? 'bg-[#A37B78] text-white shadow-md' 
             : 'bg-white text-gray-500 border border-gray-200'
           }`}
         >
@@ -393,7 +393,7 @@ export default function PointsPage() {
           onClick={() => setActiveTab('earn')}
           className={`flex-1 py-2.5 rounded-full text-xs font-bold transition-all ${
             activeTab === 'earn' 
-            ? 'bg-amber-100 text-amber-700 shadow-md' 
+            ? 'bg-[#F1E6E5] text-[#A37B78] shadow-md' 
             : 'bg-white text-gray-500 border border-gray-200'
           }`}
         >
@@ -403,7 +403,7 @@ export default function PointsPage() {
           onClick={() => setActiveTab('spend')}
           className={`flex-1 py-2.5 rounded-full text-xs font-bold transition-all ${
             activeTab === 'spend' 
-            ? 'bg-blue-100 text-blue-700 shadow-md' 
+            ? 'bg-[#EAEBEB] text-[#7B8B82] shadow-md' 
             : 'bg-white text-gray-500 border border-gray-200'
           }`}
         >
@@ -430,7 +430,7 @@ export default function PointsPage() {
               <div key={item.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                    item.type === 'earn' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'
+                    item.type === 'earn' ? 'bg-[#F1E6E5] text-[#A37B78]' : 'bg-[#EAEBEB] text-[#7B8B82]'
                   }`}>
                     {item.type === 'earn' ? '+' : '-'}
                   </div>
@@ -440,7 +440,7 @@ export default function PointsPage() {
                   </div>
                 </div>
                 <div className={`font-black ${
-                  item.type === 'earn' ? 'text-amber-500' : 'text-gray-800'
+                  item.type === 'earn' ? 'text-[#A37B78]' : 'text-gray-800'
                 }`}>
                   {item.type === 'earn' ? `+${item.amount}` : item.amount}
                 </div>
