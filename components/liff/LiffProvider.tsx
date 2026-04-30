@@ -86,8 +86,6 @@ export function LiffProvider({ children }: { children: ReactNode }) {
 
         if (!inClient) {
           setIsExternalBrowser(true)
-          setIsReady(true)
-          return
         }
 
         if (!liff.isLoggedIn()) {
