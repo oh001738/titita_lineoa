@@ -218,231 +218,269 @@ export default function BindPage() {
   }
 
   return (
-    <div className="max-w-md mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="text-center mb-6 pt-2">
-        <h1 className="text-2xl font-bold text-[#5C6B62] tracking-wide">{SCHOOL_NAME}</h1>
-        <p className="text-xs text-[#7B8B82] mt-1 font-medium tracking-widest">系統帳號綁定</p>
-      </div>
+    <div className="min-h-screen bg-[#FFDF6F] relative overflow-x-hidden flex flex-col font-nunito">
+      <style dangerouslySetInnerHTML={{__html: `
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+        .font-nunito { font-family: 'Nunito', sans-serif; }
+        @keyframes float-up {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+        @keyframes float-down {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(20px) rotate(-10deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+        @keyframes wave-bg {
+            0% { background-position-x: 0; }
+            100% { background-position-x: 1000px; }
+        }
+        .animate-wave { animation: wave-bg 20s linear infinite; }
+        .animate-float-up { animation: float-up 4s ease-in-out infinite; }
+        .animate-float-down { animation: float-down 5s ease-in-out infinite; }
+      `}} />
 
-      {/* Profile Card */}
-      {profile && (
-        <div className="flex items-center gap-4 bg-white rounded-2xl p-4 shadow-sm mb-8 border border-[#E8EDE9]">
-          {profile.pictureUrl ? (
-            <img
-              src={profile.pictureUrl}
-              alt={profile.displayName}
-              className="w-12 h-12 rounded-full border-2 border-[#D0DDD5]"
-            />
-          ) : (
-            <div className="w-12 h-12 rounded-full border-2 border-[#D0DDD5] bg-gray-50 flex items-center justify-center text-xl">👤</div>
-          )}
-          <div>
-            <p className="font-bold text-gray-800 text-lg leading-tight">{profile.displayName}</p>
-            <p className="text-[10px] text-[#7B8B82] font-medium uppercase mt-0.5">當前 LINE 帳號</p>
-          </div>
+      {/* Dynamic Wave Background */}
+      <div 
+        className="absolute top-0 left-0 w-full h-[350px] animate-wave z-0"
+        style={{
+          background: "url('data:image/svg+xml;utf8,<svg viewBox=\"0 0 1000 300\" xmlns=\"http://www.w3.org/2000/svg\"><path fill=\"%23FFFFFF\" opacity=\"0.5\" d=\"M0,150 C300,300 700,0 1000,150 L1000,0 L0,0 Z\"></path><path fill=\"%2366CCCC\" opacity=\"0.3\" d=\"M0,200 C400,0 600,300 1000,200 L1000,0 L0,0 Z\"></path></svg>') repeat-x",
+          backgroundSize: '1000px 300px'
+        }}
+      />
+      
+      {/* Floating Music Notes */}
+      <div className="absolute top-[60px] right-[30px] text-4xl text-[#FE7A7B] opacity-60 z-0 animate-float-up pointer-events-none">🎵</div>
+      <div className="absolute top-[180px] left-[20px] text-4xl text-[#99D8B9] opacity-60 z-0 animate-float-down pointer-events-none">🎶</div>
+
+      <div className="max-w-md mx-auto w-full px-4 py-8 relative z-10 flex-1 flex flex-col">
+        {/* Header */}
+        <div className="text-center mb-6 pt-2">
+          <h1 className="text-2xl font-black text-[#F56E4A] tracking-wide drop-shadow-sm">{SCHOOL_NAME}</h1>
+          <p className="inline-block mt-2 px-3 py-1 bg-[#F56E4A] text-white rounded-full text-xs font-bold tracking-widest shadow-sm">系統帳號綁定</p>
         </div>
-      )}
 
-      {/* Step: Loading */}
-      {step === 'loading' && (
-        <div className="flex flex-col items-center justify-center py-12">
-          <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4" />
-          <p className="text-gray-500 text-sm">正在確認綁定狀態...</p>
-        </div>
-      )}
-
-      {/* Step: Already Bound */}
-      {step === 'already_bound' && (
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 text-center">
-          <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-            ✓
-          </div>
-          <h2 className="font-bold text-xl text-gray-900 mb-2">您已綁定過帳號</h2>
-          <p className="text-sm text-gray-500 mb-6">以下是目前與此 LINE 連動的系統帳號：</p>
-          
-          <div className="space-y-3 mb-8 text-left">
-            {alreadyBoundUsers.map((u: any, i) => (
-              <div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-100 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">{u.role === 'teacher' ? '👨‍🏫' : '👨‍🎓'}</span>
-                  <div>
-                    <p className="font-bold text-gray-800">{u.name}</p>
-                    <p className="text-xs text-gray-500">{u.role === 'teacher' ? '教師身份' : '家長/學生身份'}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleUnbind(u._id, u.name)}
-                  disabled={isLoading}
-                  className="text-xs text-red-500 font-bold px-3 py-1.5 border border-red-200 rounded-lg bg-white hover:bg-red-50 active:scale-95 transition-all"
-                >
-                  解除
-                </button>
-              </div>
-            ))}
-          </div>
-
-          <p className="text-xs text-gray-400 mb-4">若您還有其他小孩/帳號需要綁定，請點擊下方按鈕：</p>
-          <button
-            onClick={() => setStep('phone')}
-            className="w-full bg-indigo-50 text-indigo-600 border border-indigo-200 py-3 rounded-lg font-bold hover:bg-indigo-100 transition-colors"
-          >
-            ✚ 繼續綁定其他帳號
-          </button>
-          <button
-            onClick={() => liff?.closeWindow()}
-            className="w-full mt-3 bg-gray-100 text-gray-600 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors"
-          >
-            ✕ 返回聊天室
-          </button>
-        </div>
-      )}
-
-      {/* Step: Phone Input */}
-      {step === 'phone' && (
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h2 className="font-semibold text-gray-900 mb-4">輸入手機號碼</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            請輸入報名時填寫的手機號碼，系統將自動查詢您的帳號。
-          </p>
-
-          <input
-            type="tel"
-            inputMode="numeric"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="0912345678"
-            className="w-full px-4 py-3 border border-gray-200 rounded-lg text-lg text-center tracking-wider focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            maxLength={10}
-          />
-
-          {error && (
-            <p className="text-red-500 text-sm mt-3 text-center">{error}</p>
-          )}
-
-          <button
-            onClick={handleLookup}
-            disabled={isLoading}
-            className="w-full mt-4 bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {isLoading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                查詢中...
-              </span>
+        {/* Profile Card */}
+        {profile && (
+          <div className="flex items-center gap-4 bg-white/85 backdrop-blur-md rounded-[24px] p-4 shadow-lg mb-8 border-2 border-white/50">
+            {profile.pictureUrl ? (
+              <img
+                src={profile.pictureUrl}
+                alt={profile.displayName}
+                className="w-14 h-14 rounded-[20px] border-4 border-[#66CCCC] shadow-sm object-cover"
+              />
             ) : (
-              '查詢帳號'
+              <div className="w-14 h-14 rounded-[20px] border-4 border-[#66CCCC] shadow-sm bg-[#66CCCC] text-white flex items-center justify-center text-2xl">👦</div>
             )}
-          </button>
-        </div>
-      )}
-
-      {/* 所有步驟都顯示返回聊天室按鈕（除了 loading） */}
-      {step !== 'loading' && step !== 'already_bound' && (
-        <button
-          onClick={() => liff?.closeWindow()}
-          className="w-full mt-4 text-gray-400 text-sm font-medium hover:text-gray-600 transition-colors py-2"
-        >
-          ✕ 返回聊天室
-        </button>
-      )}
-
-      {/* Step: Select Users */}
-      {step === 'select' && (
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h2 className="font-semibold text-gray-900 mb-2">選擇要綁定的帳號</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            找到 {users.length} 個帳號，請勾選要綁定的帳號。
-          </p>
-
-          <div className="space-y-3">
-            {users.map((user) => (
-              <label
-                key={user._id}
-                className={`flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-colors ${
-                  selectedIds.has(user._id)
-                    ? 'border-indigo-500 bg-indigo-50'
-                    : 'border-gray-100 hover:border-gray-200'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedIds.has(user._id)}
-                  onChange={() => toggleUser(user._id)}
-                  className="w-5 h-5 rounded text-indigo-600 focus:ring-indigo-500"
-                />
-                <div className="flex-1">
-                  <p className="font-medium text-gray-900">
-                    {user.student_name || user.name}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {user.role === 'family' ? '學生/家長' : '教師'}
-                  </p>
-                </div>
-              </label>
-            ))}
+            <div>
+              <p className="font-extrabold text-gray-800 text-lg leading-tight">{profile.displayName}</p>
+              <p className="text-[10px] text-[#FF9966] font-black uppercase mt-1 tracking-wider">當前 LINE 帳號</p>
+            </div>
           </div>
+        )}
 
-          {error && (
-            <p className="text-red-500 text-sm mt-3 text-center">{error}</p>
-          )}
+        {/* Step: Loading */}
+        {step === 'loading' && (
+          <div className="flex flex-col items-center justify-center py-12 bg-white/80 backdrop-blur-md rounded-[28px] border-2 border-white/50 shadow-xl">
+            <div className="w-10 h-10 border-4 border-[#FF9966]/30 border-t-[#FF9966] rounded-full animate-spin mb-4" />
+            <p className="text-[#F56E4A] font-bold text-sm tracking-widest">系統準備中...</p>
+          </div>
+        )}
 
-          <div className="flex gap-3 mt-6">
+        {/* Step: Already Bound */}
+        {step === 'already_bound' && (
+          <div className="bg-white/95 backdrop-blur-md rounded-[28px] p-6 shadow-xl border-2 border-white/50 text-center">
+            <div className="w-16 h-16 bg-[#99D8B9] text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl shadow-sm rotate-3">
+              ✓
+            </div>
+            <h2 className="font-black text-xl text-gray-800 mb-2">您已綁定過帳號</h2>
+            <p className="text-sm text-gray-500 font-bold mb-6">目前與此 LINE 連動的系統帳號：</p>
+            
+            <div className="space-y-3 mb-8 text-left">
+              {alreadyBoundUsers.map((u: any, i) => (
+                <div key={i} className="bg-white p-3 rounded-2xl border-2 border-[#E5E1E0] flex items-center justify-between shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{u.role === 'teacher' ? '👨‍🏫' : '👨‍🎓'}</span>
+                    <div>
+                      <p className="font-black text-gray-800">{u.name}</p>
+                      <p className="text-[10px] text-gray-400 font-bold tracking-widest">{u.role === 'teacher' ? '教師身份' : '家長/學生身份'}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleUnbind(u._id, u.name)}
+                    disabled={isLoading}
+                    className="text-xs text-[#FE7A7B] font-black px-3 py-1.5 border-2 border-[#FE7A7B]/20 rounded-xl bg-[#FE7A7B]/5 hover:bg-[#FE7A7B]/10 active:scale-95 transition-all"
+                  >
+                    解除
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-xs text-gray-400 font-bold mb-4">若還有其他寶貝需要綁定：</p>
             <button
-              onClick={() => { setStep('phone'); setError(null) }}
-              className="flex-1 py-3 rounded-lg border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors"
+              onClick={() => setStep('phone')}
+              className="w-full bg-[#66CCCC] text-white py-4 rounded-2xl font-black text-base shadow-[0_4px_0_#4EA6A6] hover:translate-y-[2px] hover:shadow-[0_2px_0_#4EA6A6] active:translate-y-[4px] active:shadow-none transition-all mb-3"
             >
-              返回
+              ✚ 繼續綁定其他帳號
             </button>
             <button
-              onClick={handleBind}
-              disabled={isLoading || selectedIds.size === 0}
-              className="flex-1 bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              onClick={() => liff?.closeWindow()}
+              className="w-full bg-white text-gray-500 border-2 border-[#E5E1E0] py-4 rounded-2xl font-black hover:bg-gray-50 transition-colors"
+            >
+              ✕ 返回聊天室
+            </button>
+          </div>
+        )}
+
+        {/* Step: Phone Input */}
+        {step === 'phone' && (
+          <div className="bg-white/95 backdrop-blur-md rounded-[28px] p-6 shadow-xl border-2 border-white/50">
+            <h2 className="font-black text-gray-800 text-lg mb-2">尋找寶貝的帳號</h2>
+            <p className="text-sm text-gray-500 mb-6 font-bold">
+              請輸入報名時填寫的手機號碼，系統將自動尋找寶貝的專屬帳號喔！
+            </p>
+
+            <input
+              type="tel"
+              inputMode="numeric"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="0912345678"
+              className="w-full px-4 py-4 border-2 border-dashed border-[#FF9966] rounded-2xl text-xl font-black text-center tracking-widest focus:outline-none focus:border-[#F56E4A] focus:bg-[#FFF5ED] transition-colors text-gray-700 placeholder-gray-300"
+              maxLength={10}
+            />
+
+            {error && (
+              <p className="text-[#FE7A7B] text-sm mt-3 text-center font-bold bg-[#FE7A7B]/10 py-2 rounded-xl">{error}</p>
+            )}
+
+            <button
+              onClick={handleLookup}
+              disabled={isLoading}
+              className="w-full mt-6 bg-[#FF9966] text-white py-4 rounded-2xl font-black text-lg shadow-[0_6px_0_#D95433] hover:translate-y-[2px] hover:shadow-[0_4px_0_#D95433] active:translate-y-[6px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  綁定中...
+                  <span className="w-5 h-5 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                  查詢中...
                 </span>
               ) : (
-                `綁定 (${selectedIds.size})`
+                '立刻查詢'
               )}
             </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Step: Success */}
-      {step === 'success' && (
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl">✅</span>
-          </div>
-          <h2 className="font-semibold text-gray-900 text-lg mb-2">綁定成功！</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            您已成功綁定以下帳號：
-          </p>
-          <div className="space-y-2 mb-6">
-            {boundNames.map((name, i) => (
-              <div
-                key={i}
-                className="bg-green-50 text-green-800 px-4 py-2 rounded-lg text-sm font-medium"
-              >
-                {name}
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-gray-400 mb-6">
-            您將透過 LINE 接收課程通知、學費提醒等訊息。
-          </p>
+        {/* 所有步驟都顯示返回聊天室按鈕（除了 loading 跟 already_bound 已經有了） */}
+        {step !== 'loading' && step !== 'already_bound' && step !== 'success' && (
           <button
             onClick={() => liff?.closeWindow()}
-            className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+            className="mt-auto mx-auto bg-white/60 backdrop-blur-md px-6 py-3 rounded-2xl text-gray-500 font-bold hover:bg-white/80 transition-colors border border-white/50 shadow-sm"
           >
-            完成，返回聊天室
+            ✕ 先不要綁定
           </button>
-        </div>
-      )}
+        )}
+
+        {/* Step: Select Users */}
+        {step === 'select' && (
+          <div className="bg-white/95 backdrop-blur-md rounded-[28px] p-6 shadow-xl border-2 border-white/50">
+            <h2 className="font-black text-gray-800 text-lg mb-2">選擇要綁定的帳號</h2>
+            <p className="text-sm text-[#FF9966] font-bold mb-4 bg-[#FF9966]/10 inline-block px-3 py-1 rounded-xl">
+              找到 {users.length} 個帳號，請勾選。
+            </p>
+
+            <div className="space-y-3">
+              {users.map((user) => (
+                <label
+                  key={user._id}
+                  className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-colors ${
+                    selectedIds.has(user._id)
+                      ? 'border-[#66CCCC] bg-[#66CCCC]/10'
+                      : 'border-[#E5E1E0] hover:border-[#66CCCC]/50 bg-white'
+                  }`}
+                >
+                  <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors ${
+                    selectedIds.has(user._id) ? 'bg-[#66CCCC] border-[#66CCCC]' : 'border-gray-300 bg-white'
+                  }`}>
+                    {selectedIds.has(user._id) && <span className="text-white text-xs font-bold">✓</span>}
+                  </div>
+                  
+                  <div className="flex-1">
+                    <p className="font-black text-gray-800 text-base">
+                      {user.student_name || user.name}
+                    </p>
+                    <p className="text-[10px] text-gray-400 font-bold tracking-widest mt-0.5">
+                      {user.role === 'family' ? '學生/家長' : '教師'}
+                    </p>
+                  </div>
+                </label>
+              ))}
+            </div>
+
+            {error && (
+              <p className="text-[#FE7A7B] text-sm mt-3 text-center font-bold">{error}</p>
+            )}
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => { setStep('phone'); setError(null) }}
+                className="w-1/3 py-4 rounded-2xl border-2 border-[#E5E1E0] text-gray-500 font-black hover:bg-gray-50 transition-colors"
+              >
+                返回
+              </button>
+              <button
+                onClick={handleBind}
+                disabled={isLoading || selectedIds.size === 0}
+                className="flex-1 bg-[#66CCCC] text-white py-4 rounded-2xl font-black text-lg shadow-[0_6px_0_#4EA6A6] hover:translate-y-[2px] hover:shadow-[0_4px_0_#4EA6A6] active:translate-y-[6px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="w-5 h-5 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                    綁定中...
+                  </span>
+                ) : (
+                  `確認綁定 (${selectedIds.size})`
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step: Success */}
+        {step === 'success' && (
+          <div className="bg-white/95 backdrop-blur-md rounded-[28px] p-6 shadow-xl border-2 border-white/50 text-center relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-2 bg-[#99D8B9]"></div>
+            <div className="w-16 h-16 bg-[#99D8B9] text-white rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-sm">
+              ✨
+            </div>
+            <h2 className="font-black text-gray-800 text-xl mb-2">太棒了，綁定成功！</h2>
+            <p className="text-sm text-gray-500 font-bold mb-4">
+              您已成功連動以下帳號：
+            </p>
+            <div className="space-y-2 mb-6">
+              {boundNames.map((name, i) => (
+                <div
+                  key={i}
+                  className="bg-[#99D8B9]/20 text-[#2B7A54] px-4 py-3 rounded-xl text-sm font-black tracking-wide"
+                >
+                  {name}
+                </div>
+              ))}
+            </div>
+            <p className="text-[11px] text-gray-400 font-bold tracking-wider mb-6">
+              未來將透過此 LINE 接收通知與提醒。
+            </p>
+            <button
+              onClick={() => liff?.closeWindow()}
+              className="w-full bg-[#FFDF6F] text-[#F56E4A] py-4 rounded-2xl font-black text-lg shadow-[0_4px_0_#E5C864] hover:translate-y-[2px] hover:shadow-[0_2px_0_#E5C864] active:translate-y-[4px] active:shadow-none transition-all"
+            >
+              完成，返回聊天室
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
