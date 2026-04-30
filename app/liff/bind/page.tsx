@@ -373,16 +373,6 @@ export default function BindPage() {
           </div>
         )}
 
-        {/* 所有步驟都顯示返回聊天室按鈕（除了 loading 跟 already_bound 已經有了） */}
-        {step !== 'loading' && step !== 'already_bound' && step !== 'success' && (
-          <button
-            onClick={() => liff?.closeWindow()}
-            className="mt-auto mx-auto bg-white/60 backdrop-blur-md px-6 py-3 rounded-2xl text-gray-500 font-bold hover:bg-white/80 transition-colors border border-white/50 shadow-sm"
-          >
-            ✕ 先不要綁定
-          </button>
-        )}
-
         {/* Step: Select Users */}
         {step === 'select' && (
           <div className="bg-white/95 backdrop-blur-md rounded-[28px] p-6 shadow-xl border-2 border-white/50">
@@ -479,6 +469,16 @@ export default function BindPage() {
               完成，返回聊天室
             </button>
           </div>
+        )}
+
+        {/* 所有步驟都顯示返回聊天室按鈕（除了 loading 跟 already_bound 已經有了） */}
+        {step !== 'loading' && step !== 'already_bound' && step !== 'success' && (
+          <button
+            onClick={() => liff?.closeWindow()}
+            className="mt-6 mx-auto bg-white/60 backdrop-blur-md px-6 py-3 rounded-2xl text-gray-500 font-bold hover:bg-white/80 transition-colors border border-white/50 shadow-sm"
+          >
+            ✕ 先不要綁定
+          </button>
         )}
       </div>
     </div>
