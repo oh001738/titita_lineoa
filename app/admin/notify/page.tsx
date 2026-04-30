@@ -20,6 +20,8 @@ const NOTIFY_TYPE_LABELS: Record<string, string> = {
   course_change: '課程異動通知',
   tuition_reminder: '學費繳費提醒',
   tuition_received: '學費收訖通知',
+  tuition_notice: '學費繳費單通知',
+  class_reminder: '上課前提醒',
   points_earned: '點數獎勵通知',
   broadcast: '廣播公告',
   bind_success: '帳號綁定成功',

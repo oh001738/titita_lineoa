@@ -104,6 +104,8 @@ export default function AdminDashboard() {
     course_change: '課程變動通知',
     tuition_reminder: '繳費提醒',
     tuition_received: '繳費確認回報',
+    tuition_notice: '學費繳費通知',
+    class_reminder: '上課提醒',
     points_earned: '點數獎勵通知',
     broadcast: '全體廣播訊息',
     bind_success: '帳號綁定成功'
