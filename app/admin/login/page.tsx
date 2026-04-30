@@ -71,6 +71,13 @@ export default function AdminLoginPage() {
     }
   }, [isReady, profile?.userId])
 
+  // 當 LINE 授權回來且有 Token 時，自動觸發後台登入，省去使用者點第二次按鈕
+  useEffect(() => {
+    if (isReady && idToken && profile && !isLoading && !error) {
+      handleLogin('line')
+    }
+  }, [isReady, idToken, profile, isLoading, error])
+
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
       <div className="max-w-sm w-full bg-white rounded-2xl shadow-2xl overflow-hidden">
