@@ -20,7 +20,7 @@ export default function AdminLoginPage() {
       const payload: any = {}
       if (type === 'line') {
         if (!idToken) {
-          if (liff) liff.login()
+          if (liff) liff.login({ redirectUri: window.location.href })
           return
         }
         payload.id_token = idToken

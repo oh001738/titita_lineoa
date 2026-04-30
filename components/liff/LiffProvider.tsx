@@ -43,8 +43,16 @@ export function LiffProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+
     const isLoginPage = pathname === '/admin/login'
-    if (typeof window === 'undefined' || (isAdminPage && !isLoginPage)) return
+    
+    // 如果是管理後台的其他頁面（非登入頁），不需要初始化 LIFF
+    // 但必須設定 isReady(true) 否則頁面會卡在載入狀態
+    if (isAdminPage && !isLoginPage) {
+      setIsReady(true)
+      return
+    }
 
     const initLiff = async () => {
       try {
@@ -111,7 +119,7 @@ export function LiffProvider({ children }: { children: ReactNode }) {
     }
 
     initLiff()
-  }, [])
+  }, [pathname, isAdminPage])
 
   if (isExternalBrowser && !isAdminPage) {
     return (
