@@ -1,126 +1,114 @@
 import type { messagingApi } from '@line/bot-sdk'
 
 /**
- * LINE Flex Message 模板
- * 所有推播訊息的模板集中管理
+ * LINE Flex Message 模板 - 款式 A：童趣果凍風 (Jelly Kids)
+ * 統一風格規範：
+ * 1. Header: 高飽和底色（#FFDF6F, #FF9966, #66CCCC, #F56E4A），置中大標題。
+ * 2. Body: 使用 bg-[#f8fafc] 的圓角區塊 (cornerRadius: 12px) 呈現 Key-Value 資料，保持一致的文字排版。
+ * 3. Footer: 大圓角按鈕，字體加粗。
  */
 
-// ── 綁定成功通知 ──
-export function bindSuccessMessage(
-  studentNames: string[]
-): messagingApi.FlexMessage {
-  const nameItems: messagingApi.FlexComponent[] = studentNames.map((name) => ({
+// ── 共用元件生成器 ──
+function createRow(key: string, value: string, valueColor = '#334155'): messagingApi.FlexComponent {
+  return {
     type: 'box',
     layout: 'horizontal',
+    backgroundColor: '#f8fafc',
+    paddingAll: '12px',
+    cornerRadius: '12px',
+    margin: 'sm',
     contents: [
-      { type: 'text', text: '✅', size: 'sm', flex: 0 },
-      { type: 'text', text: name, size: 'sm', color: '#333333', margin: 'sm', flex: 1 },
-    ],
-  }))
+      { type: 'text', text: key, color: '#94a3b8', size: 'xs', flex: 2, weight: 'bold', align: 'start' },
+      { type: 'text', text: value, color: valueColor, size: 'sm', flex: 5, weight: 'bold', align: 'end', wrap: true }
+    ]
+  }
+}
 
+function createTextList(items: string[]): messagingApi.FlexComponent {
+  return {
+    type: 'text',
+    text: items.join('\n'),
+    color: '#64748b',
+    size: 'xs',
+    weight: 'bold',
+    wrap: true,
+    margin: 'sm'
+  }
+}
+
+// ── 綁定成功通知 ──
+export function bindSuccessMessage(studentNames: string[]): messagingApi.FlexMessage {
+  const nameRows = studentNames.map(name => createRow('學生', name))
   return {
     type: 'flex',
     altText: '帳號綁定成功！',
     contents: {
       type: 'bubble',
+      size: 'kilo',
       header: {
         type: 'box',
         layout: 'vertical',
-        backgroundColor: '#6366f1',
-        paddingAll: '20px',
+        backgroundColor: '#FFDF6F',
+        paddingTop: '20px',
+        paddingBottom: '20px',
         contents: [
-          {
-            type: 'text',
-            text: '🎵 帳號綁定成功！',
-            color: '#ffffff',
-            size: 'lg',
-            weight: 'bold',
-          },
-        ],
+          { type: 'text', text: '🔗 帳號綁定成功', color: '#F56E4A', size: 'lg', weight: 'bold', align: 'center' }
+        ]
       },
       body: {
         type: 'box',
         layout: 'vertical',
-        spacing: 'md',
+        paddingAll: '20px',
         contents: [
-          { type: 'text', text: '已綁定學生：', size: 'sm', color: '#888888', weight: 'bold' },
-          ...nameItems,
-          { type: 'separator', margin: 'lg' },
-          {
-            type: 'text',
-            text: '您將收到以下通知：',
-            size: 'sm',
-            color: '#888888',
-            weight: 'bold',
-            margin: 'lg',
-          },
-          { type: 'text', text: '• 請假/補課處理結果', size: 'sm', color: '#555555' },
-          { type: 'text', text: '• 課程異動通知', size: 'sm', color: '#555555' },
-          { type: 'text', text: '• 學費繳費提醒', size: 'sm', color: '#555555' },
-        ],
-      },
-    },
+          { type: 'text', text: '已綁定帳號', color: '#94a3b8', size: 'xs', weight: 'bold' },
+          ...nameRows,
+          { type: 'separator', margin: 'xl', color: '#f1f5f9' },
+          { type: 'text', text: '您將收到以下通知：', color: '#94a3b8', size: 'xs', weight: 'bold', margin: 'xl' },
+          createTextList(['• 請假 / 補課處理結果', '• 課程異動通知', '• 學費繳費提醒'])
+        ]
+      }
+    }
   }
 }
 
 // ── 解除綁定通知 ──
-export function unbindNotifyMessage(
-  userName: string,
-  operator: 'self' | 'admin'
-): messagingApi.FlexMessage {
+export function unbindNotifyMessage(userName: string, operator: 'self' | 'admin'): messagingApi.FlexMessage {
   return {
     type: 'flex',
     altText: '帳號已解除 LINE 綁定',
     contents: {
       type: 'bubble',
+      size: 'kilo',
       header: {
         type: 'box',
         layout: 'vertical',
         backgroundColor: '#ef4444',
-        paddingAll: '20px',
+        paddingTop: '20px',
+        paddingBottom: '20px',
         contents: [
-          {
-            type: 'text',
-            text: '⚠️ 帳號解除綁定',
-            color: '#ffffff',
-            size: 'lg',
-            weight: 'bold',
-          },
-        ],
+          { type: 'text', text: '⚠️ 帳號解除綁定', color: '#ffffff', size: 'lg', weight: 'bold', align: 'center' }
+        ]
       },
       body: {
         type: 'box',
         layout: 'vertical',
-        spacing: 'md',
+        paddingAll: '20px',
         contents: [
+          createRow('成員', userName),
+          { type: 'separator', margin: 'xl', color: '#f1f5f9' },
           {
             type: 'text',
-            text: `成員：${userName}`,
-            size: 'sm',
-            color: '#333333',
-            weight: 'bold',
+            text: operator === 'self' ? '您已手動解除此帳號的 LINE 連結。' : '管理員已解除此帳號的 LINE 連結。',
+            color: '#64748b', size: 'xs', weight: 'bold', margin: 'xl', wrap: true
           },
           {
             type: 'text',
-            text: operator === 'self' 
-              ? '您已手動解除此帳號的 LINE 連結。' 
-              : '管理員已解除此帳號的 LINE 連結。',
-            size: 'sm',
-            color: '#555555',
-            wrap: true,
-          },
-          { type: 'separator', margin: 'lg' },
-          {
-            type: 'text',
-            text: '即日起您將不再收到該成員的課程與學費推播。如需重新接收通知，請再次進行帳號綁定。',
-            size: 'xs',
-            color: '#888888',
-            wrap: true,
-            margin: 'lg',
-          },
-        ],
-      },
-    },
+            text: '即日起您將不再收到該成員的課程與學費推播。',
+            color: '#94a3b8', size: 'xs', weight: 'bold', margin: 'md', wrap: true
+          }
+        ]
+      }
+    }
   }
 }
 
@@ -131,49 +119,33 @@ export function welcomeMessage(): messagingApi.FlexMessage {
     altText: '歡迎加入音樂補習班！',
     contents: {
       type: 'bubble',
+      size: 'kilo',
       header: {
         type: 'box',
         layout: 'vertical',
-        backgroundColor: '#6366f1',
-        paddingAll: '20px',
+        backgroundColor: '#FFDF6F',
+        paddingTop: '20px',
+        paddingBottom: '20px',
         contents: [
-          {
-            type: 'text',
-            text: '🎵 歡迎加入音樂補習班！',
-            color: '#ffffff',
-            size: 'lg',
-            weight: 'bold',
-          },
-        ],
+          { type: 'text', text: '🎵 歡迎加入', color: '#F56E4A', size: 'lg', weight: 'bold', align: 'center' }
+        ]
       },
       body: {
         type: 'box',
         layout: 'vertical',
-        spacing: 'md',
+        paddingAll: '20px',
         contents: [
           {
             type: 'text',
-            text: '請點擊下方「綁定帳號」完成帳號綁定，即可收到課程通知、學費提醒等訊息。',
-            size: 'sm',
-            color: '#555555',
-            wrap: true,
+            text: '請點擊下方按鈕完成帳號綁定，即可收到專屬課程通知與學費提醒！',
+            color: '#334155', size: 'sm', weight: 'bold', wrap: true
           },
-          { type: 'separator', margin: 'lg' },
-          {
-            type: 'text',
-            text: '綁定步驟：',
-            size: 'sm',
-            color: '#888888',
-            weight: 'bold',
-            margin: 'lg',
-          },
-          { type: 'text', text: '1️⃣ 點擊選單「綁定帳號」', size: 'sm', color: '#555555' },
-          { type: 'text', text: '2️⃣ 輸入報名時填寫的手機號碼', size: 'sm', color: '#555555' },
-          { type: 'text', text: '3️⃣ 選擇要綁定的學生', size: 'sm', color: '#555555' },
-          { type: 'text', text: '4️⃣ 完成！開始接收通知', size: 'sm', color: '#555555' },
-        ],
-      },
-    },
+          { type: 'separator', margin: 'xl', color: '#f1f5f9' },
+          { type: 'text', text: '綁定步驟', color: '#94a3b8', size: 'xs', weight: 'bold', margin: 'xl' },
+          createTextList(['1️⃣ 點擊選單「綁定帳號」', '2️⃣ 輸入報名手機號碼', '3️⃣ 選擇要綁定的學生', '4️⃣ 開始接收通知'])
+        ]
+      }
+    }
   }
 }
 
@@ -184,191 +156,139 @@ export function bindGuideMessage(liffId: string, path = '/liff/bind'): messaging
     altText: '請點擊按鈕進行帳號綁定',
     contents: {
       type: 'bubble',
+      size: 'kilo',
       header: {
         type: 'box',
         layout: 'vertical',
-        backgroundColor: '#6366f1',
-        paddingAll: '20px',
+        backgroundColor: '#FFDF6F',
+        paddingTop: '20px',
+        paddingBottom: '20px',
         contents: [
-          { type: 'text', text: '🔗 帳號綁定', color: '#ffffff', size: 'lg', weight: 'bold' },
-        ],
+          { type: 'text', text: '🔗 帳號綁定', color: '#F56E4A', size: 'lg', weight: 'bold', align: 'center' }
+        ]
       },
       body: {
         type: 'box',
         layout: 'vertical',
-        spacing: 'md',
+        paddingAll: '20px',
         contents: [
-          {
-            type: 'text',
-            text: '請點擊下方按鈕，依照步驟完成帳號綁定。',
-            size: 'sm',
-            color: '#555555',
-            wrap: true,
-          },
-        ],
+          { type: 'text', text: '請點擊下方按鈕，依照步驟完成帳號綁定。', color: '#64748b', size: 'sm', weight: 'bold', wrap: true }
+        ]
       },
       footer: {
         type: 'box',
         layout: 'vertical',
+        paddingAll: '20px',
+        backgroundColor: '#ffffff',
         contents: [
           {
             type: 'button',
             style: 'primary',
-            color: '#6366f1',
-            action: {
-              type: 'uri',
-              label: '開始綁定帳號',
-              uri: `https://liff.line.me/${liffId}${path}`,
-            },
-          },
-        ],
-      },
-    },
+            color: '#66CCCC',
+            height: 'sm',
+            action: { type: 'uri', label: '開始綁定', uri: `https://liff.line.me/${liffId}${path}` }
+          }
+        ]
+      }
+    }
   }
 }
 
 // ── LIFF 頁面引導（通用）──
 export function liffGuideMessage(params: {
-  liffId: string
-  path: string
-  title: string
-  icon: string
-  description: string
-  buttonLabel: string
-  color?: string
+  liffId: string; path: string; title: string; icon: string; description: string; buttonLabel: string; color?: string
 }): messagingApi.FlexMessage {
-  const { liffId, path, title, icon, description, buttonLabel, color = '#6366f1' } = params
+  const { liffId, path, title, icon, description, buttonLabel, color = '#FFDF6F' } = params
+  const textColor = color === '#FFDF6F' ? '#F56E4A' : '#ffffff'
   return {
     type: 'flex',
     altText: title,
     contents: {
       type: 'bubble',
+      size: 'kilo',
       header: {
         type: 'box',
         layout: 'vertical',
         backgroundColor: color,
-        paddingAll: '20px',
+        paddingTop: '20px',
+        paddingBottom: '20px',
         contents: [
-          { type: 'text', text: `${icon} ${title}`, color: '#ffffff', size: 'lg', weight: 'bold' },
-        ],
+          { type: 'text', text: `${icon} ${title}`, color: textColor, size: 'lg', weight: 'bold', align: 'center' }
+        ]
       },
       body: {
         type: 'box',
         layout: 'vertical',
-        spacing: 'md',
+        paddingAll: '20px',
         contents: [
-          { type: 'text', text: description, size: 'sm', color: '#555555', wrap: true },
-        ],
+          { type: 'text', text: description, color: '#64748b', size: 'sm', weight: 'bold', wrap: true }
+        ]
       },
       footer: {
         type: 'box',
         layout: 'vertical',
+        paddingAll: '20px',
+        backgroundColor: '#ffffff',
         contents: [
           {
             type: 'button',
             style: 'primary',
-            color,
-            action: {
-              type: 'uri',
-              label: buttonLabel,
-              uri: `https://liff.line.me/${liffId}${path}`,
-            },
-          },
-        ],
-      },
-    },
-  }
-}
-
-// ── 角色中文標籤 ──
-function roleLabel(role: string): string {
-  switch (role) {
-    case 'family': return '家長'
-    case 'teacher': return '教師'
-    case 'admin': return '管理員'
-    default: return role
+            color: '#FF9966',
+            height: 'sm',
+            action: { type: 'uri', label: buttonLabel, uri: `https://liff.line.me/${liffId}${path}` }
+          }
+        ]
+      }
+    }
   }
 }
 
 // ── 綁定狀態查詢（已綁定）──
-export function bindStatusMessage(
-  users: Array<{ name: string; role: string }>
-): messagingApi.FlexMessage {
-  const userItems: messagingApi.FlexComponent[] = users.map((u) => ({
-    type: 'box',
-    layout: 'horizontal',
-    contents: [
-      { type: 'text', text: u.role === 'teacher' ? '👨‍🏫' : '👨‍🎓', size: 'sm', flex: 0 },
-      { type: 'text', text: u.name, size: 'sm', color: '#333333', margin: 'sm', flex: 3 },
-      { type: 'text', text: roleLabel(u.role), size: 'xs', color: '#888888', align: 'end' as const, flex: 1 },
-    ],
-  }))
-
+export function bindStatusMessage(users: Array<{ name: string; role: string }>): messagingApi.FlexMessage {
+  const roleLabel = (r: string) => r === 'teacher' ? '👨‍🏫 教師' : r === 'family' ? '👨‍👩‍👧 家長' : '管理員'
+  const rows = users.map(u => createRow(roleLabel(u.role), u.name))
   return {
     type: 'flex',
     altText: '帳號綁定狀態',
     contents: {
       type: 'bubble',
+      size: 'kilo',
       header: {
         type: 'box',
         layout: 'vertical',
-        backgroundColor: '#6366f1',
-        paddingAll: '20px',
+        backgroundColor: '#FFDF6F',
+        paddingTop: '20px',
+        paddingBottom: '20px',
         contents: [
-          { type: 'text', text: '📋 帳號綁定狀態', color: '#ffffff', size: 'lg', weight: 'bold' },
-        ],
+          { type: 'text', text: '📋 綁定狀態', color: '#F56E4A', size: 'lg', weight: 'bold', align: 'center' }
+        ]
       },
       body: {
         type: 'box',
         layout: 'vertical',
-        spacing: 'md',
+        paddingAll: '20px',
         contents: [
-          { type: 'text', text: '已綁定帳號：', size: 'sm', color: '#888888', weight: 'bold' },
-          ...userItems,
-          { type: 'separator', margin: 'lg' },
-          {
-            type: 'text',
-            text: '如需解除綁定，請至綁定頁面操作。',
-            size: 'xs',
-            color: '#aaaaaa',
-            margin: 'lg',
-            wrap: true,
-          },
-        ],
-      },
-    },
+          { type: 'text', text: '已綁定帳號', color: '#94a3b8', size: 'xs', weight: 'bold' },
+          ...rows,
+          { type: 'separator', margin: 'xl', color: '#f1f5f9' },
+          { type: 'text', text: '如需解除綁定，請至選單操作。', color: '#94a3b8', size: 'xs', weight: 'bold', margin: 'xl', wrap: true }
+        ]
+      }
+    }
   }
 }
 
 // ── 綁定狀態查詢（未綁定）──
 export function notBoundMessage(): messagingApi.FlexMessage {
   const liffId = process.env.NEXT_PUBLIC_LIFF_ID
-
-  const contents: messagingApi.FlexComponent[] = [
-    {
-      type: 'text',
-      text: '您尚未綁定任何帳號。\n綁定後即可收到課程通知、學費提醒等訊息。',
-      size: 'sm',
-      color: '#555555',
-      wrap: true,
-    },
-  ]
-
   const footer = liffId ? {
-    type: 'box' as const,
-    layout: 'vertical' as const,
+    type: 'box' as const, layout: 'vertical' as const, paddingAll: '20px', backgroundColor: '#ffffff',
     contents: [
       {
-        type: 'button' as const,
-        style: 'primary' as const,
-        color: '#6366f1',
-        action: {
-          type: 'uri' as const,
-          label: '立即綁定帳號',
-          uri: `https://liff.line.me/${liffId}/liff/bind`,
-        },
-      },
-    ],
+        type: 'button' as const, style: 'primary' as const, color: '#66CCCC', height: 'sm' as const,
+        action: { type: 'uri' as const, label: '立即綁定', uri: `https://liff.line.me/${liffId}/liff/bind` }
+      }
+    ]
   } : undefined
 
   return {
@@ -376,86 +296,59 @@ export function notBoundMessage(): messagingApi.FlexMessage {
     altText: '您尚未綁定帳號',
     contents: {
       type: 'bubble',
+      size: 'kilo',
       header: {
         type: 'box',
         layout: 'vertical',
-        backgroundColor: '#6366f1',
-        paddingAll: '20px',
+        backgroundColor: '#FFDF6F',
+        paddingTop: '20px',
+        paddingBottom: '20px',
         contents: [
-          { type: 'text', text: '📋 帳號綁定狀態', color: '#ffffff', size: 'lg', weight: 'bold' },
-        ],
+          { type: 'text', text: '📋 尚未綁定帳號', color: '#F56E4A', size: 'lg', weight: 'bold', align: 'center' }
+        ]
       },
       body: {
         type: 'box',
         layout: 'vertical',
-        spacing: 'md',
-        contents,
+        paddingAll: '20px',
+        contents: [
+          { type: 'text', text: '您尚未綁定任何帳號，綁定後即可收到專屬通知。', color: '#64748b', size: 'sm', weight: 'bold', wrap: true }
+        ]
       },
-      ...(footer ? { footer } : {}),
-    },
+      ...(footer ? { footer } : {})
+    }
   }
 }
 
 // ── 請假結果通知 ──
 export function leaveResultMessage(params: {
-  studentName: string
-  courseName: string
-  date: string
-  result: 'approved' | 'approved_makeup' | 'rejected'
-  reason?: string
-  makeupInfo?: { date: string; room: string; teacher: string }
+  studentName: string; courseName: string; date: string; result: 'approved' | 'approved_makeup' | 'rejected'
+  reason?: string; makeupInfo?: { date: string; room: string; teacher: string }
 }): messagingApi.FlexMessage {
   const { studentName, courseName, date, result, reason, makeupInfo } = params
-
-  const resultText =
-    result === 'approved'
-      ? '✅ 已核准（不補課）'
-      : result === 'approved_makeup'
-        ? '✅ 已核准（安排補課）'
-        : '❌ 未通過'
-
-  const resultColor = result === 'rejected' ? '#dc2626' : '#16a34a'
+  
+  const isApproved = result.startsWith('approved')
+  const headerBg = isApproved ? '#66CCCC' : '#ef4444'
+  const resultText = result === 'approved' ? '已核准 (不補課)' : result === 'approved_makeup' ? '已核准 (安排補課)' : '未通過'
 
   const bodyContents: messagingApi.FlexComponent[] = [
-    {
-      type: 'box',
-      layout: 'vertical',
-      spacing: 'sm',
-      contents: [
-        { type: 'text', text: `學生：${studentName}`, size: 'sm', color: '#333333' },
-        { type: 'text', text: `課程：${courseName}`, size: 'sm', color: '#333333' },
-        { type: 'text', text: `日期：${date}`, size: 'sm', color: '#333333' },
-        { type: 'text', text: `結果：${resultText}`, size: 'sm', color: resultColor, weight: 'bold' },
-      ],
-    },
+    createRow('學生', studentName),
+    createRow('課程', courseName),
+    createRow('日期', date),
+    createRow('結果', resultText, isApproved ? '#16a34a' : '#ef4444')
   ]
 
   if (reason && result === 'rejected') {
-    bodyContents.push({
-      type: 'box',
-      layout: 'vertical',
-      margin: 'lg',
-      contents: [
-        { type: 'text', text: `原因：${reason}`, size: 'sm', color: '#666666', wrap: true },
-      ],
-    })
+    bodyContents.push(createRow('原因', reason, '#ef4444'))
   }
 
   if (makeupInfo && result === 'approved_makeup') {
     bodyContents.push(
-      { type: 'separator', margin: 'lg' },
-      {
-        type: 'box',
-        layout: 'vertical',
-        margin: 'lg',
-        spacing: 'sm',
-        contents: [
-          { type: 'text', text: '補課安排：', size: 'sm', color: '#888888', weight: 'bold' },
-          { type: 'text', text: `📅 ${makeupInfo.date}`, size: 'sm', color: '#333333' },
-          { type: 'text', text: `🏫 ${makeupInfo.room}`, size: 'sm', color: '#333333' },
-          { type: 'text', text: `👨‍🏫 ${makeupInfo.teacher}`, size: 'sm', color: '#333333' },
-        ],
-      }
+      { type: 'separator', margin: 'xl', color: '#f1f5f9' },
+      { type: 'text', text: '補課安排', color: '#94a3b8', size: 'xs', weight: 'bold', margin: 'xl' },
+      createRow('日期', makeupInfo.date),
+      createRow('教室', makeupInfo.room),
+      createRow('老師', makeupInfo.teacher)
     )
   }
 
@@ -464,477 +357,233 @@ export function leaveResultMessage(params: {
     altText: `【${studentName}】請假處理通知`,
     contents: {
       type: 'bubble',
+      size: 'kilo',
       header: {
         type: 'box',
         layout: 'vertical',
-        backgroundColor: '#6366f1',
-        paddingAll: '20px',
+        backgroundColor: headerBg,
+        paddingTop: '20px',
+        paddingBottom: '20px',
         contents: [
-          { type: 'text', text: '📋 請假處理通知', color: '#ffffff', size: 'lg', weight: 'bold' },
-        ],
+          { type: 'text', text: isApproved ? '✅ 請假已核准' : '❌ 請假未通過', color: '#ffffff', size: 'lg', weight: 'bold', align: 'center' }
+        ]
       },
       body: {
         type: 'box',
         layout: 'vertical',
-        spacing: 'md',
-        contents: bodyContents,
-      },
-    },
+        paddingAll: '20px',
+        contents: bodyContents
+      }
+    }
   }
 }
 
 // ── 點數獲得通知 ──
 export function pointsEarnedMessage(params: {
-  studentName: string
-  amount: number
-  reason: string
-  balance?: number
-  teacherName?: string
+  studentName: string; amount: number; reason: string; balance?: number; teacherName?: string
 }): messagingApi.FlexMessage {
   const { studentName, amount, reason, balance, teacherName = '老師' } = params
+  
+  const bodyContents: messagingApi.FlexComponent[] = [
+    { type: 'text', text: `+${amount}`, weight: 'bold', size: '5xl', color: '#FF9966', align: 'center' },
+    { type: 'text', text: '點', size: 'md', color: '#FFDF6F', align: 'center', weight: 'bold', margin: 'sm' },
+    { type: 'separator', margin: 'xl', color: '#f1f5f9' },
+    {
+      type: 'box', layout: 'vertical', margin: 'lg', spacing: 'sm',
+      contents: [
+        createRow('學生', studentName),
+        createRow('原因', reason),
+        createRow('發放', teacherName)
+      ]
+    }
+  ]
+
+  if (balance !== undefined) {
+    bodyContents.push(createRow('目前累計', `${balance} 點`, '#F56E4A'))
+  }
 
   return {
     type: 'flex',
     altText: `【${studentName}】獲得 ${amount} 點獎勵！`,
     contents: {
-      type: "bubble",
-      size: "mega",
+      type: 'bubble',
+      size: 'kilo',
       header: {
-        type: "box",
-        layout: "vertical",
+        type: 'box',
+        layout: 'vertical',
+        backgroundColor: '#FF9966',
+        paddingTop: '16px',
+        paddingBottom: '16px',
         contents: [
-          {
-            type: "text",
-            text: "點數獎勵通知",
-            weight: "bold",
-            color: "#ffffff",
-            size: "sm"
-          }
-        ],
-        backgroundColor: "#F59E0B", // 琥珀金
-        paddingAll: "15px"
+          { type: 'text', text: '✨ 點數獎勵通知', color: '#ffffff', size: 'sm', weight: 'bold', align: 'center' }
+        ]
       },
       body: {
-        type: "box",
-        layout: "vertical",
-        contents: [
-          {
-            type: "text",
-            text: `+${amount}`,
-            weight: "bold",
-            size: "4xl",
-            color: "#F59E0B",
-            align: "center",
-            margin: "md"
-          },
-          {
-            type: "text",
-            text: "點",
-            size: "md",
-            color: "#F59E0B",
-            align: "center",
-            weight: "bold"
-          },
-          {
-            type: "separator",
-            margin: "lg"
-          },
-          {
-            type: "box",
-            layout: "vertical",
-            margin: "lg",
-            spacing: "sm",
-            contents: [
-              {
-                type: "box",
-                layout: "baseline",
-                spacing: "sm",
-                contents: [
-                  {
-                    type: "text",
-                    text: "學生姓名",
-                    color: "#aaaaaa",
-                    size: "xs",
-                    flex: 2
-                  },
-                  {
-                    type: "text",
-                    text: studentName,
-                    wrap: true,
-                    color: "#666666",
-                    size: "xs",
-                    flex: 5
-                  }
-                ]
-              },
-              {
-                type: "box",
-                layout: "baseline",
-                spacing: "sm",
-                contents: [
-                  {
-                    type: "text",
-                    text: "獎勵原因",
-                    color: "#aaaaaa",
-                    size: "xs",
-                    flex: 2
-                  },
-                  {
-                    type: "text",
-                    text: reason,
-                    wrap: true,
-                    color: "#666666",
-                    size: "xs",
-                    flex: 5
-                  }
-                ]
-              },
-              {
-                type: "box",
-                layout: "baseline",
-                spacing: "sm",
-                contents: [
-                  {
-                    type: "text",
-                    text: "發放老師",
-                    color: "#aaaaaa",
-                    size: "xs",
-                    flex: 2
-                  },
-                  {
-                    type: "text",
-                    text: teacherName,
-                    wrap: true,
-                    color: "#666666",
-                    size: "xs",
-                    flex: 5
-                  }
-                ]
-              },
-              ...(balance !== undefined ? [
-                {
-                  type: "box" as const,
-                  layout: "baseline" as const,
-                  spacing: "sm" as const,
-                  contents: [
-                    {
-                      type: "text" as const,
-                      text: "目前累計",
-                      color: "#aaaaaa",
-                      size: "xs" as const,
-                      flex: 2
-                    },
-                    {
-                      type: "text" as const,
-                      text: `${balance} 點`,
-                      wrap: true,
-                      color: "#6366f1",
-                      size: "xs" as const,
-                      flex: 5,
-                      weight: "bold" as const
-                    }
-                  ]
-                }
-              ] : [])
-            ]
-          }
-        ]
+        type: 'box',
+        layout: 'vertical',
+        paddingAll: '20px',
+        contents: bodyContents
       },
       footer: {
-        type: "box",
-        layout: "vertical",
-        spacing: "sm",
+        type: 'box',
+        layout: 'vertical',
+        paddingAll: '20px',
+        backgroundColor: '#ffffff',
         contents: [
-          {
-            type: "button",
-            style: "primary",
-            height: "sm",
-            color: "#F59E0B",
-            action: {
-              type: "uri",
-              label: "查看點數存摺",
-              uri: `https://liff.line.me/${process.env.NEXT_PUBLIC_LIFF_ID}/liff/points`
-            }
-          }
+          createButton('查看點數存摺', `https://liff.line.me/${process.env.NEXT_PUBLIC_LIFF_ID}/liff/points`, '#FF9966')
         ]
-      },
-      styles: {
-        footer: {
-          separator: true
-        }
       }
     }
   }
 }
 
 // ── 通用文字推播（附學生姓名）──
-export function generalNotifyMessage(
-  studentName: string,
-  title: string,
-  body: string
-): messagingApi.FlexMessage {
+export function generalNotifyMessage(studentName: string, title: string, body: string): messagingApi.FlexMessage {
   return {
     type: 'flex',
     altText: `【${studentName}】${title}`,
     contents: {
       type: 'bubble',
+      size: 'kilo',
       header: {
         type: 'box',
         layout: 'vertical',
-        backgroundColor: '#6366f1',
-        paddingAll: '20px',
+        backgroundColor: '#FFDF6F',
+        paddingTop: '20px',
+        paddingBottom: '20px',
         contents: [
-          { type: 'text', text: `📢 ${title}`, color: '#ffffff', size: 'lg', weight: 'bold' },
-        ],
+          { type: 'text', text: `📢 ${title}`, color: '#F56E4A', size: 'lg', weight: 'bold', align: 'center' }
+        ]
       },
       body: {
         type: 'box',
         layout: 'vertical',
-        spacing: 'md',
+        paddingAll: '20px',
         contents: [
-          { type: 'text', text: `學生：${studentName}`, size: 'sm', color: '#888888', weight: 'bold' },
-          { type: 'separator' },
-          { type: 'text', text: body, size: 'sm', color: '#333333', wrap: true, margin: 'md' },
-        ],
-      },
-    },
+          createRow('對象', studentName),
+          { type: 'separator', margin: 'xl', color: '#f1f5f9' },
+          { type: 'text', text: body, size: 'sm', color: '#334155', wrap: true, margin: 'xl', weight: 'bold' }
+        ]
+      }
+    }
   }
 }
 
 // ── 學費繳費提醒 ──
 export function tuitionReminderMessage(params: {
-  studentName: string
-  amount?: number
-  dueDate?: string
-  note?: string
+  studentName: string; amount?: number; dueDate?: string; note?: string
 }): messagingApi.FlexMessage {
   const { studentName, amount, dueDate, note } = params
-  const bodyContents: messagingApi.FlexComponent[] = [
-    {
-      type: 'box',
-      layout: 'horizontal',
-      contents: [
-        { type: 'text', text: '學生', size: 'sm', color: '#888888', flex: 2 },
-        { type: 'text', text: studentName, size: 'sm', color: '#333333', flex: 3, weight: 'bold' },
-      ],
-    },
-  ]
-  if (amount !== undefined) {
-    bodyContents.push({
-      type: 'box',
-      layout: 'horizontal',
-      contents: [
-        { type: 'text', text: '應繳金額', size: 'sm', color: '#888888', flex: 2 },
-        { type: 'text', text: `NT$ ${amount.toLocaleString()}`, size: 'sm', color: '#ea580c', flex: 3, weight: 'bold' },
-      ],
-    })
-  }
-  if (dueDate) {
-    bodyContents.push({
-      type: 'box',
-      layout: 'horizontal',
-      contents: [
-        { type: 'text', text: '繳費期限', size: 'sm', color: '#888888', flex: 2 },
-        { type: 'text', text: dueDate, size: 'sm', color: '#dc2626', flex: 3, weight: 'bold' },
-      ],
-    })
-  }
-  bodyContents.push({ type: 'separator', margin: 'lg' })
-  bodyContents.push({
-    type: 'text',
-    text: note ?? '請於期限前完成繳費，如有疑問請聯絡補習班。',
-    size: 'xs',
-    color: '#888888',
-    wrap: true,
-    margin: 'lg',
-  })
+  const rows: messagingApi.FlexComponent[] = [createRow('學生', studentName)]
+  if (amount !== undefined) rows.push(createRow('應繳金額', `NT$ ${amount.toLocaleString()}`, '#F56E4A'))
+  if (dueDate) rows.push(createRow('繳費期限', dueDate, '#ef4444'))
 
   return {
     type: 'flex',
     altText: `【${studentName}】學費繳費提醒`,
     contents: {
       type: 'bubble',
+      size: 'kilo',
       header: {
         type: 'box',
         layout: 'vertical',
-        backgroundColor: '#ea580c',
-        paddingAll: '20px',
+        backgroundColor: '#F56E4A',
+        paddingTop: '20px',
+        paddingBottom: '20px',
         contents: [
-          { type: 'text', text: '💰 學費繳費提醒', color: '#ffffff', size: 'lg', weight: 'bold' },
-        ],
+          { type: 'text', text: '💰 學費繳款單', color: '#ffffff', size: 'lg', weight: 'bold', align: 'center' }
+        ]
       },
       body: {
         type: 'box',
         layout: 'vertical',
-        spacing: 'md',
-        contents: bodyContents,
-      },
-    },
+        paddingAll: '20px',
+        contents: [
+          ...rows,
+          { type: 'separator', margin: 'xl', color: '#f1f5f9' },
+          { type: 'text', text: note ?? '請於期限前完成繳費，謝謝！', size: 'xs', color: '#94a3b8', wrap: true, margin: 'xl', weight: 'bold' }
+        ]
+      }
+    }
   }
 }
 
 // ── 學費收訖通知 ──
 export function tuitionReceivedMessage(params: {
-  studentName: string
-  amount?: number
-  paidDate?: string
-  note?: string
+  studentName: string; amount?: number; paidDate?: string; note?: string
 }): messagingApi.FlexMessage {
   const { studentName, amount, paidDate, note } = params
-  const bodyContents: messagingApi.FlexComponent[] = [
-    {
-      type: 'box',
-      layout: 'horizontal',
-      contents: [
-        { type: 'text', text: '學生', size: 'sm', color: '#888888', flex: 2 },
-        { type: 'text', text: studentName, size: 'sm', color: '#333333', flex: 3, weight: 'bold' },
-      ],
-    },
-  ]
-  if (amount !== undefined) {
-    bodyContents.push({
-      type: 'box',
-      layout: 'horizontal',
-      contents: [
-        { type: 'text', text: '收款金額', size: 'sm', color: '#888888', flex: 2 },
-        { type: 'text', text: `NT$ ${amount.toLocaleString()}`, size: 'sm', color: '#16a34a', flex: 3, weight: 'bold' },
-      ],
-    })
-  }
-  if (paidDate) {
-    bodyContents.push({
-      type: 'box',
-      layout: 'horizontal',
-      contents: [
-        { type: 'text', text: '繳費日期', size: 'sm', color: '#888888', flex: 2 },
-        { type: 'text', text: paidDate, size: 'sm', color: '#333333', flex: 3 },
-      ],
-    })
-  }
-  bodyContents.push({ type: 'separator', margin: 'lg' })
-  bodyContents.push({
-    type: 'text',
-    text: note ?? '感謝您的繳費！如有任何問題，歡迎聯絡我們。',
-    size: 'xs',
-    color: '#888888',
-    wrap: true,
-    margin: 'lg',
-  })
+  const rows: messagingApi.FlexComponent[] = [createRow('學生', studentName)]
+  if (amount !== undefined) rows.push(createRow('收款金額', `NT$ ${amount.toLocaleString()}`, '#16a34a'))
+  if (paidDate) rows.push(createRow('繳款日期', paidDate))
 
   return {
     type: 'flex',
     altText: `【${studentName}】學費已收訖`,
     contents: {
       type: 'bubble',
+      size: 'kilo',
       header: {
         type: 'box',
         layout: 'vertical',
         backgroundColor: '#16a34a',
-        paddingAll: '20px',
+        paddingTop: '20px',
+        paddingBottom: '20px',
         contents: [
-          { type: 'text', text: '✅ 學費收訖通知', color: '#ffffff', size: 'lg', weight: 'bold' },
-        ],
+          { type: 'text', text: '✅ 收款成功', color: '#ffffff', size: 'lg', weight: 'bold', align: 'center' }
+        ]
       },
       body: {
         type: 'box',
         layout: 'vertical',
-        spacing: 'md',
-        contents: bodyContents,
-      },
-    },
+        paddingAll: '20px',
+        contents: [
+          ...rows,
+          { type: 'separator', margin: 'xl', color: '#f1f5f9' },
+          { type: 'text', text: note ?? '感謝您的繳款！', size: 'xs', color: '#94a3b8', wrap: true, margin: 'xl', weight: 'bold' }
+        ]
+      }
+    }
   }
 }
 
 // ── 課程異動通知 ──
 export function courseChangeMessage(params: {
-  studentName: string
-  courseName?: string
-  changeType?: string
-  originalDate?: string
-  newDate?: string
-  note?: string
+  studentName: string; courseName?: string; changeType?: string; originalDate?: string; newDate?: string; note?: string
 }): messagingApi.FlexMessage {
   const { studentName, courseName, changeType, originalDate, newDate, note } = params
-  const bodyContents: messagingApi.FlexComponent[] = [
-    {
-      type: 'box',
-      layout: 'horizontal',
-      contents: [
-        { type: 'text', text: '學生', size: 'sm', color: '#888888', flex: 2 },
-        { type: 'text', text: studentName, size: 'sm', color: '#333333', flex: 3, weight: 'bold' },
-      ],
-    },
-  ]
-  if (courseName) {
-    bodyContents.push({
-      type: 'box',
-      layout: 'horizontal',
-      contents: [
-        { type: 'text', text: '課程', size: 'sm', color: '#888888', flex: 2 },
-        { type: 'text', text: courseName, size: 'sm', color: '#333333', flex: 3 },
-      ],
-    })
-  }
-  if (changeType) {
-    bodyContents.push({
-      type: 'box',
-      layout: 'horizontal',
-      contents: [
-        { type: 'text', text: '異動類型', size: 'sm', color: '#888888', flex: 2 },
-        { type: 'text', text: changeType, size: 'sm', color: '#2563eb', flex: 3, weight: 'bold' },
-      ],
-    })
-  }
-  if (originalDate) {
-    bodyContents.push({
-      type: 'box',
-      layout: 'horizontal',
-      contents: [
-        { type: 'text', text: '原定時間', size: 'sm', color: '#888888', flex: 2 },
-        { type: 'text', text: originalDate, size: 'sm', color: '#6b7280', flex: 3, decoration: 'line-through' },
-      ],
-    })
-  }
-  if (newDate) {
-    bodyContents.push({
-      type: 'box',
-      layout: 'horizontal',
-      contents: [
-        { type: 'text', text: '更新時間', size: 'sm', color: '#888888', flex: 2 },
-        { type: 'text', text: newDate, size: 'sm', color: '#2563eb', flex: 3, weight: 'bold' },
-      ],
-    })
-  }
-  bodyContents.push({ type: 'separator', margin: 'lg' })
-  bodyContents.push({
-    type: 'text',
-    text: note ?? '如有任何疑問，請聯絡補習班確認。',
-    size: 'xs',
-    color: '#888888',
-    wrap: true,
-    margin: 'lg',
-  })
+  const rows: messagingApi.FlexComponent[] = [createRow('學生', studentName)]
+  if (courseName) rows.push(createRow('課程', courseName))
+  if (changeType) rows.push(createRow('異動類型', changeType, '#66CCCC'))
+  if (originalDate) rows.push(createRow('原定時間', originalDate))
+  if (newDate) rows.push(createRow('更新時間', newDate, '#66CCCC'))
 
   return {
     type: 'flex',
     altText: `【${studentName}】課程異動通知`,
     contents: {
       type: 'bubble',
+      size: 'kilo',
       header: {
         type: 'box',
         layout: 'vertical',
-        backgroundColor: '#2563eb',
-        paddingAll: '20px',
+        backgroundColor: '#66CCCC',
+        paddingTop: '20px',
+        paddingBottom: '20px',
         contents: [
-          { type: 'text', text: '📅 課程異動通知', color: '#ffffff', size: 'lg', weight: 'bold' },
-        ],
+          { type: 'text', text: '📅 課程異動', color: '#ffffff', size: 'lg', weight: 'bold', align: 'center' }
+        ]
       },
       body: {
         type: 'box',
         layout: 'vertical',
-        spacing: 'md',
-        contents: bodyContents,
-      },
-    },
+        paddingAll: '20px',
+        contents: [
+          ...rows,
+          { type: 'separator', margin: 'xl', color: '#f1f5f9' },
+          { type: 'text', text: note ?? '請留意最新上課時間。', size: 'xs', color: '#94a3b8', wrap: true, margin: 'xl', weight: 'bold' }
+        ]
+      }
+    }
   }
 }
