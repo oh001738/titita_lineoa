@@ -246,10 +246,12 @@ export default function PointsPage() {
   // ── 教師給點模式 ──
   if (userRole === 'teacher') {
     return (
-      <div className="min-h-screen bg-slate-50 font-nunito flex flex-col">
+      <div className="h-screen bg-slate-50 font-nunito flex flex-col overflow-hidden">
         <style dangerouslySetInnerHTML={{__html: `
           @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
           .font-nunito { font-family: 'Nunito', sans-serif; }
+          .no-scrollbar::-webkit-scrollbar { display: none; }
+          .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
           @keyframes wave-bg { 0% { background-position-x: 0; } 100% { background-position-x: 1000px; } }
           @keyframes float-up { 0% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-15px) rotate(5deg); } 100% { transform: translateY(0) rotate(0deg); } }
           .animate-wave { animation: wave-bg 15s linear infinite; }
@@ -275,7 +277,7 @@ export default function PointsPage() {
           <div className="absolute top-[30px] right-[40px] text-3xl text-[#FFDF6F] opacity-90 z-0 animate-float-up pointer-events-none drop-shadow-md">✨</div>
         </header>
 
-        <main className="flex-1 px-5 pb-8 overflow-y-auto mt-2">
+        <main className="flex-1 px-5 pb-8 overflow-y-auto no-scrollbar -mt-6 relative z-20">
           {/* 選擇學生清單 */}
           <section>
             <h3 className="text-sm font-black text-slate-400 mb-4 ml-1 tracking-widest">今日學生</h3>
@@ -364,10 +366,12 @@ export default function PointsPage() {
 
   // ── 家長點數模式 (原本的內容) ──
   return (
-    <div className="min-h-screen bg-slate-50 font-nunito flex flex-col">
+    <div className="h-screen bg-slate-50 font-nunito flex flex-col overflow-hidden">
       <style dangerouslySetInnerHTML={{__html: `
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
         .font-nunito { font-family: 'Nunito', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes wave-bg { 0% { background-position-x: 0; } 100% { background-position-x: 1000px; } }
         @keyframes float-up { 0% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-15px) rotate(5deg); } 100% { transform: translateY(0) rotate(0deg); } }
         .animate-wave { animation: wave-bg 15s linear infinite; }
@@ -440,7 +444,7 @@ export default function PointsPage() {
       </div>
 
       {/* History List */}
-      <main className="flex-1 px-5 pb-8 overflow-y-auto mt-2">
+      <main className="flex-1 px-5 pb-8 overflow-y-auto no-scrollbar mt-2">
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3, 4].map(i => (

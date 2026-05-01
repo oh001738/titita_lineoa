@@ -250,10 +250,12 @@ export default function CoursesPage() {
   const waveSvgFill = '%23F8FAFC' // slate-50
 
   return (
-    <div className="min-h-screen bg-slate-50 font-nunito flex flex-col">
+    <div className="h-screen bg-slate-50 font-nunito flex flex-col overflow-hidden">
       <style dangerouslySetInnerHTML={{__html: `
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
         .font-nunito { font-family: 'Nunito', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes wave-bg {
             0% { background-position-x: 0; }
             100% { background-position-x: 1000px; }
@@ -297,7 +299,7 @@ export default function CoursesPage() {
       </header>
 
       {/* Main Content */}
-      <main className="px-5 pb-8 relative z-20 -mt-6 flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto no-scrollbar px-5 pb-8 relative z-20 -mt-6">
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map(i => (
