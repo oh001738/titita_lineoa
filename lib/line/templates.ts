@@ -36,6 +36,16 @@ function createTextList(items: string[]): messagingApi.FlexComponent {
   }
 }
 
+function createButton(label: string, uri: string, color: string): messagingApi.FlexComponent {
+  return {
+    type: 'button',
+    style: 'primary',
+    color: color,
+    height: 'sm',
+    action: { type: 'uri', label, uri }
+  }
+}
+
 // ── 綁定成功通知 ──
 export function bindSuccessMessage(studentNames: string[]): messagingApi.FlexMessage {
   const nameRows = studentNames.map(name => createRow('學生', name))
