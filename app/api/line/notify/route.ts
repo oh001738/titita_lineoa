@@ -6,6 +6,9 @@ import {
   leaveResultMessage,
   bindSuccessMessage,
   pointsEarnedMessage,
+  tuitionReminderMessage,
+  tuitionReceivedMessage,
+  courseChangeMessage,
 } from '@/lib/line/templates'
 import type { ApiResponse } from '@/types'
 import { NOTIFY_TYPES, type NotifyType } from '@/lib/constants'
@@ -86,11 +89,29 @@ export async function POST(request: Request) {
 
       case NOTIFY_TYPES.TUITION_REMINDER:
       case NOTIFY_TYPES.TUITION_NOTICE:
-        lineMessages = [generalNotifyMessage(student_name, '學費繳費提醒', message)]
+        if (payload?.amount !== undefined) {
+          lineMessages = [tuitionReminderMessage({
+            studentName: student_name,
+            amount: payload.amount,
+            dueDate: payload.dueDate,
+            note: payload.note ?? message
+          })]
+        } else {
+          lineMessages = [generalNotifyMessage(student_name, '學費繳費提醒', message)]
+        }
         break;
 
       case NOTIFY_TYPES.TUITION_RECEIVED:
-        lineMessages = [generalNotifyMessage(student_name, '學費收訖通知', message)]
+        if (payload?.amount !== undefined) {
+          lineMessages = [tuitionReceivedMessage({
+            studentName: student_name,
+            amount: payload.amount,
+            paidDate: payload.paidDate,
+            note: payload.note ?? message
+          })]
+        } else {
+          lineMessages = [generalNotifyMessage(student_name, '學費收訖通知', message)]
+        }
         break;
 
       case NOTIFY_TYPES.CLASS_REMINDER:
@@ -98,7 +119,18 @@ export async function POST(request: Request) {
         break;
 
       case NOTIFY_TYPES.COURSE_CHANGE:
-        lineMessages = [generalNotifyMessage(student_name, '課程異動通知', message)]
+        if (payload?.courseName || payload?.originalDate || payload?.newDate) {
+          lineMessages = [courseChangeMessage({
+            studentName: student_name,
+            courseName: payload.courseName,
+            changeType: payload.changeType,
+            originalDate: payload.originalDate,
+            newDate: payload.newDate,
+            note: payload.note ?? message
+          })]
+        } else {
+          lineMessages = [generalNotifyMessage(student_name, '課程異動通知', message)]
+        }
         break;
 
       case NOTIFY_TYPES.POINTS_EARNED:

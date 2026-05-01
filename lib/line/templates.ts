@@ -46,6 +46,17 @@ function createButton(label: string, uri: string, color: string): messagingApi.F
   }
 }
 
+// ── 日期格式化小工具 ──
+function formatChineseDate(dateStr?: string): string {
+  if (!dateStr) return '未知日期'
+  const match = dateStr.match(/^(\d{4})[-/](\d{2})[-/](\d{2})(.*)$/)
+  if (match) {
+    const [_, year, month, day, rest] = match
+    return `${year}年${month}月${day}日${rest}`
+  }
+  return dateStr
+}
+
 // ── 綁定成功通知 ──
 export function bindSuccessMessage(studentNames: string[]): messagingApi.FlexMessage {
   const nameRows = studentNames.map(name => createRow('學生', name))
@@ -344,7 +355,7 @@ export function leaveResultMessage(params: {
   const bodyContents: messagingApi.FlexComponent[] = [
     createRow('學生', studentName),
     createRow('課程', courseName),
-    createRow('日期', date),
+    createRow('日期', formatChineseDate(date)),
     createRow('結果', resultText, isApproved ? '#16a34a' : '#ef4444')
   ]
 
@@ -356,7 +367,7 @@ export function leaveResultMessage(params: {
     bodyContents.push(
       { type: 'separator', margin: 'xl', color: '#f1f5f9' },
       { type: 'text', text: '補課安排', color: '#94a3b8', size: 'xs', weight: 'bold', margin: 'xl' },
-      createRow('日期', makeupInfo.date),
+      createRow('日期', formatChineseDate(makeupInfo.date)),
       createRow('教室', makeupInfo.room),
       createRow('老師', makeupInfo.teacher)
     )
@@ -486,7 +497,7 @@ export function tuitionReminderMessage(params: {
   const { studentName, amount, dueDate, note } = params
   const rows: messagingApi.FlexComponent[] = [createRow('學生', studentName)]
   if (amount !== undefined) rows.push(createRow('應繳金額', `NT$ ${amount.toLocaleString()}`, '#F56E4A'))
-  if (dueDate) rows.push(createRow('繳費期限', dueDate, '#ef4444'))
+  if (dueDate) rows.push(createRow('繳費期限', formatChineseDate(dueDate), '#ef4444'))
 
   return {
     type: 'flex',
@@ -525,7 +536,7 @@ export function tuitionReceivedMessage(params: {
   const { studentName, amount, paidDate, note } = params
   const rows: messagingApi.FlexComponent[] = [createRow('學生', studentName)]
   if (amount !== undefined) rows.push(createRow('收款金額', `NT$ ${amount.toLocaleString()}`, '#16a34a'))
-  if (paidDate) rows.push(createRow('繳款日期', paidDate))
+  if (paidDate) rows.push(createRow('繳款日期', formatChineseDate(paidDate)))
 
   return {
     type: 'flex',
@@ -565,8 +576,8 @@ export function courseChangeMessage(params: {
   const rows: messagingApi.FlexComponent[] = [createRow('學生', studentName)]
   if (courseName) rows.push(createRow('課程', courseName))
   if (changeType) rows.push(createRow('異動類型', changeType, '#66CCCC'))
-  if (originalDate) rows.push(createRow('原定時間', originalDate))
-  if (newDate) rows.push(createRow('更新時間', newDate, '#66CCCC'))
+  if (originalDate) rows.push(createRow('原定時間', formatChineseDate(originalDate)))
+  if (newDate) rows.push(createRow('更新時間', formatChineseDate(newDate), '#66CCCC'))
 
   return {
     type: 'flex',
