@@ -226,17 +226,17 @@ export default function CoursesPage() {
 
   if (liffError || isNotBound) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
-        <div className="bg-white w-full max-w-sm rounded-3xl p-8 shadow-xl text-center">
-          <div className="text-5xl mb-4">🔗</div>
-          <h2 className="text-xl font-bold text-gray-800 mb-2">尚未綁定帳號</h2>
-          <p className="text-gray-500 text-sm mb-6">請先完成帳號綁定，才能查看課程資料。</p>
-          <button
-            onClick={() => handleLeaveRequest(selectedCourse)}
-            className="w-full bg-[#FFDF6F] text-[#F56E4A] py-4 rounded-2xl font-black text-lg shadow-[0_4px_0_#E5C864] hover:translate-y-[2px] hover:shadow-[0_2px_0_#E5C864] active:translate-y-[4px] active:shadow-none transition-all"
+      <div className="min-h-screen bg-slate-50 font-nunito flex flex-col items-center justify-center p-6">
+        <div className="bg-white w-full max-w-sm rounded-[32px] p-8 shadow-sm border-2 border-slate-200 text-center">
+          <div className="text-6xl mb-6">🔗</div>
+          <h2 className="text-2xl font-black text-gray-800 mb-2 tracking-wide">尚未綁定帳號</h2>
+          <p className="text-gray-500 text-sm mb-8 font-bold">請先完成帳號綁定，才能查看課程資料。</p>
+          <a
+            href={`/liff/bind`}
+            className="block w-full bg-[#66CCCC] text-white py-4 rounded-2xl font-black text-lg shadow-[0_4px_0_#4EA6A6] hover:translate-y-[2px] hover:shadow-[0_2px_0_#4EA6A6] active:translate-y-[4px] active:shadow-none transition-all"
           >
-            我要請假
-          </button>
+            立即前往綁定
+          </a>
         </div>
       </div>
     )
@@ -399,7 +399,7 @@ export default function CoursesPage() {
             <button
               onClick={handleLeaveRequest}
               disabled={isSubmittingLeave}
-              className="w-full bg-red-500 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-red-600 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-[#FFDF6F] text-[#F56E4A] py-4 rounded-2xl font-black text-lg shadow-[0_4px_0_#E5C864] hover:translate-y-[2px] hover:shadow-[0_2px_0_#E5C864] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-[0_4px_0_#E5C864]"
             >
               {isSubmittingLeave ? '處理中...' : '申請請假'}
             </button>
