@@ -246,25 +246,43 @@ export default function PointsPage() {
   // ── 教師給點模式 ──
   if (userRole === 'teacher') {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col">
-        <header className="bg-gradient-to-br from-indigo-600 to-violet-700 text-white p-8 rounded-b-[40px] shadow-lg relative">
-          <div className="absolute top-6 right-6 z-10">
+      <div className="min-h-screen bg-slate-50 font-nunito flex flex-col">
+        <style dangerouslySetInnerHTML={{__html: `
+          @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+          .font-nunito { font-family: 'Nunito', sans-serif; }
+          @keyframes wave-bg { 0% { background-position-x: 0; } 100% { background-position-x: 1000px; } }
+          @keyframes float-up { 0% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-15px) rotate(5deg); } 100% { transform: translateY(0) rotate(0deg); } }
+          .animate-wave { animation: wave-bg 15s linear infinite; }
+          .animate-float-up { animation: float-up 3s ease-in-out infinite; }
+        `}} />
+
+        <header className="relative pt-10 px-6 pb-16 z-10 rounded-b-[40px] overflow-hidden shadow-sm bg-[#FF9966]">
+          <div className="absolute top-6 right-6 z-20">
             {renderRoleSelector('indigo')}
           </div>
-          <div className="mb-2">
-            <h1 className="text-xl font-bold">教師給點中心</h1>
+          <div className="relative z-20 mb-2 mt-4">
+            <h1 className="text-3xl font-black text-white drop-shadow-sm tracking-wide">教師給點中心</h1>
           </div>
-          <p className="text-indigo-100 text-xs opacity-90">為今日上課的學生發放獎勵點數</p>
+          <p className="relative z-20 text-[11px] font-bold text-white/90 tracking-wide bg-black/10 inline-block px-3 py-1 rounded-xl">為今日上課的學生發放獎勵點數</p>
+          
+          <div 
+            className="absolute bottom-0 left-0 w-full h-[60px] z-0 animate-wave"
+            style={{
+              background: `url('data:image/svg+xml;utf8,<svg viewBox="0 0 1000 100" xmlns="http://www.w3.org/2000/svg"><path fill="%23F8FAFC" d="M0,50 C300,100 700,0 1000,50 L1000,100 L0,100 Z"></path></svg>') repeat-x`,
+              backgroundSize: '1000px 100px'
+            }}
+          />
+          <div className="absolute top-[30px] right-[40px] text-3xl text-[#FFDF6F] opacity-90 z-0 animate-float-up pointer-events-none drop-shadow-md">✨</div>
         </header>
 
-        <main className="flex-1 p-6 space-y-6 overflow-y-auto">
+        <main className="flex-1 px-5 pb-8 overflow-y-auto mt-2">
           {/* 選擇學生清單 */}
           <section>
-            <h3 className="text-sm font-bold text-gray-500 mb-4 ml-1">今日學生</h3>
+            <h3 className="text-sm font-black text-slate-400 mb-4 ml-1 tracking-widest">今日學生</h3>
             {teacherStudents.length === 0 ? (
-              <div className="bg-white rounded-2xl p-8 text-center border border-dashed border-gray-200">
-                <span className="text-3xl block mb-2">😴</span>
-                <p className="text-gray-400 text-sm">今天目前沒有排課紀錄</p>
+              <div className="bg-white rounded-[28px] p-8 text-center border-2 border-slate-200 shadow-sm">
+                <span className="text-5xl block mb-4">😴</span>
+                <p className="text-gray-500 font-bold text-lg">今天目前沒有排課紀錄</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-3">
@@ -272,26 +290,26 @@ export default function PointsPage() {
                   <button
                     key={s.user_id}
                     onClick={() => setAwardForm({ ...awardForm, studentId: s.user_id })}
-                    className={`flex items-center justify-between p-4 rounded-2xl transition-all ${
+                    className={`flex items-center justify-between p-4 rounded-[20px] transition-all border-2 ${
                       awardForm.studentId === s.user_id
-                      ? 'bg-indigo-600 text-white shadow-lg scale-[1.02]'
-                      : 'bg-white text-gray-800 border border-gray-100'
+                      ? 'bg-[#66CCCC]/10 border-[#66CCCC] shadow-[0_4px_10px_rgba(102,204,204,0.2)] scale-[1.02]'
+                      : 'bg-white text-gray-800 border-slate-100 hover:border-slate-300'
                     }`}
                   >
-                    <div className="flex items-center gap-3 text-left">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                        awardForm.studentId === s.user_id ? 'bg-white/20' : 'bg-indigo-50 text-indigo-600'
+                    <div className="flex items-center gap-4 text-left">
+                      <div className={`w-12 h-12 rounded-[16px] flex items-center justify-center font-bold text-2xl shadow-sm ${
+                        awardForm.studentId === s.user_id ? 'bg-[#66CCCC] text-white' : 'bg-slate-100 text-slate-400'
                       }`}>
                         👨‍🎓
                       </div>
                       <div>
-                        <p className="font-bold">{s.name}</p>
-                        <p className={`text-[10px] ${awardForm.studentId === s.user_id ? 'opacity-80' : 'text-gray-400'}`}>
-                          {s.line_user_id ? '🟢 已綁定 LINE' : '⚪ 未綁定 LINE'}
-                        </p>
+                        <p className={`font-black text-[17px] ${awardForm.studentId === s.user_id ? 'text-[#4EA6A6]' : 'text-slate-700'}`}>{s.name}</p>
+                        <p className={`text-[11px] font-bold tracking-widest mt-0.5 ${awardForm.studentId === s.user_id ? 'text-[#66CCCC]' : 'text-slate-400'}`}>點擊選擇</p>
                       </div>
                     </div>
-                    {awardForm.studentId === s.user_id && <span className="text-xl">✅</span>}
+                    {awardForm.studentId === s.user_id && (
+                      <div className="w-8 h-8 bg-[#66CCCC] rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md">✓</div>
+                    )}
                   </button>
                 ))}
               </div>
@@ -300,38 +318,32 @@ export default function PointsPage() {
 
           {/* 給點表單 */}
           {awardForm.studentId && (
-            <section className="bg-white p-6 rounded-3xl shadow-xl border border-indigo-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
-              <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <span className="w-1 h-4 bg-indigo-600 rounded-full" />
-                發放點數獎勵
-              </h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">獎勵點數</label>
-                  <div className="flex gap-2 mt-1">
-                    {[5, 10, 20, 50].map(val => (
-                      <button
-                        key={val}
-                        onClick={() => setAwardForm({ ...awardForm, amount: val })}
-                        className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${
-                          awardForm.amount === val ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                        }`}
-                      >
-                        +{val}
-                      </button>
-                    ))}
+            <section className="mt-8 animate-fade-in">
+              <h3 className="text-sm font-black text-slate-400 mb-4 ml-1 tracking-widest">發送獎勵</h3>
+              <div className="bg-white rounded-[28px] p-6 shadow-sm border-2 border-slate-200">
+                <div className="mb-5">
+                  <label className="block text-[11px] font-black tracking-widest text-slate-400 mb-2">點數數量</label>
+                  <div className="flex items-center justify-center gap-4 bg-slate-50 p-4 rounded-[20px] border-2 border-slate-100">
+                    <button 
+                      onClick={() => setAwardForm({ ...awardForm, amount: Math.max(1, awardForm.amount - 1) })}
+                      className="w-12 h-12 rounded-[14px] bg-white border-2 border-slate-200 flex items-center justify-center text-xl font-black text-slate-500 active:scale-95"
+                    >-</button>
+                    <div className="text-4xl font-black text-[#FF9966] w-20 text-center">{awardForm.amount}</div>
+                    <button 
+                      onClick={() => setAwardForm({ ...awardForm, amount: awardForm.amount + 1 })}
+                      className="w-12 h-12 rounded-[14px] bg-[#FF9966] text-white flex items-center justify-center text-xl font-black shadow-[0_4px_0_#D95433] active:translate-y-[4px] active:shadow-none transition-all"
+                    >+</button>
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">獎勵原因</label>
-                  <input
+                <div className="mb-6">
+                  <label className="block text-[11px] font-black tracking-widest text-slate-400 mb-2">獎勵原因 (給家長看)</label>
+                  <input 
                     type="text"
                     value={awardForm.reason}
                     onChange={e => setAwardForm({ ...awardForm, reason: e.target.value })}
-                    placeholder="例如：課堂表現優異、準時完成作業"
-                    className="w-full mt-1 px-4 py-3 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                    placeholder="例如：上課認真、完成作業"
+                    className="w-full px-5 py-4 border-2 border-slate-200 rounded-[20px] font-bold focus:outline-none focus:border-[#66CCCC] focus:bg-[#66CCCC]/5 transition-colors text-slate-700"
                   />
                 </div>
 
@@ -352,59 +364,75 @@ export default function PointsPage() {
 
   // ── 家長點數模式 (原本的內容) ──
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 font-nunito flex flex-col">
+      <style dangerouslySetInnerHTML={{__html: `
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+        .font-nunito { font-family: 'Nunito', sans-serif; }
+        @keyframes wave-bg { 0% { background-position-x: 0; } 100% { background-position-x: 1000px; } }
+        @keyframes float-up { 0% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-15px) rotate(5deg); } 100% { transform: translateY(0) rotate(0deg); } }
+        .animate-wave { animation: wave-bg 15s linear infinite; }
+        .animate-float-up { animation: float-up 3s ease-in-out infinite; }
+      `}} />
 
       {/* Balance Header */}
-      <header className="sticky top-0 z-20 bg-gradient-to-br from-amber-400 to-orange-500 text-white p-6 pb-6 rounded-b-[32px] shadow-lg text-center relative overflow-hidden">
-        {/* Decorative background circles */}
-        <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
-        <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
+      <header className="relative pt-10 px-5 pb-16 z-10 rounded-b-[40px] overflow-hidden shadow-sm bg-[#FFDF6F]">
         
         {/* 統一下拉選單 */}
-        <div className="absolute top-6 right-6 z-10">
+        <div className="absolute top-6 right-6 z-20">
           {renderRoleSelector('amber')}
         </div>
         
-        <p className="text-amber-100 text-xs font-medium mb-1 mt-2">目前可用點數</p>
-        <div className="flex items-center justify-center gap-2 mb-1">
-          <span className="text-4xl font-black tracking-tight shadow-sm">
-            {isLoading ? '...' : data?.balance.toLocaleString() || '0'}
-          </span>
-          <span className="text-lg font-bold mt-1">點</span>
+        <div className="relative z-20 text-center mt-2">
+          <p className="text-[#F56E4A] font-black tracking-widest text-sm mb-1">目前可用點數</p>
+          <div className="flex items-center justify-center gap-1 mb-2">
+            <span className="text-[60px] font-black text-white tracking-tight drop-shadow-md leading-none">
+              {isLoading ? '...' : data?.balance.toLocaleString() || '0'}
+            </span>
+            <span className="text-xl font-black text-white mt-4 drop-shadow-sm">點</span>
+          </div>
+          <p className="text-[11px] font-bold text-[#F56E4A]/90 tracking-wide bg-[#F56E4A]/10 inline-block px-3 py-1 rounded-xl">
+            {boundStudents.find(s => s.user_id === selectedStudentId)?.student_name || profile?.displayName} 的專屬帳戶
+          </p>
         </div>
-        <p className="text-[10px] text-amber-100 opacity-80">
-          {boundStudents.find(s => s.user_id === selectedStudentId)?.student_name || profile?.displayName} 的專屬帳戶
-        </p>
+
+        <div 
+          className="absolute bottom-0 left-0 w-full h-[60px] z-0 animate-wave"
+          style={{
+            background: `url('data:image/svg+xml;utf8,<svg viewBox="0 0 1000 100" xmlns="http://www.w3.org/2000/svg"><path fill="%23F8FAFC" d="M0,50 C300,100 700,0 1000,50 L1000,100 L0,100 Z"></path></svg>') repeat-x`,
+            backgroundSize: '1000px 100px'
+          }}
+        />
+        <div className="absolute top-[30px] left-[30px] text-3xl text-[#FE7A7B] opacity-90 z-0 animate-float-up pointer-events-none drop-shadow-md">✨</div>
       </header>
 
       {/* Tabs */}
-      <div className="sticky top-[152px] z-10 flex px-4 mt-4 gap-2 bg-slate-50/80 backdrop-blur-md py-2">
+      <div className="sticky top-0 z-20 flex px-5 mt-4 gap-3 bg-slate-50/90 backdrop-blur-md py-3">
         <button
           onClick={() => setActiveTab('all')}
-          className={`flex-1 py-2.5 rounded-full text-xs font-bold transition-all ${
+          className={`flex-1 py-3 rounded-[16px] text-[13px] font-black transition-all border-2 ${
             activeTab === 'all' 
-            ? 'bg-slate-800 text-white shadow-md' 
-            : 'bg-white text-gray-500 border border-gray-200'
+            ? 'bg-slate-800 text-white border-slate-800 shadow-[0_4px_0_#0f172a]' 
+            : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'
           }`}
         >
           全部紀錄
         </button>
         <button
           onClick={() => setActiveTab('earn')}
-          className={`flex-1 py-2.5 rounded-full text-xs font-bold transition-all ${
+          className={`flex-1 py-3 rounded-[16px] text-[13px] font-black transition-all border-2 ${
             activeTab === 'earn' 
-            ? 'bg-amber-100 text-amber-700 shadow-md' 
-            : 'bg-white text-gray-500 border border-gray-200'
+            ? 'bg-[#FFF0E5] text-[#FF9966] border-[#FF9966]' 
+            : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'
           }`}
         >
           獲得點數
         </button>
         <button
           onClick={() => setActiveTab('spend')}
-          className={`flex-1 py-2.5 rounded-full text-xs font-bold transition-all ${
+          className={`flex-1 py-3 rounded-[16px] text-[13px] font-black transition-all border-2 ${
             activeTab === 'spend' 
-            ? 'bg-blue-100 text-blue-700 shadow-md' 
-            : 'bg-white text-gray-500 border border-gray-200'
+            ? 'bg-[#E5F5F5] text-[#66CCCC] border-[#66CCCC]' 
+            : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'
           }`}
         >
           兌換紀錄
@@ -412,35 +440,35 @@ export default function PointsPage() {
       </div>
 
       {/* History List */}
-      <main className="flex-1 p-4 overflow-y-auto mt-2">
+      <main className="flex-1 px-5 pb-8 overflow-y-auto mt-2">
         {isLoading ? (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="bg-white rounded-xl h-16 animate-pulse shadow-sm" />
+              <div key={i} className="bg-white rounded-[20px] h-20 animate-pulse shadow-sm border-2 border-slate-100" />
             ))}
           </div>
         ) : filteredHistory.length === 0 ? (
-          <div className="text-center py-12">
-            <span className="text-4xl block mb-3 opacity-50">📝</span>
-            <p className="text-gray-400 text-sm">目前沒有任何紀錄</p>
+          <div className="text-center py-12 bg-white rounded-[28px] border-2 border-slate-200 shadow-sm mt-4">
+            <span className="text-5xl block mb-4">🎈</span>
+            <p className="text-gray-500 font-bold text-lg">目前沒有任何紀錄</p>
           </div>
         ) : (
           <div className="space-y-3">
             {filteredHistory.map(item => (
-              <div key={item.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+              <div key={item.id} className="bg-white p-4 rounded-[20px] shadow-[0_2px_8px_rgba(0,0,0,0.02)] border-2 border-[#E2E8F0] flex items-center justify-between transition-all hover:border-slate-300">
                 <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                    item.type === 'earn' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'
+                  <div className={`w-12 h-12 rounded-[16px] flex items-center justify-center font-black text-xl shadow-sm ${
+                    item.type === 'earn' ? 'bg-[#FF9966] text-white' : 'bg-[#66CCCC] text-white'
                   }`}>
                     {item.type === 'earn' ? '+' : '-'}
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-gray-800">{item.reason}</p>
-                    <p className="text-[10px] text-gray-400 mt-0.5">{item.date}</p>
+                    <p className="text-[15px] font-black text-slate-800 tracking-wide">{item.reason}</p>
+                    <p className="text-[11px] font-bold tracking-widest text-slate-400 mt-1">{item.date}</p>
                   </div>
                 </div>
-                <div className={`font-black ${
-                  item.type === 'earn' ? 'text-amber-500' : 'text-gray-800'
+                <div className={`font-black text-xl ${
+                  item.type === 'earn' ? 'text-[#FF9966]' : 'text-[#66CCCC]'
                 }`}>
                   {item.type === 'earn' ? `+${item.amount}` : item.amount}
                 </div>

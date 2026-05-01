@@ -231,12 +231,12 @@ export default function CoursesPage() {
           <div className="text-5xl mb-4">🔗</div>
           <h2 className="text-xl font-bold text-gray-800 mb-2">尚未綁定帳號</h2>
           <p className="text-gray-500 text-sm mb-6">請先完成帳號綁定，才能查看課程資料。</p>
-          <a
-            href={`/liff/bind`}
-            className="block w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors"
+          <button
+            onClick={() => handleLeaveRequest(selectedCourse)}
+            className="w-full bg-[#FFDF6F] text-[#F56E4A] py-4 rounded-2xl font-black text-lg shadow-[0_4px_0_#E5C864] hover:translate-y-[2px] hover:shadow-[0_2px_0_#E5C864] active:translate-y-[4px] active:shadow-none transition-all"
           >
-            立即綁定帳號
-          </a>
+            我要請假
+          </button>
         </div>
       </div>
     )
@@ -244,41 +244,70 @@ export default function CoursesPage() {
 
   // 判斷是否為教師模式（影響 Header 顏色）
   const isTeacherMode = userRole === 'teacher'
-  const headerTitle = isTeacherMode ? '我的授課課表' : `${profile?.displayName} 的專區`
-  const headerSubtitle = isTeacherMode ? '顯示未來兩週的授課安排' : '顯示未來兩週的課程'
+  const headerTitle = isTeacherMode ? '我的授課課表' : `${boundStudents.find(s => s.user_id === selectedStudentId)?.student_name || profile?.displayName} 的專區`
+  const headerSubtitle = isTeacherMode ? '未來兩週的授課安排' : '隨時掌握學習進度'
+  const headerBgColor = isTeacherMode ? 'bg-[#99D8B9]' : 'bg-[#66CCCC]'
+  const waveSvgFill = '%23F8FAFC' // slate-50
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <header className={`sticky top-0 z-20 bg-gradient-to-br ${isTeacherMode ? 'from-[#D3C7B6] to-[#B3A48F] text-slate-800' : 'from-[#7B8B82] to-[#5C6B62] text-white'} p-6 pb-6 rounded-b-2xl shadow-md`}>
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-3">
-            {profile?.pictureUrl && (
-              <img src={profile.pictureUrl} className={`w-10 h-10 rounded-full border-2 ${isTeacherMode ? 'border-[#8B7D6B]/50' : 'border-[#A3B1A9]/50'}`} alt="" />
+    <div className="min-h-screen bg-slate-50 font-nunito flex flex-col">
+      <style dangerouslySetInnerHTML={{__html: `
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+        .font-nunito { font-family: 'Nunito', sans-serif; }
+        @keyframes wave-bg {
+            0% { background-position-x: 0; }
+            100% { background-position-x: 1000px; }
+        }
+        @keyframes float-up {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+        .animate-wave { animation: wave-bg 15s linear infinite; }
+        .animate-float-up { animation: float-up 3s ease-in-out infinite; }
+      `}} />
+
+      {/* Clean Header */}
+      <header className={`relative pt-8 px-5 pb-16 z-10 rounded-b-[40px] overflow-hidden shadow-sm ${headerBgColor}`}>
+        <div className="flex items-center justify-between relative z-20">
+          <div className="flex items-center gap-4">
+            {profile?.pictureUrl ? (
+              <img src={profile.pictureUrl} className="w-14 h-14 rounded-[20px] border-4 border-white/40 shadow-sm object-cover" alt="" />
+            ) : (
+              <div className="w-14 h-14 rounded-[20px] border-4 border-white/40 shadow-sm bg-white/20 text-white flex items-center justify-center text-2xl">👦</div>
             )}
             <div>
-              <h1 className="text-lg font-bold">{headerTitle}</h1>
-              <p className={`text-xs ${isTeacherMode ? 'text-slate-600' : 'text-[#D0DDD5]'}`}>{headerSubtitle}</p>
+              <h1 className="text-2xl font-black text-white drop-shadow-sm">{headerTitle}</h1>
+              <p className="text-[11px] font-bold text-white/90 tracking-wide mt-1 bg-black/10 inline-block px-2 py-0.5 rounded-lg">{headerSubtitle}</p>
             </div>
           </div>
           
           {/* 統一下拉選單 */}
           {renderRoleSelector()}
         </div>
+        
+        <div 
+          className="absolute bottom-0 left-0 w-full h-[60px] z-0 animate-wave"
+          style={{
+            background: `url('data:image/svg+xml;utf8,<svg viewBox="0 0 1000 100" xmlns="http://www.w3.org/2000/svg"><path fill="${waveSvgFill}" d="M0,50 C300,100 700,0 1000,50 L1000,100 L0,100 Z"></path></svg>') repeat-x`,
+            backgroundSize: '1000px 100px'
+          }}
+        />
+        <div className="absolute top-[20px] right-[40px] text-3xl text-[#FFDF6F] opacity-90 z-0 animate-float-up pointer-events-none drop-shadow-md">🎵</div>
       </header>
 
       {/* Main Content */}
-      <main className="p-4 relative z-10">
+      <main className="px-5 pb-8 relative z-20 -mt-6 flex-1 overflow-y-auto">
         {isLoading ? (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {[1, 2, 3].map(i => (
-              <div key={i} className="bg-white rounded-xl h-24 animate-pulse shadow-sm" />
+              <div key={i} className="bg-white rounded-[20px] h-32 animate-pulse shadow-sm border-2 border-slate-100" />
             ))}
           </div>
         ) : courses.length === 0 ? (
-          <div className="bg-white p-8 rounded-2xl text-center shadow-sm border border-gray-100">
-            <span className="text-4xl block mb-2">☕️</span>
-            <p className="text-gray-600 font-medium">近兩週沒有安排課程</p>
+          <div className="bg-white p-8 rounded-[28px] text-center shadow-sm border-2 border-slate-200 mt-4">
+            <span className="text-5xl block mb-4">🎈</span>
+            <p className="text-gray-500 font-bold text-lg">近兩週沒有安排課程喔！</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -288,36 +317,36 @@ export default function CoursesPage() {
                 <div 
                   key={course.id} 
                   onClick={() => !isTeacherMode && !isCompleted && setSelectedCourse(course)}
-                  className={`bg-white p-4 rounded-2xl shadow-sm border border-gray-100 transition-colors ${!isTeacherMode && !isCompleted ? 'cursor-pointer hover:border-[#7B8B82] active:scale-[0.98]' : ''} ${isCompleted ? 'opacity-70' : ''}`}
+                  className={`bg-white p-5 rounded-[24px] shadow-[0_4px_10px_rgba(0,0,0,0.03)] border-2 ${!isTeacherMode && !isCompleted ? 'border-[#E2E8F0] cursor-pointer hover:border-[#66CCCC] active:scale-[0.98] active:border-[#66CCCC]' : 'border-slate-100'} transition-all ${isCompleted ? 'opacity-70 bg-slate-50 grayscale-[0.2]' : ''}`}
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex gap-2">
-                      <div className={`${isTeacherMode ? 'bg-[#F5F2ED] text-[#8B7D6B]' : 'bg-[#E8EDE9] text-[#5C6B62]'} text-xs font-bold px-2 py-1 rounded`}>
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex gap-2 flex-wrap">
+                      <div className="bg-slate-800 text-white text-[11px] font-black tracking-wider px-3 py-1 rounded-xl shadow-[0_2px_0_#0f172a]">
                         {course.date}
                       </div>
                       {isCompleted && (
-                        <div className="bg-gray-100 text-gray-500 text-[10px] font-bold px-2 py-1 rounded">
+                        <div className="bg-slate-200 text-slate-500 text-[11px] font-black tracking-wider px-3 py-1 rounded-xl">
                           已完課
                         </div>
                       )}
                       {course.isMakeup && (
-                        <div className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded">
+                        <div className="bg-[#99D8B9] text-[#1e4d35] text-[11px] font-black tracking-wider px-3 py-1 rounded-xl shadow-[0_2px_0_#2B7A54]">
                           補課
                         </div>
                       )}
                     </div>
-                    <div className="text-gray-400 text-sm font-medium">
+                    <div className={`font-black tracking-wide ${isTeacherMode ? 'text-[#99D8B9]' : 'text-[#66CCCC]'}`}>
                       {course.startTime} - {course.endTime}
                     </div>
                   </div>
-                  <h3 className="text-lg font-bold text-gray-800">{course.name}</h3>
-                  <div className="flex gap-4 mt-2 text-xs text-gray-500">
+                  <h3 className="text-lg font-black text-slate-800 mt-1">{course.name}</h3>
+                  <div className="flex gap-4 mt-3 text-[13px] font-bold text-slate-400">
                     {isTeacherMode ? (
-                      <span className="flex items-center gap-1">📍 {course.room}</span>
+                      <span className="flex items-center gap-1"><span className="text-lg">📍</span> {course.room}</span>
                     ) : (
                       <>
-                        <span className="flex items-center gap-1">👤 {course.teacher}</span>
-                        <span className="flex items-center gap-1">📍 {course.room}</span>
+                        <span className="flex items-center gap-1"><span className="text-lg">👤</span> {course.teacher}</span>
+                        <span className="flex items-center gap-1"><span className="text-lg">📍</span> {course.room}</span>
                       </>
                     )}
                   </div>
@@ -330,39 +359,39 @@ export default function CoursesPage() {
 
       {/* Modal for Course Details & Leave Request (僅家長模式) */}
       {selectedCourse && !isTeacherMode && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl transform transition-all">
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white w-full max-w-sm rounded-[32px] p-6 shadow-2xl transform transition-all border-4 border-white">
             <div className="flex justify-between items-start mb-6">
-              <h2 className="text-xl font-bold text-gray-900">課程詳細資訊</h2>
+              <h2 className="text-xl font-black text-gray-800">課程詳細資訊</h2>
               <button 
                 onClick={() => setSelectedCourse(null)}
-                className="bg-gray-100 text-gray-500 w-8 h-8 rounded-full flex items-center justify-center font-bold"
+                className="bg-slate-100 text-slate-500 w-10 h-10 rounded-[14px] flex items-center justify-center font-black active:scale-95 transition-transform"
               >
                 ✕
               </button>
             </div>
             
-            <div className="space-y-4 mb-8">
-              <div className="bg-slate-50 p-4 rounded-xl space-y-2">
-                <p className="text-sm text-gray-500">課程名稱</p>
-                <p className="font-bold text-lg text-[#5C6B62]">{selectedCourse.name}</p>
+            <div className="space-y-3 mb-8">
+              <div className="bg-[#66CCCC]/10 border-2 border-[#66CCCC]/20 p-5 rounded-[24px]">
+                <p className="text-[11px] font-black tracking-widest text-[#66CCCC] uppercase mb-1">課程名稱</p>
+                <p className="font-black text-xl text-gray-800">{selectedCourse.name}</p>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-slate-50 p-3 rounded-xl">
-                  <p className="text-[10px] text-gray-500 uppercase">日期</p>
-                  <p className="font-bold text-gray-800">{selectedCourse.date}</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-slate-50 border-2 border-slate-100 p-4 rounded-[20px]">
+                  <p className="text-[11px] font-black tracking-widest text-slate-400 uppercase mb-1">日期</p>
+                  <p className="font-black text-gray-800">{selectedCourse.date}</p>
                 </div>
-                <div className="bg-slate-50 p-3 rounded-xl">
-                  <p className="text-[10px] text-gray-500 uppercase">時間</p>
-                  <p className="font-bold text-gray-800">{selectedCourse.startTime}</p>
+                <div className="bg-slate-50 border-2 border-slate-100 p-4 rounded-[20px]">
+                  <p className="text-[11px] font-black tracking-widest text-slate-400 uppercase mb-1">時間</p>
+                  <p className="font-black text-gray-800">{selectedCourse.startTime}</p>
                 </div>
-                <div className="bg-slate-50 p-3 rounded-xl">
-                  <p className="text-[10px] text-gray-500 uppercase">老師</p>
-                  <p className="font-bold text-gray-800">{selectedCourse.teacher}</p>
+                <div className="bg-slate-50 border-2 border-slate-100 p-4 rounded-[20px]">
+                  <p className="text-[11px] font-black tracking-widest text-slate-400 uppercase mb-1">老師</p>
+                  <p className="font-black text-gray-800">{selectedCourse.teacher}</p>
                 </div>
-                <div className="bg-slate-50 p-3 rounded-xl">
-                  <p className="text-[10px] text-gray-500 uppercase">教室</p>
-                  <p className="font-bold text-gray-800">{selectedCourse.room}</p>
+                <div className="bg-slate-50 border-2 border-slate-100 p-4 rounded-[20px]">
+                  <p className="text-[11px] font-black tracking-widest text-slate-400 uppercase mb-1">教室</p>
+                  <p className="font-black text-gray-800">{selectedCourse.room}</p>
                 </div>
               </div>
             </div>

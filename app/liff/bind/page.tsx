@@ -22,7 +22,7 @@ export default function BindPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [boundNames, setBoundNames] = useState<string[]>([])
-  const [alreadyBoundUsers, setAlreadyBoundUsers] = useState<Array<{name: string, role: string}>>([])
+  const [alreadyBoundUsers, setAlreadyBoundUsers] = useState<Array<{ name: string, role: string }>>([])
 
   // ── 檢查是否已綁定 ──
   useEffect(() => {
@@ -144,7 +144,7 @@ export default function BindPage() {
       }
 
       setBoundNames(result.data.names)
-      
+
       // 成功後，重新抓取狀態並切換到「已綁定」列表畫面，方便用戶直接管理（如解綁）
       const statusRes = await fetch(`/api/line/status?id_token=${idToken}`)
       const statusData = await statusRes.json()
@@ -219,7 +219,8 @@ export default function BindPage() {
 
   return (
     <div className="min-h-screen bg-[#FFDF6F] relative overflow-x-hidden flex flex-col font-nunito">
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
         .font-nunito { font-family: 'Nunito', sans-serif; }
         @keyframes float-up {
@@ -242,14 +243,14 @@ export default function BindPage() {
       `}} />
 
       {/* Dynamic Wave Background */}
-      <div 
+      <div
         className="absolute top-0 left-0 w-full h-[350px] animate-wave z-0"
         style={{
           background: "url('data:image/svg+xml;utf8,<svg viewBox=\"0 0 1000 300\" xmlns=\"http://www.w3.org/2000/svg\"><path fill=\"%23FFFFFF\" opacity=\"0.5\" d=\"M0,150 C300,300 700,0 1000,150 L1000,0 L0,0 Z\"></path><path fill=\"%2366CCCC\" opacity=\"0.3\" d=\"M0,200 C400,0 600,300 1000,200 L1000,0 L0,0 Z\"></path></svg>') repeat-x",
           backgroundSize: '1000px 300px'
         }}
       />
-      
+
       {/* Floating Music Notes */}
       <div className="absolute top-[60px] right-[30px] text-4xl text-[#FE7A7B] opacity-60 z-0 animate-float-up pointer-events-none">🎵</div>
       <div className="absolute top-[180px] left-[20px] text-4xl text-[#99D8B9] opacity-60 z-0 animate-float-down pointer-events-none">🎶</div>
@@ -296,7 +297,7 @@ export default function BindPage() {
             </div>
             <h2 className="font-black text-xl text-gray-800 mb-2">您已綁定過帳號</h2>
             <p className="text-sm text-gray-500 font-bold mb-6">目前與此 LINE 連動的系統帳號：</p>
-            
+
             <div className="space-y-3 mb-8 text-left">
               {alreadyBoundUsers.map((u: any, i) => (
                 <div key={i} className="bg-white p-3 rounded-2xl border-2 border-[#E5E1E0] flex items-center justify-between shadow-sm">
@@ -318,7 +319,7 @@ export default function BindPage() {
               ))}
             </div>
 
-            <p className="text-xs text-gray-400 font-bold mb-4">若還有其他寶貝需要綁定：</p>
+            <p className="text-xs text-gray-400 font-bold mb-4">若還有其他學生需要綁定：</p>
             <button
               onClick={() => setStep('phone')}
               className="w-full bg-[#66CCCC] text-white py-4 rounded-2xl font-black text-base shadow-[0_4px_0_#4EA6A6] hover:translate-y-[2px] hover:shadow-[0_2px_0_#4EA6A6] active:translate-y-[4px] active:shadow-none transition-all mb-3"
@@ -337,9 +338,9 @@ export default function BindPage() {
         {/* Step: Phone Input */}
         {step === 'phone' && (
           <div className="bg-white/95 backdrop-blur-md rounded-[28px] p-6 shadow-xl border-2 border-white/50">
-            <h2 className="font-black text-gray-800 text-lg mb-2">尋找寶貝的帳號</h2>
+            <h2 className="font-black text-gray-800 text-lg mb-2">尋找學生的帳號</h2>
             <p className="text-sm text-gray-500 mb-6 font-bold">
-              請輸入報名時填寫的手機號碼，系統將自動尋找寶貝的專屬帳號喔！
+              請輸入報名時填寫的手機號碼，系統將自動尋找學生的專屬帳號喔！
             </p>
 
             <input
@@ -385,18 +386,16 @@ export default function BindPage() {
               {users.map((user) => (
                 <label
                   key={user._id}
-                  className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-colors ${
-                    selectedIds.has(user._id)
+                  className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-colors ${selectedIds.has(user._id)
                       ? 'border-[#66CCCC] bg-[#66CCCC]/10'
                       : 'border-[#E5E1E0] hover:border-[#66CCCC]/50 bg-white'
-                  }`}
+                    }`}
                 >
-                  <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors ${
-                    selectedIds.has(user._id) ? 'bg-[#66CCCC] border-[#66CCCC]' : 'border-gray-300 bg-white'
-                  }`}>
+                  <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors ${selectedIds.has(user._id) ? 'bg-[#66CCCC] border-[#66CCCC]' : 'border-gray-300 bg-white'
+                    }`}>
                     {selectedIds.has(user._id) && <span className="text-white text-xs font-bold">✓</span>}
                   </div>
-                  
+
                   <div className="flex-1">
                     <p className="font-black text-gray-800 text-base">
                       {user.student_name || user.name}
