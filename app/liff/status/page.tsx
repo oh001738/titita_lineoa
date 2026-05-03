@@ -66,6 +66,7 @@ export default function StatusPage() {
         body: JSON.stringify({
           user_id: userId,
           id_token: idToken,
+          student_name: user.student_name || user.name,
         }),
       })
 

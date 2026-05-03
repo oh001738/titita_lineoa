@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { user_id, id_token } = body
+    const { user_id, id_token, student_name } = body
 
     if (!user_id || !id_token) {
       return Response.json(
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       const client = getLineClient()
       await client.pushMessage({
         to: line_user_id,
-        messages: [unbindNotifyMessage('您的帳號', 'self')]
+        messages: [unbindNotifyMessage(student_name || '您的帳號', 'self')]
       })
     } catch (pushErr) {
       console.error('[Self Unbind Push Failed]', pushErr)

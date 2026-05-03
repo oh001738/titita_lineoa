@@ -180,6 +180,7 @@ export default function BindPage() {
         body: JSON.stringify({
           user_id: userId,
           id_token: idToken,
+          student_name: userName,
         }),
       })
       const result = await res.json()
