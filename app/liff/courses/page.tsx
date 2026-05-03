@@ -291,7 +291,7 @@ export default function CoursesPage() {
 
       {/* Compact Sticky Header — 滾動時顯示 */}
       <div 
-        className={`sticky top-0 z-30 transition-all duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 w-full z-30 transition-all duration-300 ease-in-out ${
           isScrolled 
             ? 'opacity-100 translate-y-0' 
             : 'opacity-0 -translate-y-full pointer-events-none'
