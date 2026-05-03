@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLiff } from '@/components/liff/LiffProvider'
 import { useToast } from '@/components/liff/Toast'
 
@@ -39,6 +39,16 @@ export default function PointsPage() {
   const [awardForm, setAwardForm] = useState({ studentId: '', amount: 10, reason: '' })
   const [isNotBound, setIsNotBound] = useState(false)
   const [hasTeacherRole, setHasTeacherRole] = useState(false)
+
+  // 滾動偵測：Header 縮小
+  const [isScrolled, setIsScrolled] = useState(false)
+  const mainRef = useRef<HTMLElement>(null)
+
+  const handleScroll = useCallback(() => {
+    if (mainRef.current) {
+      setIsScrolled(mainRef.current.scrollTop > 30)
+    }
+  }, [])
 
   // 統一下拉選單的值：'teacher' 代表教師模式，其他值代表學生 user_id
   const selectorValue = userRole === 'teacher' ? 'teacher' : selectedStudentId
@@ -256,10 +266,26 @@ export default function PointsPage() {
               from { opacity: 0; transform: translateY(4px); }
               to { opacity: 1; transform: translateY(0); }
           }
+           @keyframes wave-bg { 0% { background-position-x: 0; } 100% { background-position-x: 1000px; } }
+          @keyframes float-up { 0% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-15px) rotate(5deg); } 100% { transform: translateY(0) rotate(0deg); } }
           .animate-fade-in { animation: fade-in 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
           .animate-wave { animation: wave-bg 15s linear infinite; }
           .animate-float-up { animation: float-up 3s ease-in-out infinite; }
         `}} />
+
+        {/* Compact Sticky Header — 滾動時顯示 */}
+        <div 
+          className={`sticky top-0 z-30 transition-all duration-300 ease-in-out ${
+            isScrolled 
+              ? 'opacity-100 translate-y-0' 
+              : 'opacity-0 -translate-y-full pointer-events-none'
+          } bg-[#FF9966] shadow-md`}
+        >
+          <div className="flex items-center justify-between px-4 py-3">
+            <h2 className="text-sm font-black text-white drop-shadow-sm">✨ 教師給點中心</h2>
+            {renderRoleSelector('indigo')}
+          </div>
+        </div>
 
         <header className="relative pt-10 px-6 pb-16 z-10 rounded-b-[40px] overflow-hidden shadow-sm bg-[#FF9966]">
           <div className="absolute top-6 right-6 z-20">
@@ -280,7 +306,7 @@ export default function PointsPage() {
           <div className="absolute top-[30px] right-[40px] text-3xl text-[#FFDF6F] opacity-90 z-0 animate-float-up pointer-events-none drop-shadow-md">✨</div>
         </header>
 
-        <main className="flex-1 px-5 pb-8 overflow-y-auto no-scrollbar -mt-6 relative z-20">
+        <main ref={mainRef} onScroll={handleScroll} className="flex-1 px-5 pb-8 overflow-y-auto no-scrollbar relative z-20">
           {/* 選擇學生清單 */}
           <section>
             <h3 className="text-sm font-black text-slate-400 mb-4 ml-1 tracking-widest">今日學生</h3>
@@ -377,9 +403,33 @@ export default function PointsPage() {
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes wave-bg { 0% { background-position-x: 0; } 100% { background-position-x: 1000px; } }
         @keyframes float-up { 0% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-15px) rotate(5deg); } 100% { transform: translateY(0) rotate(0deg); } }
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fade-in 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
         .animate-wave { animation: wave-bg 15s linear infinite; }
         .animate-float-up { animation: float-up 3s ease-in-out infinite; }
       `}} />
+
+      {/* Compact Sticky Header — 滾動時顯示 */}
+      <div 
+        className={`sticky top-0 z-30 transition-all duration-300 ease-in-out ${
+          isScrolled 
+            ? 'opacity-100 translate-y-0' 
+            : 'opacity-0 -translate-y-full pointer-events-none'
+        } bg-[#FFDF6F] shadow-md`}
+      >
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <span className="text-lg font-black text-white drop-shadow-sm">{data?.balance.toLocaleString() || '0'} 點</span>
+            <span className="text-xs font-bold text-[#F56E4A]">
+              {boundStudents.find(s => s.user_id === selectedStudentId)?.student_name || '學生'}
+            </span>
+          </div>
+          {renderRoleSelector('amber')}
+        </div>
+      </div>
 
       {/* Balance Header */}
       <header className="relative pt-10 px-5 pb-16 z-10 rounded-b-[40px] overflow-hidden shadow-sm bg-[#FFDF6F]">
@@ -459,7 +509,7 @@ export default function PointsPage() {
           </div>
 
           {/* History List */}
-          <main className="flex-1 px-5 pb-8 overflow-y-auto no-scrollbar mt-2">
+          <main ref={mainRef} onScroll={handleScroll} className="flex-1 px-5 pb-8 overflow-y-auto no-scrollbar mt-2">
             {filteredHistory.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-[28px] border-2 border-slate-200 shadow-sm mt-4">
                 <span className="text-5xl block mb-4">🎈</span>

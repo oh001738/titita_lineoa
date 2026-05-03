@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLiff } from '@/components/liff/LiffProvider'
 import { useToast } from '@/components/liff/Toast'
 import { useConfirm } from '@/components/liff/ConfirmDialog'
@@ -39,6 +39,16 @@ export default function CoursesPage() {
   const [userRole, setUserRole] = useState<'family' | 'teacher' | null>(null)
   const [hasTeacherRole, setHasTeacherRole] = useState(false)
   const [teacherId, setTeacherId] = useState<string>('')
+
+  // 滾動偵測：Header 縮小
+  const [isScrolled, setIsScrolled] = useState(false)
+  const mainRef = useRef<HTMLElement>(null)
+
+  const handleScroll = useCallback(() => {
+    if (mainRef.current) {
+      setIsScrolled(mainRef.current.scrollTop > 30)
+    }
+  }, [])
 
   // 統一下拉選單的值
   const selectorValue = userRole === 'teacher' ? 'teacher' : selectedStudentId
@@ -279,7 +289,30 @@ export default function CoursesPage() {
         .animate-float-up { animation: float-up 3s ease-in-out infinite; }
       `}} />
 
-      {/* Clean Header */}
+      {/* Compact Sticky Header — 滾動時顯示 */}
+      <div 
+        className={`sticky top-0 z-30 transition-all duration-300 ease-in-out ${
+          isScrolled 
+            ? 'opacity-100 translate-y-0' 
+            : 'opacity-0 -translate-y-full pointer-events-none'
+        } ${isTeacherMode ? 'bg-[#99D8B9]' : 'bg-[#66CCCC]'} shadow-md`}
+      >
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            {profile?.pictureUrl ? (
+              <img src={profile.pictureUrl} className="w-8 h-8 rounded-xl border-2 border-white/40 object-cover" alt="" />
+            ) : (
+              <div className="w-8 h-8 rounded-xl border-2 border-white/40 bg-white/20 text-white flex items-center justify-center text-sm">👦</div>
+            )}
+            <h2 className="text-sm font-black text-white drop-shadow-sm truncate">
+              {isTeacherMode ? '我的授課課表' : `${studentName || '學生'} 的專區`}
+            </h2>
+          </div>
+          {renderRoleSelector()}
+        </div>
+      </div>
+
+      {/* Full Header — 頂部完整版 */}
       <header className={`relative pt-8 px-5 pb-16 z-10 rounded-b-[40px] overflow-hidden shadow-sm ${headerBgColor}`}>
         <div className="flex items-center justify-between relative z-20">
           <div className="flex items-center gap-4">
@@ -323,7 +356,7 @@ export default function CoursesPage() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto no-scrollbar px-5 pb-8 relative z-20 -mt-6">
+      <main ref={mainRef} onScroll={handleScroll} className="flex-1 overflow-y-auto no-scrollbar px-5 pb-8 relative z-20">
         {isLoading ? null : (
           <div className="animate-fade-in">
             {courses.length === 0 ? (
