@@ -1,124 +1,104 @@
-# LINE OA 整合系統 — 設計方案
+# LINE OA 整合系統 — 設計方案 (2026-05 更新)
 
-> **目標**：作為音樂補習班管理系統的**周圍系統**，透過 LINE Messaging API 讓家長/教師用手機號碼綁定 LINE OA，接收課程通知、請假結果、學費提醒等推播訊息。
+> **目標**：作為音樂補習班管理系統的**周圍系統**，透過 LINE Messaging API 讓家長/教師用手機號碼綁定 LINE OA，接收課程通知、請假結果、學費提醒等推播訊息，並提供課表、點數查詢等 LIFF 應用。
 
 ---
 
 ## 1. 系統定位與架構
 
-### 1.1 周圍系統 vs 主系統
+### 1.1 系統邊界與互動
+本系統定位為「通訊代理層」，負責處理所有與 LINE 平台的對接邏輯，核心業務數據仍由主系統 `titita_onecloud` 管理。
 
-\`\`\`
-┌─────────────────────────────────────────────────────────┐
-│                    主系統 (既有)                          │
-│  Next.js 14 · MongoDB · NextAuth · Synology NAS         │
-│                                                         │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐   │
-│  │ 教室管理 │ │ 教師管理 │ │ 課程管理 │ │ 學生管理 │   │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘   │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐   │
-│  │ 選課管理 │ │ 請假補課 │ │ 學費管理 │ │ 獎勵管理 │   │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘   │
-│                       │                                  │
-│              lib/notifications.ts                        │
-│              (主動呼叫推播端點)                            │
-└───────────────────────┬─────────────────────────────────┘
-                        │
-                        │ Internal API (X-Internal-Key)
-                        │
-┌───────────────────────▼─────────────────────────────────┐
-│                LINE OA 周圍系統 (本系統)                  │
-│  Next.js 14 · 獨立 MongoDB · @line/bot-sdk · @line/liff │
-│                                                         │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐   │
-│  │ Webhook  │ │ LIFF     │ │ 管理後台 │ │ 推播引擎 │   │
-│  │ 接收     │ │ 應用     │ │ (儀表板) │ │ (Push)   │   │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘   │
-└─────────────────────────────────────────────────────────┘
-                        │
-                  LINE Platform
-                        │
-               ┌────────▼────────┐
-               │   家長/教師手機  │
-               │   LINE App      │
-               └─────────────────┘
-\`\`\`
+```mermaid
+graph TD
+    subgraph "主系統 (titita_onecloud)"
+        Main[核心業務邏輯/DB]
+        NotifLib[lib/notifications.ts]
+    end
+
+    subgraph "LINE OA 系統 (本系統)"
+        API[API Gateway / Proxy]
+        DB[(獨立 MongoDB)]
+        Push[推播引擎]
+        LIFF[LIFF Apps]
+        Admin[管理後台]
+    end
+
+    Main -- "1. 數據請求" --> API
+    NotifLib -- "2. 觸發推播 (X-Internal-Key)" --> Push
+    API -- "3. 驗證身分後代理請求" --> Main
+    Push -- "4. 發送 Flex Message" --> LINE[LINE Platform]
+    LINE -- "5. Webhook 事件" --> API
+    LINE -- "6. 開啟應用" --> LIFF
+```
 
 ---
 
-## 2. 專案目錄結構 (現況)
+## 2. 專案目錄結構 (2026-05 現況)
 
-\`\`\`
+```
 titita_lineoa/
 ├── app/
-│   ├── admin/                         # 管理員後台頁面
-│   │   ├── notify/page.tsx            # 通知發送工具
-│   │   ├── logs/                      # 推播/綁定紀錄查看
-│   │   └── page.tsx                   # 統計儀表板概覽
+│   ├── admin/                         # 管理員 Web 後台
+│   │   ├── login/                     #   └ 管理員登入 (LINE 登入/帳密)
+│   │   ├── notify/                    #   └ 手動推播與廣播工具
+│   │   ├── recipients/                #   └ 已綁定成員清單與管理
+│   │   └── logs/                      #   └ 推播與綁定紀錄追蹤
 │   ├── api/
-│   │   ├── admin/                     # 管理員後台專用 API
-│   │   │   ├── broadcast/route.ts     # 群組/全體推播
-│   │   │   └── stats/route.ts         # 統計數據彙整
-│   │   ├── internal/                  # 供 LIFF 呼叫的內部代理 API (Proxy)
-│   │   │   ├── users/courses          # 查課表 (代理至主系統)
-│   │   │   ├── users/points           # 查點數 (代理至主系統)
-│   │   │   └── users/leave            # 請假申請 (代理至主系統)
-│   │   ├── line/
-│   │   │   ├── webhook/route.ts       # LINE Webhook 接收
-│   │   │   ├── bind/route.ts          # 綁定請求
-│   │   │   └── notify/route.ts        # 主系統觸發的推播 API
-│   ├── liff/                          # LIFF 頁面
-│   │   ├── bind/                      # 綁定頁
-│   │   ├── courses/                   # 課表頁
-│   │   └── points/                    # 點數頁
+│   │   ├── internal/                  # LIFF 專用代理 API (Proxy)
+│   │   │   └── users/                 #   └ 課表、點數、請假代理 (驗證 id_token)
+│   │   ├── line/                      # LINE 核心 API
+│   │   │   ├── webhook/               #   └ Webhook 接收 (follow/message/postback)
+│   │   │   ├── bind/                  #   └ 綁定邏輯 (含 Bind Token 驗證)
+│   │   │   └── notify/                #   └ 主系統推播入口
+│   │   └── admin/                     # 後台專用 API (統計、廣播、登入)
+│   └── liff/                          # LIFF 前端頁面
+│       ├── bind/                      #   └ 帳號綁定引導頁
+│       ├── courses/                   #   └ 學生個人課表
+│       └── points/                    #   └ 獎勵點數存摺
 ├── lib/
-│   ├── db/mongoose.ts                 # 獨立 MongoDB 連線邏輯
 │   ├── line/
-│   │   ├── templates.ts               # Flex Message 模板
-│   │   └── push.ts                    # 推播發送引擎（含紀錄/重試/日誌）
-│   └── models/
-│       ├── LineBindLog.ts             # 綁定紀錄
-│       ├── LineNotifyLog.ts           # 推播紀錄
-│       └── SystemSetting.ts           # 系統開關與動態設定
+│   │   ├── templates.ts               # Jelly Kids 風格 Flex Message 模板
+│   │   └── push.ts                    # 高可靠推播引擎 (含自動重試與錯誤追蹤)
+│   ├── db/                            # MongoDB 連線與 Models
+│   ├── bind-token.ts                  # 簽名令牌 (防止手機綁定劫持)
+│   ├── verify-ownership.ts            # 所有權驗證 (防止 IDOR 攻擊)
+│   ├── main-system-client.ts          # 主系統 Internal API 通訊封裝
+│   └── rate-limit.ts                  # API 速率限制 (防護暴力破解)
 └── ...
-\`\`\`
+```
 
 ---
 
-## 3. 資料模型設計
+## 3. 核心設計原則
 
-### 3.1 LineNotifyLog (推播日誌)
-記錄所有發送嘗試、狀態、以及 LINE API 回傳的錯誤訊息。
-*   \`status\`: \`sent\` / \`failed\` / \`pending\` / \`skipped\`
-*   \`error_message\`: 紀錄詳細的 API 報錯（包含 400 Bad Request 的 JSON 詳情）。
+### 3.1 安全性 (Security First)
+- **Bind Token 機制**：在綁定流程中使用加密簽名的 Token，確保綁定目標與手機查詢結果鎖定，防止中間人惡意串接他人帳號。
+- **身分驗證代理 (Proxy)**：LIFF 不直接存取主系統，而是透過本系統驗證 LINE `id_token` 後，由後端以內部身份進行數據交換。
+- **所有權驗證 (Ownership Verification)**：所有針對學生資料的 API 皆會驗證該 LINE 使用者確實與目標學生有綁定關係。
 
----
+### 3.2 視覺設計 (Aesthetics)
+- **Jelly Kids 風格**：推播訊息與 LIFF 統一採用高飽和度、圓角設計的「童趣果凍風」，提升補習班品牌質感。
+- **專業化格式**：日期時間皆過格式化轉換（如：2026年5月3日），避免顯示原始數據格式。
 
-## 4. 核心 API 設計
-
-### 4.1 推播相關
-*   \`POST /api/line/notify\`: 主系統觸發通知用（需 \`X-Internal-Key\`）。
-*   \`POST /api/admin/broadcast\`: 管理後台手動廣播工具用（需管理員權限）。
-
-### 4.2 代理請求 (Proxy)
-*   LIFF 頁面不直接呼叫主系統，而是呼叫本系統的 \`/api/internal/users/*\` 端點。
-*   本系統驗證 LINE \`id_token\` 後，再以內部身份向主系統請求數據，確保安全性。
+### 3.3 可靠性 (Reliability)
+- **推播日誌紀錄**：每一筆推播皆記錄 `status` 與 `error_message`，管理員可從後台診斷發送失敗的原因（如：用戶封鎖、無效 User ID）。
+- **快取機制**：系統設定實作 5 秒短期快取，平衡實時性與資料庫負載。
 
 ---
 
-## 5. 開發狀態與後續串接 (2026-04 最新狀態)
+## 4. 當前開發狀態 (2026-05)
 
-本專案已進入**正式運行與維護階段**。
+### ✅ 已完成亮點
+1. **安全性加固**：完成 Bind Token 與 API 所有權驗證機制。
+2. **視覺優化**：全面更新為 Jelly Kids 設計語言，並修正專業日期格式。
+3. **穩定運行**：已移除所有 Mock 資料，正式與 `titita_onecloud` 生產環境串接。
+4. **管理功能**：實現即時綁定統計、收件人識別格式化（學生名+LINE名）、以及登入流程優化。
 
-### 已完成功能：
-1.  **全模組串接**：已關閉 MOCK，完全對接 \`titita_onecloud\` 實時數據。
-2.  **管理工具**：
-    *   **統計儀表板**：顯示推播佔比圖表與系統狀態。
-    *   **推播健康診斷**：加強了錯誤日誌捕捉，可追蹤所有發送失敗的原因。
-3.  **安全與性能**：
-    *   修正了 \`user_id\` 欄位匹配問題，確保紀錄完整。
-    *   實作了 5 秒的系統設定快取，降低資料庫壓力。
+### 📅 下階段目標
+1. **Rich Menu 多樣化**：根據使用者角色（家長/老師）動態切換不同的選單內容。
+2. **自動化運維**：串接監控警報，當推播失敗率過高時自動通知工程師。
+3. **離線通知緩衝**：處理當 LINE 伺服器繁忙時的排隊機制。
 
-### 待處理事項：
-1.  **Rich Menu**：設計並透過 API 更新 6 格選單圖面。
-2.  **生產環境遷移**：正式部署至 Synology NAS。
+---
+*本文件為動態更新，最新異動請參考 GitHub 提交紀錄。*
