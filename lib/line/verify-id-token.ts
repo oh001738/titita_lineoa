@@ -27,14 +27,14 @@ export async function verifyLineIdToken(idToken: string): Promise<VerifyResult |
   }
 
   const mainChannelId = process.env.LINE_CHANNEL_ID
-  const liffId = process.env.NEXT_PUBLIC_LIFF_ID
+  const liffId = process.env.LIFF_ID
   
   // 優先使用 LIFF ID 的前綴作為驗證用的 Channel ID (client_id)
   // 如果 LIFF 與 Messaging API 屬於不同 Channel，必須用 LIFF 的 Channel ID 驗證 idToken
   const verifyChannelId = liffId?.includes('-') ? liffId.split('-')[0] : mainChannelId
 
   if (!verifyChannelId) {
-    console.error('[verifyLineIdToken] LINE_CHANNEL_ID or NEXT_PUBLIC_LIFF_ID not set')
+    console.error('[verifyLineIdToken] LINE_CHANNEL_ID or LIFF_ID not set')
     return null
   }
 
@@ -59,6 +59,13 @@ export async function verifyLineIdToken(idToken: string): Promise<VerifyResult |
         actual: payload.aud,
         sub: payload.sub
       })
+      return null
+    }
+
+    // 檢查過期時間
+    const now = Math.floor(Date.now() / 1000)
+    if (payload.exp && payload.exp < now) {
+      console.warn('[verifyLineIdToken] Token has expired:', { exp: payload.exp, now: now })
       return null
     }
 

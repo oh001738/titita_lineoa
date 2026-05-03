@@ -4,8 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        - NEXT_PUBLIC_LIFF_ID=${NEXT_PUBLIC_LIFF_ID}
-        - NEXT_PUBLIC_SCHOOL_NAME=${NEXT_PUBLIC_SCHOOL_NAME}
+        - LIFF_ID=${LIFF_ID}
+        - SCHOOL_NAME=${SCHOOL_NAME}
     container_name: titita-lineoa
     restart: unless-stopped
     ports:
@@ -18,8 +18,8 @@ services:
       - LINE_CHANNEL_ID=${LINE_CHANNEL_ID}
       - LINE_CHANNEL_SECRET=${LINE_CHANNEL_SECRET}
       - LINE_CHANNEL_ACCESS_TOKEN=${LINE_CHANNEL_ACCESS_TOKEN}
-      - NEXT_PUBLIC_LIFF_ID=${NEXT_PUBLIC_LIFF_ID}
-      - NEXT_PUBLIC_SCHOOL_NAME=${NEXT_PUBLIC_SCHOOL_NAME}
+      - LIFF_ID=${LIFF_ID}
+      - SCHOOL_NAME=${SCHOOL_NAME}
       - ADMIN_USER=${ADMIN_USER}
       - ADMIN_PASS=${ADMIN_PASS}
     networks:

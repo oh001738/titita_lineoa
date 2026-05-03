@@ -115,7 +115,7 @@ async function handleMessage(event: WebhookEvent): Promise<void> {
   if (!lineUserId) return
 
   if (text === '綁定' || text === '綁定帳號') {
-    const liffId = process.env.NEXT_PUBLIC_LIFF_ID
+    const liffId = process.env.LIFF_ID
     if (liffId) {
       await replyMessage(event.replyToken, [bindGuideMessage(liffId)])
     }
@@ -160,7 +160,7 @@ async function handlePostback(event: WebhookEvent): Promise<void> {
 
   const params = new URLSearchParams(event.postback.data)
   const action = params.get('action')
-  const liffId = process.env.NEXT_PUBLIC_LIFF_ID
+  const liffId = process.env.LIFF_ID
 
   console.log(`[Webhook] Postback from ${lineUserId}: action=${action}`)
 

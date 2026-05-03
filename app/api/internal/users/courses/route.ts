@@ -14,6 +14,11 @@ const MOCK_COURSES_S2 = [
 ]
 
 export async function GET(request: Request) {
+  const internalKey = request.headers.get('x-internal-key') || request.headers.get('X-Internal-Key')
+  if (internalKey !== process.env.INTERNAL_API_KEY) {
+    return NextResponse.json({ data: null, error: 'Unauthorized internal API access' }, { status: 401 })
+  }
+
   const { searchParams } = new URL(request.url)
   const idToken = searchParams.get('id_token')
   const userId = searchParams.get('user_id')

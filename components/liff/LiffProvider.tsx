@@ -71,7 +71,10 @@ export function LiffProvider({ children }: { children: ReactNode }) {
 
         const liff = (await import('@line/liff')).default
 
-        const liffId = process.env.NEXT_PUBLIC_LIFF_ID
+        const configRes = await fetch('/api/line/config')
+        const config = await configRes.json()
+        const liffId = config.liffId
+
         if (!liffId) {
           setError('LIFF ID 未設定')
           setIsReady(true)

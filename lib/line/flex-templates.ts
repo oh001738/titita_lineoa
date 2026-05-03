@@ -140,7 +140,7 @@ export function createPointsAwardFlex(data: {
           action: {
             type: "uri",
             label: "查看點數存摺",
-            uri: `https://liff.line.me/${process.env.NEXT_PUBLIC_LIFF_ID}/liff/points`
+            uri: `https://liff.line.me/${process.env.LIFF_ID}/liff/points`
           }
         }
       ]

@@ -301,7 +301,7 @@ export function bindStatusMessage(users: Array<{ name: string; role: string }>):
 
 // ── 綁定狀態查詢（未綁定）──
 export function notBoundMessage(): messagingApi.FlexMessage {
-  const liffId = process.env.NEXT_PUBLIC_LIFF_ID
+  const liffId = process.env.LIFF_ID
   const footer = liffId ? {
     type: 'box' as const, layout: 'vertical' as const, paddingAll: '20px', backgroundColor: '#ffffff',
     contents: [
@@ -451,7 +451,7 @@ export function pointsEarnedMessage(params: {
         paddingAll: '20px',
         backgroundColor: '#ffffff',
         contents: [
-          createButton('查看點數存摺', `https://liff.line.me/${process.env.NEXT_PUBLIC_LIFF_ID}/liff/points`, '#FF9966')
+          createButton('查看點數存摺', `https://liff.line.me/${process.env.LIFF_ID}/liff/points`, '#FF9966')
         ]
       }
     }

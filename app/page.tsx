@@ -1,4 +1,4 @@
-const SCHOOL_NAME = process.env.NEXT_PUBLIC_SCHOOL_NAME || '音樂補習班'
+const SCHOOL_NAME = process.env.SCHOOL_NAME || '音樂補習班'
 
 export default function Home() {
   return (

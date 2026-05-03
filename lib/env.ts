@@ -10,9 +10,8 @@ const REQUIRED_SERVER_VARS = [
   'LINE_CHANNEL_ID',
   'LINE_CHANNEL_SECRET',
   'LINE_CHANNEL_ACCESS_TOKEN',
+  'LIFF_ID'
 ] as const
-
-const REQUIRED_PUBLIC_VARS = ['NEXT_PUBLIC_LIFF_ID'] as const
 
 let validated = false
 
@@ -26,9 +25,6 @@ export function validateEnv(): void {
     if (!process.env[key]) missing.push(key)
   }
 
-  for (const key of REQUIRED_PUBLIC_VARS) {
-    if (!process.env[key]) missing.push(key)
-  }
 
   if (missing.length > 0) {
     const msg = `[env] 缺少必要環境變數：${missing.join(', ')}`
