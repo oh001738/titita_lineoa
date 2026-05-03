@@ -5,8 +5,7 @@ import { useLiff } from '@/components/liff/LiffProvider'
 import { useToast } from '@/components/liff/Toast'
 import { useConfirm } from '@/components/liff/ConfirmDialog'
 import type { BindLookupUser } from '@/types'
-
-const SCHOOL_NAME = process.env.SCHOOL_NAME || '音樂補習班'
+import { SCHOOL_NAME } from '@/lib/site-config'
 
 export default function StatusPage() {
   const { liff, profile, idToken, isReady, error: liffError } = useLiff()
