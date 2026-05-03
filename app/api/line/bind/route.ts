@@ -3,6 +3,7 @@ import LineBindLog from '@/lib/models/LineBindLog'
 import { normalizePhone, BIND_ACTIONS, BIND_OPERATORS, NOTIFY_TYPES } from '@/lib/constants'
 import { updateLineBinding } from '@/lib/main-system-client'
 import { verifyLineIdToken } from '@/lib/line/verify-id-token'
+import { verifyBindToken } from '@/lib/bind-token'
 import { pushMessage } from '@/lib/line/push'
 import { bindSuccessMessage } from '@/lib/line/templates'
 import type { ApiResponse } from '@/types'
@@ -17,7 +18,7 @@ export const dynamic = 'force-dynamic'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { user_ids, id_token, phone } = body
+    const { user_ids, id_token, phone, bind_token } = body
 
     if (!user_ids || !Array.isArray(user_ids) || user_ids.length === 0) {
       return Response.json(
@@ -26,9 +27,9 @@ export async function POST(request: Request) {
       )
     }
 
-    if (!id_token) {
+    if (!id_token || !bind_token) {
       return Response.json(
-        { data: null, error: '缺少 LINE 身份驗證資訊' } satisfies ApiResponse<null>,
+        { data: null, error: '缺少必要驗證資訊' } satisfies ApiResponse<null>,
         { status: 400 }
       )
     }
@@ -43,9 +44,19 @@ export async function POST(request: Request) {
     }
     const line_user_id = verified.userId
 
+    // 2. 驗證 bind_token：確保 user_ids 全部在手機查詢結果的准許列表內
+    const bindTokenResult = await verifyBindToken(bind_token, user_ids, line_user_id)
+    if (!bindTokenResult.valid) {
+      console.warn('[Bind] bind_token verification failed:', bindTokenResult.error)
+      return Response.json(
+        { data: null, error: bindTokenResult.error || '綁定驗證失敗，請重新查詢手機號碼' } satisfies ApiResponse<null>,
+        { status: 403 }
+      )
+    }
+
     const normalizedPhone = normalizePhone(phone || '')
 
-    // 2. 透過主系統 Internal API 更新 line_user_id
+    // 3. 透過主系統 Internal API 更新 line_user_id
     const result = await updateLineBinding(user_ids, line_user_id, 'bind')
 
     if (result.error || !result.data) {

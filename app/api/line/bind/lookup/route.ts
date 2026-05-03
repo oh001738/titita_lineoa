@@ -2,6 +2,7 @@ import { normalizePhone, RATE_LIMIT } from '@/lib/constants'
 import { lookupUsersByPhone } from '@/lib/main-system-client'
 import { verifyLineIdToken } from '@/lib/line/verify-id-token'
 import { isRateLimited } from '@/lib/rate-limit'
+import { createBindToken } from '@/lib/bind-token'
 import type { ApiResponse } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -75,7 +76,11 @@ export async function POST(request: Request) {
       student_name: u.student_name || undefined,
     }))
 
-    return Response.json({ data: { users: lookupUsers }, error: null })
+    // 產生加密的 bind_token，鎖定此次查詢准許綁定的 ID 列表
+    const allowedIds = lookupUsers.map(u => u._id)
+    const bindToken = await createBindToken(allowedIds, lineUserId)
+
+    return Response.json({ data: { users: lookupUsers, bind_token: bindToken }, error: null })
   } catch (err) {
     console.error('[Bind Lookup] Error:', err)
     return Response.json(

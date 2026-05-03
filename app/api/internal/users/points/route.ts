@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { verifyLineIdToken } from '@/lib/line/verify-id-token'
+import { verifyOwnership } from '@/lib/verify-ownership'
 
 const MOCK_POINTS_DATA_S1 = {
   balance: 1250,
@@ -20,11 +21,6 @@ const MOCK_POINTS_DATA_S2 = {
 }
 
 export async function GET(request: Request) {
-  const internalKey = request.headers.get('x-internal-key') || request.headers.get('X-Internal-Key')
-  if (internalKey !== process.env.INTERNAL_API_KEY) {
-    return NextResponse.json({ data: null, error: 'Unauthorized internal API access' }, { status: 401 })
-  }
-
   const { searchParams } = new URL(request.url)
   const idToken = searchParams.get('id_token')
   const userId = searchParams.get('user_id')
@@ -34,9 +30,18 @@ export async function GET(request: Request) {
   }
 
   try {
+    // 1. 驗證 LINE idToken
     const verified = await verifyLineIdToken(idToken)
     if (!verified) {
       return NextResponse.json({ data: null, error: '身份驗證失敗' }, { status: 401 })
+    }
+    const lineUserId = verified.userId
+
+    // 2. 所有權驗證：確保該 LINE 使用者有權限查看此 user_id 的點數
+    const isOwner = await verifyOwnership(lineUserId, userId)
+    if (!isOwner) {
+      console.warn(`[points] Ownership check failed: LINE ${lineUserId} tried to access user ${userId}`)
+      return NextResponse.json({ data: null, error: '無權限查看此帳號的點數' }, { status: 403 })
     }
 
     if (process.env.MOCK_MODE === 'true') {

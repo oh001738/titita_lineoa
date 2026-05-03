@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/db/mongoose'
 import LineBindLog from '@/lib/models/LineBindLog'
 import { updateLineBinding } from '@/lib/main-system-client'
 import { verifyLineIdToken } from '@/lib/line/verify-id-token'
+import { verifyOwnership } from '@/lib/verify-ownership'
 import { BIND_ACTIONS, BIND_OPERATORS } from '@/lib/constants'
 import { getLineClient } from '@/lib/line/client'
 import { unbindNotifyMessage } from '@/lib/line/templates'
@@ -35,6 +36,16 @@ export async function POST(request: Request) {
       )
     }
     const line_user_id = verified.userId
+
+    // 所有權驗證：確保該 LINE 使用者只能解除自己綁定的帳號
+    const isOwner = await verifyOwnership(line_user_id, user_id)
+    if (!isOwner) {
+      console.warn(`[Self Unbind] Ownership check failed: LINE ${line_user_id} tried to unbind user ${user_id}`)
+      return Response.json(
+        { data: null, error: '無權限解除此帳號的綁定' } satisfies ApiResponse<null>,
+        { status: 403 }
+      )
+    }
 
     // 先傳送通知
     try {

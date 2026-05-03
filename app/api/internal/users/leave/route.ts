@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { submitLeaveRequest } from '@/lib/main-system-client'
 import { verifyLineIdToken } from '@/lib/line/verify-id-token'
+import { verifyOwnership } from '@/lib/verify-ownership'
 
 export async function POST(request: Request) {
   try {
@@ -15,6 +16,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ data: null, error: '身份驗證失敗' }, { status: 401 })
     }
     const line_user_id = verified.userId
+
+    // 所有權驗證：確保該 LINE 使用者有權限幫此 user_id 請假
+    const isOwner = await verifyOwnership(line_user_id, user_id)
+    if (!isOwner) {
+      console.warn(`[leave] Ownership check failed: LINE ${line_user_id} tried to submit leave for user ${user_id}`)
+      return NextResponse.json({ data: null, error: '無權限幫此帳號請假' }, { status: 403 })
+    }
 
     const result = await submitLeaveRequest({
       user_id,

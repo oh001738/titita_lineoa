@@ -23,6 +23,7 @@ export default function BindPage() {
   const [error, setError] = useState<string | null>(null)
   const [boundNames, setBoundNames] = useState<string[]>([])
   const [alreadyBoundUsers, setAlreadyBoundUsers] = useState<Array<{ name: string, role: string }>>([])
+  const [bindToken, setBindToken] = useState<string | null>(null)
 
   // ── 檢查是否已綁定 ──
   useEffect(() => {
@@ -98,6 +99,7 @@ export default function BindPage() {
 
       const foundUsers: BindLookupUser[] = result.data.users
       setUsers(foundUsers)
+      setBindToken(result.data.bind_token || null)
 
       if (foundUsers.length === 1) {
         // 只有一個帳號，自動選取
@@ -133,6 +135,7 @@ export default function BindPage() {
           user_ids: Array.from(selectedIds),
           id_token: idToken,
           phone: phone.trim(),
+          bind_token: bindToken,
         }),
       })
 
