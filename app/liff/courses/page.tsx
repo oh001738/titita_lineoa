@@ -349,8 +349,8 @@ export default function CoursesPage() {
                 backgroundSize: '1000px 100px'
               }}
             />
-            <div className="absolute top-4 right-[40px] text-3xl text-[#FFDF6F] opacity-90 animate-float-up pointer-events-none drop-shadow-md">♫</div>
-            <div className="absolute top-8 right-[80px] text-2xl text-[#FFDF6F] opacity-70 animate-float-up pointer-events-none drop-shadow-md" style={{ animationDelay: '-1.5s' }}>♩</div>
+            <div className="absolute top-4 right-[80px] text-3xl text-[#FFDF6F] opacity-90 animate-float-up pointer-events-none drop-shadow-md">♫</div>
+            <div className="absolute top-8 right-[40px] text-2xl text-[#FFDF6F] opacity-70 animate-float-up pointer-events-none drop-shadow-md" style={{ animationDelay: '-1.5s' }}>♩</div>
           </div>
         </div>
       </header>
