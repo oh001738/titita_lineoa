@@ -244,7 +244,12 @@ export default function CoursesPage() {
 
   // 判斷是否為教師模式（影響 Header 顏色）
   const isTeacherMode = userRole === 'teacher'
-  const headerTitle = isTeacherMode ? '我的授課課表' : `${boundStudents.find(s => s.user_id === selectedStudentId)?.student_name || profile?.displayName} 的專區`
+  
+  // 決定標題名稱：如果是家長模式，在資料讀取完成前不顯示名稱，避免閃爍
+  const studentName = boundStudents.find(s => s.user_id === selectedStudentId)?.student_name
+  const displayName = isLoading ? '...' : (studentName || '學生')
+  
+  const headerTitle = isTeacherMode ? '我的授課課表' : `${displayName} 的專區`
   const headerSubtitle = isTeacherMode ? '未來兩週的授課安排' : '隨時掌握學習進度'
   const headerBgColor = isTeacherMode ? 'bg-[#99D8B9]' : 'bg-[#66CCCC]'
   const waveSvgFill = '%23F8FAFC' // slate-50
@@ -279,7 +284,18 @@ export default function CoursesPage() {
               <div className="w-14 h-14 rounded-[20px] border-4 border-white/40 shadow-sm bg-white/20 text-white flex items-center justify-center text-2xl">👦</div>
             )}
             <div>
-              <h1 className="text-2xl font-black text-white drop-shadow-sm">{headerTitle}</h1>
+              <h1 className="text-2xl font-black text-white drop-shadow-sm">
+                {isTeacherMode ? (
+                  '我的授課課表'
+                ) : isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-24 h-7 bg-white/30 animate-pulse rounded-lg inline-block" />
+                    <span>的專區</span>
+                  </span>
+                ) : (
+                  `${studentName || '學生'} 的專區`
+                )}
+              </h1>
               <p className="text-[11px] font-bold text-white/90 tracking-wide mt-1 bg-black/10 inline-block px-2 py-0.5 rounded-lg">{headerSubtitle}</p>
             </div>
           </div>

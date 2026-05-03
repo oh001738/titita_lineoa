@@ -394,8 +394,15 @@ export default function PointsPage() {
             </span>
             <span className="text-xl font-black text-white mt-4 drop-shadow-sm">點</span>
           </div>
-          <p className="text-[11px] font-bold text-[#F56E4A]/90 tracking-wide bg-[#F56E4A]/10 inline-block px-3 py-1 rounded-xl">
-            {boundStudents.find(s => s.user_id === selectedStudentId)?.student_name || profile?.displayName} 的專屬帳戶
+          <p className="text-[11px] font-bold text-[#F56E4A]/90 tracking-wide bg-[#F56E4A]/10 inline-block px-3 py-1 rounded-xl min-w-[120px]">
+            {isLoading ? (
+              <span className="flex items-center justify-center gap-1">
+                <span className="w-16 h-3 bg-[#F56E4A]/20 animate-pulse rounded-full" />
+                <span>的專區</span>
+              </span>
+            ) : (
+              `${boundStudents.find(s => s.user_id === selectedStudentId)?.student_name || '學生'} 的專區`
+            )}
           </p>
         </div>
 
