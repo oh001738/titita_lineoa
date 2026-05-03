@@ -46,7 +46,7 @@ export default function CoursesPage() {
 
   const handleScroll = useCallback(() => {
     if (mainRef.current) {
-      setIsScrolled(mainRef.current.scrollTop > 30)
+      setIsScrolled(mainRef.current.scrollTop > 80)
     }
   }, [])
 
@@ -289,42 +289,33 @@ export default function CoursesPage() {
         .animate-float-up { animation: float-up 3s ease-in-out infinite; }
       `}} />
 
-      {/* Compact Sticky Header — 滾動時顯示 */}
-      <div 
-        className={`fixed top-0 left-0 w-full z-30 transition-all duration-300 ease-in-out ${
-          isScrolled 
-            ? 'opacity-100 translate-y-0' 
-            : 'opacity-0 -translate-y-full pointer-events-none'
-        } ${isTeacherMode ? 'bg-[#99D8B9]' : 'bg-[#66CCCC]'} shadow-md`}
-      >
-        <div className="flex items-center justify-between px-4 py-3">
+      {/* ── Single Adaptive Header: expands ↔ compacts on scroll ── */}
+      <header className={`fixed top-0 left-0 right-0 z-30 overflow-hidden transition-all duration-300 ease-in-out ${headerBgColor} ${
+        isScrolled ? 'shadow-md' : 'rounded-b-[40px] shadow-sm'
+      }`}>
+        <div className={`flex items-center justify-between relative z-20 transition-all duration-300 ease-in-out ${
+          isScrolled ? 'px-4 pt-3 pb-3' : 'px-5 pt-8 pb-0'
+        }`}>
           <div className="flex items-center gap-3">
             {profile?.pictureUrl ? (
-              <img src={profile.pictureUrl} className="w-8 h-8 rounded-xl border-2 border-white/40 object-cover" alt="" />
+              <img
+                src={profile.pictureUrl}
+                className={`object-cover border-white/40 transition-all duration-300 ease-in-out ${
+                  isScrolled ? 'w-8 h-8 rounded-xl border-2' : 'w-14 h-14 rounded-[20px] border-4 shadow-sm'
+                }`}
+                alt=""
+              />
             ) : (
-              <div className="w-8 h-8 rounded-xl border-2 border-white/40 bg-white/20 text-white flex items-center justify-center text-sm">👦</div>
-            )}
-            <h2 className="text-sm font-black text-white drop-shadow-sm truncate">
-              {isTeacherMode ? '我的授課課表' : `${studentName || '學生'} 的專區`}
-            </h2>
-          </div>
-          {renderRoleSelector()}
-        </div>
-      </div>
-
-      {/* Full Header — 頂部完整版 */}
-      <header className={`relative pt-8 px-5 pb-16 z-10 rounded-b-[40px] overflow-hidden shadow-sm ${headerBgColor}`}>
-        <div className="flex items-center justify-between relative z-20">
-          <div className="flex items-center gap-4">
-            {profile?.pictureUrl ? (
-              <img src={profile.pictureUrl} className="w-14 h-14 rounded-[20px] border-4 border-white/40 shadow-sm object-cover" alt="" />
-            ) : (
-              <div className="w-14 h-14 rounded-[20px] border-4 border-white/40 shadow-sm bg-white/20 text-white flex items-center justify-center text-2xl">👦</div>
+              <div className={`border-white/40 bg-white/20 text-white flex items-center justify-center transition-all duration-300 ease-in-out ${
+                isScrolled ? 'w-8 h-8 rounded-xl border-2 text-sm' : 'w-14 h-14 rounded-[20px] border-4 shadow-sm text-2xl'
+              }`}>👦</div>
             )}
             <div className="overflow-hidden">
-              <h1 
+              <h1
                 key={isLoading ? 'loading' : 'ready'}
-                className="text-2xl font-black text-white drop-shadow-sm animate-fade-in"
+                className={`font-black text-white drop-shadow-sm transition-all duration-300 ease-in-out ${
+                  isScrolled ? 'text-sm' : 'text-2xl animate-fade-in'
+                }`}
               >
                 {isTeacherMode ? (
                   '我的授課課表'
@@ -337,26 +328,41 @@ export default function CoursesPage() {
                   `${studentName || '學生'} 的專區`
                 )}
               </h1>
-              <p className="text-[11px] font-bold text-white/90 tracking-wide mt-1 bg-black/10 inline-block px-2 py-0.5 rounded-lg">{headerSubtitle}</p>
+              <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                isScrolled ? 'max-h-0 opacity-0' : 'max-h-[28px] opacity-100 mt-1'
+              }`}>
+                <p className="text-[11px] font-bold text-white/90 tracking-wide bg-black/10 inline-block px-2 py-0.5 rounded-lg">{headerSubtitle}</p>
+              </div>
             </div>
           </div>
-          
-          {/* 統一下拉選單 */}
           {renderRoleSelector()}
         </div>
-        
-        <div 
-          className="absolute bottom-0 left-0 w-full h-[60px] z-0 animate-wave"
-          style={{
-            background: `url('data:image/svg+xml;utf8,<svg viewBox="0 0 1000 100" xmlns="http://www.w3.org/2000/svg"><path fill="${waveSvgFill}" d="M0,50 C300,100 700,0 1000,50 L1000,100 L0,100 Z"></path></svg>') repeat-x`,
-            backgroundSize: '1000px 100px'
-          }}
-        />
-        <div className="absolute top-[20px] right-[40px] text-3xl text-[#FFDF6F] opacity-90 z-0 animate-float-up pointer-events-none drop-shadow-md">🎵</div>
+
+        {/* Wave + floating deco */}
+        <div className={`relative overflow-hidden transition-all duration-300 ease-in-out ${
+          isScrolled ? 'max-h-0 opacity-0' : 'max-h-[70px] opacity-100'
+        }`}>
+          <div className="h-16 relative">
+            <div
+              className="absolute bottom-0 left-0 w-full h-[60px] z-0 animate-wave"
+              style={{
+                background: `url('data:image/svg+xml;utf8,<svg viewBox="0 0 1000 100" xmlns="http://www.w3.org/2000/svg"><path fill="${waveSvgFill}" d="M0,50 C300,100 700,0 1000,50 L1000,100 L0,100 Z"></path></svg>') repeat-x`,
+                backgroundSize: '1000px 100px'
+              }}
+            />
+            <div className="absolute top-0 right-[40px] text-3xl text-[#FFDF6F] opacity-90 animate-float-up pointer-events-none drop-shadow-md">🎵</div>
+          </div>
+        </div>
       </header>
 
+      {/* Spacer: compensates for fixed header height */}
+      <div
+        className={`flex-shrink-0 transition-all duration-300 ease-in-out ${isScrolled ? 'h-14' : 'h-[154px]'}`}
+        aria-hidden
+      />
+
       {/* Main Content */}
-      <main ref={mainRef} onScroll={handleScroll} className="flex-1 overflow-y-auto no-scrollbar px-5 pb-8 relative z-20">
+      <main ref={mainRef} onScroll={handleScroll} className="flex-1 overflow-y-auto no-scrollbar px-5 pb-8">
         {isLoading ? null : (
           <div className="animate-fade-in">
             {courses.length === 0 ? (

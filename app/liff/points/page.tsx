@@ -46,7 +46,7 @@ export default function PointsPage() {
 
   const handleScroll = useCallback(() => {
     if (mainRef.current) {
-      setIsScrolled(mainRef.current.scrollTop > 30)
+      setIsScrolled(mainRef.current.scrollTop > 80)
     }
   }, [])
 
@@ -273,41 +273,52 @@ export default function PointsPage() {
           .animate-float-up { animation: float-up 3s ease-in-out infinite; }
         `}} />
 
-        {/* Compact Sticky Header — 滾動時顯示 */}
-        <div 
-          className={`fixed top-0 left-0 w-full z-30 transition-all duration-300 ease-in-out ${
-
-            isScrolled 
-              ? 'opacity-100 translate-y-0' 
-              : 'opacity-0 -translate-y-full pointer-events-none'
-          } bg-[#FF9966] shadow-md`}
-        >
-          <div className="flex items-center justify-between px-4 py-3">
-            <h2 className="text-sm font-black text-white drop-shadow-sm">✨ 教師給點中心</h2>
+        {/* ── Single Adaptive Header ── */}
+        <header className={`fixed top-0 left-0 right-0 z-30 overflow-hidden bg-[#FF9966] transition-all duration-300 ease-in-out ${
+          isScrolled ? 'shadow-md' : 'rounded-b-[40px] shadow-sm'
+        }`}>
+          <div className={`flex items-center justify-between relative z-20 transition-all duration-300 ease-in-out ${
+            isScrolled ? 'px-4 pt-3 pb-3' : 'px-5 pt-8 pb-0'
+          }`}>
+            <div className="flex items-center gap-3">
+              <div className={`border-white/40 bg-white/20 text-white flex items-center justify-center transition-all duration-300 ease-in-out ${
+                isScrolled ? 'w-8 h-8 rounded-xl border-2 text-sm' : 'w-14 h-14 rounded-[20px] border-4 shadow-sm text-2xl'
+              }`}>✨</div>
+              <div>
+                <h1 className={`font-black text-white drop-shadow-sm tracking-wide transition-all duration-300 ease-in-out ${
+                  isScrolled ? 'text-sm' : 'text-2xl'
+                }`}>教師給點中心</h1>
+                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                  isScrolled ? 'max-h-0 opacity-0' : 'max-h-[24px] opacity-100 mt-1'
+                }`}>
+                  <p className="text-[11px] font-bold text-white/90 tracking-wide bg-black/10 inline-block px-2 py-0.5 rounded-lg">為今日上課的學生發放獎勵點數</p>
+                </div>
+              </div>
+            </div>
             {renderRoleSelector('indigo')}
           </div>
-        </div>
 
-        <header className="relative pt-10 px-6 pb-16 z-10 rounded-b-[40px] overflow-hidden shadow-sm bg-[#FF9966]">
-          <div className="absolute top-6 right-6 z-20">
-            {renderRoleSelector('indigo')}
+          {/* Wave + floating deco */}
+          <div className={`relative overflow-hidden transition-all duration-300 ease-in-out ${
+            isScrolled ? 'max-h-0 opacity-0' : 'max-h-[70px] opacity-100'
+          }`}>
+            <div className="h-16 relative">
+              <div
+                className="absolute bottom-0 left-0 w-full h-[60px] z-0 animate-wave"
+                style={{
+                  background: `url('data:image/svg+xml;utf8,<svg viewBox="0 0 1000 100" xmlns="http://www.w3.org/2000/svg"><path fill="%23F8FAFC" d="M0,50 C300,100 700,0 1000,50 L1000,100 L0,100 Z"></path></svg>') repeat-x`,
+                  backgroundSize: '1000px 100px'
+                }}
+              />
+              <div className="absolute top-0 right-[40px] text-3xl text-[#FFDF6F] opacity-90 animate-float-up pointer-events-none drop-shadow-md">✨</div>
+            </div>
           </div>
-          <div className="relative z-20 mb-2 mt-4">
-            <h1 className="text-3xl font-black text-white drop-shadow-sm tracking-wide">教師給點中心</h1>
-          </div>
-          <p className="relative z-20 text-[11px] font-bold text-white/90 tracking-wide bg-black/10 inline-block px-3 py-1 rounded-xl">為今日上課的學生發放獎勵點數</p>
-          
-          <div 
-            className="absolute bottom-0 left-0 w-full h-[60px] z-0 animate-wave"
-            style={{
-              background: `url('data:image/svg+xml;utf8,<svg viewBox="0 0 1000 100" xmlns="http://www.w3.org/2000/svg"><path fill="%23F8FAFC" d="M0,50 C300,100 700,0 1000,50 L1000,100 L0,100 Z"></path></svg>') repeat-x`,
-              backgroundSize: '1000px 100px'
-            }}
-          />
-          <div className="absolute top-[30px] right-[40px] text-3xl text-[#FFDF6F] opacity-90 z-0 animate-float-up pointer-events-none drop-shadow-md">✨</div>
         </header>
 
-        <main ref={mainRef} onScroll={handleScroll} className="flex-1 px-5 pb-8 overflow-y-auto no-scrollbar relative z-20">
+        {/* Spacer for fixed header */}
+        <div className={`flex-shrink-0 transition-all duration-300 ease-in-out ${isScrolled ? 'h-14' : 'h-[154px]'}`} aria-hidden />
+
+        <main ref={mainRef} onScroll={handleScroll} className="flex-1 px-5 pb-8 overflow-y-auto no-scrollbar">
           {/* 選擇學生清單 */}
           <section>
             <h3 className="text-sm font-black text-slate-400 mb-4 ml-1 tracking-widest">今日學生</h3>
@@ -413,66 +424,66 @@ export default function PointsPage() {
         .animate-float-up { animation: float-up 3s ease-in-out infinite; }
       `}} />
 
-      {/* Compact Sticky Header — 滾動時顯示 */}
-      <div 
-        className={`fixed top-0 left-0 w-full z-30 transition-all duration-300 ease-in-out ${
-
-          isScrolled 
-            ? 'opacity-100 translate-y-0' 
-            : 'opacity-0 -translate-y-full pointer-events-none'
-        } bg-[#FFDF6F] shadow-md`}
-      >
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
-            <span className="text-lg font-black text-white drop-shadow-sm">{data?.balance.toLocaleString() || '0'} 點</span>
-            <span className="text-xs font-bold text-[#F56E4A]">
+      {/* ── Single Adaptive Header ── */}
+      <header className={`fixed top-0 left-0 right-0 z-30 overflow-hidden bg-[#FFDF6F] transition-all duration-300 ease-in-out ${
+        isScrolled ? 'shadow-md' : 'rounded-b-[40px] shadow-sm'
+      }`}>
+        {/* Compact row (visible when scrolled) */}
+        <div className={`flex items-center justify-between px-4 overflow-hidden transition-all duration-300 ease-in-out ${
+          isScrolled ? 'py-3 max-h-[60px] opacity-100' : 'py-0 max-h-0 opacity-0'
+        }`}>
+          <div className="flex items-center gap-2">
+            <span className="text-base font-black text-[#F56E4A] drop-shadow-sm">{data?.balance.toLocaleString() || '0'} 點</span>
+            <span className="text-xs font-bold text-[#F56E4A]/70">
               {boundStudents.find(s => s.user_id === selectedStudentId)?.student_name || '學生'}
             </span>
           </div>
           {renderRoleSelector('amber')}
         </div>
-      </div>
 
-      {/* Balance Header */}
-      <header className="relative pt-10 px-5 pb-16 z-10 rounded-b-[40px] overflow-hidden shadow-sm bg-[#FFDF6F]">
-        
-        {/* 統一下拉選單 */}
-        <div className="absolute top-6 right-6 z-20">
-          {renderRoleSelector('amber')}
-        </div>
-        
-        <div className="relative z-20 text-center mt-2">
-          <p className="text-[#F56E4A] font-black tracking-widest text-sm mb-1">目前可用點數</p>
-          <div className="flex items-center justify-center gap-1 mb-2">
-            <span className="text-[60px] font-black text-white tracking-tight drop-shadow-md leading-none">
-              {isLoading ? '...' : data?.balance.toLocaleString() || '0'}
-            </span>
-            <span className="text-xl font-black text-white mt-4 drop-shadow-sm">點</span>
+        {/* Full balance (visible when not scrolled) */}
+        <div className={`relative overflow-hidden transition-all duration-300 ease-in-out ${
+          isScrolled ? 'max-h-0 opacity-0' : 'max-h-[200px] opacity-100'
+        }`}>
+          <div className="px-5 pt-4 pb-0 relative">
+            <div className="absolute top-3 right-5 z-20">{renderRoleSelector('amber')}</div>
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-1">
+                <span className="text-[60px] font-black text-white tracking-tight drop-shadow-md leading-none">
+                  {isLoading ? '...' : data?.balance.toLocaleString() || '0'}
+                </span>
+                <span className="text-xl font-black text-white mt-4 drop-shadow-sm">點</span>
+              </div>
+              <p
+                key={isLoading ? 'loading' : 'ready'}
+                className="text-[11px] font-bold text-[#F56E4A]/90 tracking-wide bg-[#F56E4A]/10 inline-block px-3 py-1 rounded-xl min-w-[120px] animate-fade-in"
+              >
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-1">
+                    <span className="w-16 h-3 bg-[#F56E4A]/20 animate-pulse rounded-full" />
+                    <span>的專區</span>
+                  </span>
+                ) : (
+                  `${boundStudents.find(s => s.user_id === selectedStudentId)?.student_name || '學生'} 的專區`
+                )}
+              </p>
+            </div>
           </div>
-          <p 
-            key={isLoading ? 'loading' : 'ready'}
-            className="text-[11px] font-bold text-[#F56E4A]/90 tracking-wide bg-[#F56E4A]/10 inline-block px-3 py-1 rounded-xl min-w-[120px] animate-fade-in"
-          >
-            {isLoading ? (
-              <span className="flex items-center justify-center gap-1">
-                <span className="w-16 h-3 bg-[#F56E4A]/20 animate-pulse rounded-full" />
-                <span>的專區</span>
-              </span>
-            ) : (
-              `${boundStudents.find(s => s.user_id === selectedStudentId)?.student_name || '學生'} 的專區`
-            )}
-          </p>
+          <div className="h-16 relative">
+            <div
+              className="absolute bottom-0 left-0 w-full h-[60px] z-0 animate-wave"
+              style={{
+                background: `url('data:image/svg+xml;utf8,<svg viewBox="0 0 1000 100" xmlns="http://www.w3.org/2000/svg"><path fill="%23F8FAFC" d="M0,50 C300,100 700,0 1000,50 L1000,100 L0,100 Z"></path></svg>') repeat-x`,
+                backgroundSize: '1000px 100px'
+              }}
+            />
+            <div className="absolute top-0 left-[30px] text-3xl text-[#FE7A7B] opacity-90 animate-float-up pointer-events-none drop-shadow-md">✨</div>
+          </div>
         </div>
-
-        <div 
-          className="absolute bottom-0 left-0 w-full h-[60px] z-0 animate-wave"
-          style={{
-            background: `url('data:image/svg+xml;utf8,<svg viewBox="0 0 1000 100" xmlns="http://www.w3.org/2000/svg"><path fill="%23F8FAFC" d="M0,50 C300,100 700,0 1000,50 L1000,100 L0,100 Z"></path></svg>') repeat-x`,
-            backgroundSize: '1000px 100px'
-          }}
-        />
-        <div className="absolute top-[30px] left-[30px] text-3xl text-[#FE7A7B] opacity-90 z-0 animate-float-up pointer-events-none drop-shadow-md">✨</div>
       </header>
+
+      {/* Spacer for fixed header */}
+      <div className={`flex-shrink-0 transition-all duration-300 ease-in-out ${isScrolled ? 'h-14' : 'h-[166px]'}`} aria-hidden />
 
       {/* Tabs & Content — 載入完成後才顯示 */}
       {!isLoading && (

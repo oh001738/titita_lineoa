@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LIFF Header Demo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 48px;
+      gap: 20px;
+    }
+
+    h1.page-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #475569;
+      letter-spacing: .08em;
+    }
+
+    /* ── 模式切換按鈕 ── */
+    .mode-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .mode-btn {
+      padding: 8px 16px;
+      border-radius: 14px;
+      border: 2px solid transparent;
+      font-family: 'Nunito', sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all .15s;
+      background: #fff;
+      color: #64748b;
+      border-color: #e2e8f0;
+    }
+    .mode-btn.active { color: #fff; border-color: transparent; }
+    .mode-btn[data-mode="courses-teacher"].active { background: #99D8B9; }
+    .mode-btn[data-mode="courses-family"].active  { background: #66CCCC; }
+    .mode-btn[data-mode="points-teacher"].active  { background: #FF9966; }
+    .mode-btn[data-mode="points-family"].active   { background: #FFDF6F; color: #F56E4A; }
+
+    /* ── 手機外框 ── */
+    .phone-frame {
+      width: 390px;
+      height: 720px;
+      background: #f8fafc;
+      border-radius: 44px;
+      box-shadow: 0 0 0 10px #1e293b, 0 30px 60px rgba(0,0,0,.4);
+      overflow: hidden;
+      position: relative;
+    }
+    /* 瀏海 */
+    .phone-frame::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%; transform: translateX(-50%);
+      width: 120px; height: 30px;
+      background: #1e293b;
+      border-radius: 0 0 20px 20px;
+      z-index: 100;
+    }
+
+    /* ── LIFF 頁面容器 ── */
+    .liff-page {
+      width: 100%;
+      height: 100%;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    .liff-page.active { display: flex; }
+
+    /* ── Sticky Header ── */
+    .sticky-header {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 30;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,.1);
+      transition: opacity .3s, transform .3s;
+      opacity: 0;
+      transform: translateY(-100%);
+      pointer-events: none;
+    }
+    .sticky-header.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .sticky-header .sh-left { display: flex; align-items: center; gap: 8px; }
+    .sticky-header img, .sticky-header .sh-avatar {
+      width: 30px; height: 30px; border-radius: 10px;
+      border: 2px solid rgba(255,255,255,.4);
+      object-fit: cover;
+    }
+    .sticky-header .sh-avatar { display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.2); font-size: 14px; }
+    .sticky-header .sh-title { font-size: 13px; font-weight: 800; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.15); white-space: nowrap; }
+    .sticky-header .sh-sub  { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.85); }
+    .sh-select {
+      background: rgba(255,255,255,.2);
+      border: 1.5px solid rgba(255,255,255,.35);
+      border-radius: 12px;
+      padding: 4px 24px 4px 10px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      color: #fff;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' width%3D'10' height%3D'10'%3E%3Cpath fill%3D'%23fff' d%3D'M5 7L1 3h8z'%2F%3E%3C%2Fsvg%3E");
+      background-repeat: no-repeat;
+      background-position: right 6px center;
+      cursor: pointer;
+    }
+
+    /* ── Full Header ── */
+    .full-header {
+      position: relative;
+      padding: 32px 20px 64px;
+      z-index: 10;
+      border-radius: 0 0 40px 40px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      flex-shrink: 0;
+    }
+    /* 給點數家長模式用較小的 pt */
+    .full-header.pt-compact { padding-top: 16px; }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 2;
+    }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .header-avatar {
+      width: 56px; height: 56px;
+      border-radius: 20px;
+      border: 4px solid rgba(255,255,255,.4);
+      box-shadow: 0 2px 8px rgba(0,0,0,.1);
+      background: rgba(255,255,255,.2);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    .header-title {
+      font-size: 24px;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 1px 3px rgba(0,0,0,.12);
+      white-space: nowrap;
+    }
+    .header-subtitle {
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255,255,255,.9);
+      letter-spacing: .06em;
+      margin-top: 4px;
+      background: rgba(0,0,0,.1);
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 8px;
+    }
+    /* 點數大字 */
+    .balance-center { position: relative; z-index: 2; text-align: center; }
+    .balance-row { display: flex; align-items: flex-end; justify-content: center; gap: 4px; }
+    .balance-num {
+      font-size: 60px;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1;
+      text-shadow: 0 2px 8px rgba(0,0,0,.12);
+    }
+    .balance-unit {
+      font-size: 20px;
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .balance-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(245,110,74,.9);
+      background: rgba(245,110,74,.1);
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      margin-top: 2px;
+    }
+
+    /* 波浪動畫 */
+    .wave {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 60px;
+      z-index: 0;
+      animation: wave-bg 15s linear infinite;
+      background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1000 100" xmlns="http://www.w3.org/2000/svg"><path fill="%23F8FAFC" d="M0,50 C300,100 700,0 1000,50 L1000,100 L0,100 Z"/></svg>') repeat-x;
+      background-size: 1000px 100px;
+    }
+    @keyframes wave-bg { from { background-position-x: 0 } to { background-position-x: 1000px } }
+
+    /* 浮動裝飾 */
+    .float-deco {
+      position: absolute;
+      font-size: 28px;
+      opacity: .9;
+      z-index: 0;
+      pointer-events: none;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,.15));
+      animation: float-up 3s ease-in-out infinite;
+    }
+    @keyframes float-up {
+      0%,100% { transform: translateY(0) rotate(0deg); }
+      50%      { transform: translateY(-14px) rotate(5deg); }
+    }
+
+    /* ── Main scroll area ── */
+    .main-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px 32px;
+      position: relative;
+      z-index: 20;
+    }
+    .main-scroll::-webkit-scrollbar { display: none; }
+
+    /* ── Course cards ── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 900;
+      color: #94a3b8;
+      letter-spacing: .1em;
+      margin: 16px 4px 12px;
+    }
+    .course-card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 18px 20px;
+      border: 2px solid #e2e8f0;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,.03);
+      cursor: pointer;
+      transition: border-color .15s, transform .1s;
+    }
+    .course-card:hover { border-color: #66CCCC; }
+    .course-card:active { transform: scale(.98); }
+    .course-card.teacher-mode { cursor: default; }
+    .course-card.teacher-mode:hover { border-color: #e2e8f0; }
+    .course-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .course-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tag-date {
+      background: #1e293b; color: #fff;
+      font-size: 11px; font-weight: 900; letter-spacing: .06em;
+      padding: 3px 10px; border-radius: 10px;
+      box-shadow: 0 2px 0 #0f172a;
+    }
+    .tag-makeup {
+      background: #99D8B9; color: #1e4d35;
+      font-size: 11px; font-weight: 900;
+      padding: 3px 10px; border-radius: 10px;
+      box-shadow: 0 2px 0 #2B7A54;
+    }
+    .tag-done {
+      background: #e2e8f0; color: #94a3b8;
+      font-size: 11px; font-weight: 900;
+      padding: 3px 10px; border-radius: 10px;
+    }
+    .course-time { font-size: 13px; font-weight: 900; }
+    .course-name { font-size: 18px; font-weight: 900; color: #1e293b; margin: 4px 0; }
+    .course-meta { display: flex; gap: 16px; font-size: 12px; font-weight: 700; color: #94a3b8; margin-top: 8px; }
+
+    /* ── Point history ── */
+    .tabs {
+      display: flex; gap: 10px;
+      padding: 12px 20px;
+      background: rgba(248,250,252,.9);
+      backdrop-filter: blur(8px);
+      position: sticky; top: 0; z-index: 20;
+      flex-shrink: 0;
+    }
+    .tab-btn {
+      flex: 1; padding: 10px;
+      border-radius: 16px;
+      border: 2px solid #e2e8f0;
+      background: #fff;
+      font-family: 'Nunito', sans-serif;
+      font-size: 12px; font-weight: 900;
+      color: #94a3b8; cursor: pointer;
+      transition: all .15s;
+    }
+    .tab-btn.active-all  { background: #1e293b; color: #fff; border-color: #1e293b; box-shadow: 0 4px 0 #0f172a; }
+    .tab-btn.active-earn { background: #FFF0E5; color: #FF9966; border-color: #FF9966; }
+    .tab-btn.active-spend{ background: #E5F5F5; color: #66CCCC; border-color: #66CCCC; }
+
+    .history-item {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #fff;
+      border: 2px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.02);
+    }
+    .history-icon {
+      width: 46px; height: 46px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 900; color: #fff;
+      flex-shrink: 0;
+    }
+    .history-info { margin-left: 14px; flex: 1; }
+    .history-reason { font-size: 14px; font-weight: 900; color: #1e293b; }
+    .history-date   { font-size: 11px; font-weight: 700; color: #94a3b8; margin-top: 3px; letter-spacing: .05em; }
+    .history-amount { font-size: 20px; font-weight: 900; }
+
+    /* ── Teacher student list ── */
+    .student-btn {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #fff;
+      border: 2px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      cursor: pointer; transition: all .15s;
+      width: 100%;
+      font-family: 'Nunito', sans-serif;
+    }
+    .student-btn:hover { border-color: #66CCCC; }
+    .student-btn.selected { background: rgba(102,204,204,.07); border-color: #66CCCC; box-shadow: 0 4px 10px rgba(102,204,204,.18); transform: scale(1.01); }
+    .student-icon {
+      width: 46px; height: 46px;
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; background: #f1f5f9; color: #94a3b8;
+      flex-shrink: 0;
+    }
+    .student-btn.selected .student-icon { background: #66CCCC; color: #fff; }
+    .student-name { font-size: 16px; font-weight: 900; color: #475569; margin-left: 14px; }
+    .student-btn.selected .student-name { color: #4EA6A6; }
+    .student-hint { font-size: 11px; font-weight: 700; color: #94a3b8; margin-left: 14px; }
+    .check-circle {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: #66CCCC; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 900;
+      box-shadow: 0 2px 6px rgba(102,204,204,.4);
+    }
+
+    /* 獎勵表單 */
+    .award-form {
+      background: #fff;
+      border: 2px solid #e2e8f0;
+      border-radius: 28px;
+      padding: 20px;
+      margin-top: 8px;
+    }
+    .form-label { font-size: 11px; font-weight: 900; color: #94a3b8; letter-spacing: .1em; margin-bottom: 8px; display: block; }
+    .amount-row { display: flex; align-items: center; justify-content: center; gap: 16px; background: #f8fafc; padding: 14px; border-radius: 20px; border: 2px solid #f1f5f9; margin-bottom: 16px; }
+    .amount-btn {
+      width: 46px; height: 46px; border-radius: 14px;
+      border: 2px solid #e2e8f0; background: #fff;
+      font-size: 20px; font-weight: 900; color: #64748b; cursor: pointer;
+    }
+    .amount-btn.plus { background: #FF9966; color: #fff; border-color: #FF9966; box-shadow: 0 4px 0 #D95433; }
+    .amount-num { font-size: 36px; font-weight: 900; color: #FF9966; width: 60px; text-align: center; }
+    .reason-input {
+      width: 100%; padding: 14px 18px;
+      border: 2px solid #e2e8f0; border-radius: 20px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 14px; font-weight: 700; color: #475569;
+      margin-bottom: 16px;
+    }
+    .reason-input:focus { outline: none; border-color: #66CCCC; background: rgba(102,204,204,.04); }
+    .submit-btn {
+      width: 100%; padding: 14px;
+      border-radius: 16px; border: none;
+      background: linear-gradient(135deg, #6366f1, #7c3aed);
+      color: #fff; font-family: 'Nunito', sans-serif;
+      font-size: 15px; font-weight: 900; cursor: pointer;
+      box-shadow: 0 4px 12px rgba(99,102,241,.3);
+    }
+
+    /* 說明文字 */
+    .demo-hint {
+      font-size: 12px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-align: center;
+      max-width: 390px;
+    }
+    .demo-hint span { color: #64748b; font-weight: 800; }
+  </style>
+</head>
+<body>
+
+  <h1 class="page-title">LIFF Header Demo — 統一高度</h1>
+
+  <div class="mode-tabs">
+    <button class="mode-btn active" data-mode="courses-teacher" onclick="switchMode('courses-teacher')">📗 課表｜教師</button>
+    <button class="mode-btn" data-mode="courses-family"  onclick="switchMode('courses-family')">📘 課表｜家長</button>
+    <button class="mode-btn" data-mode="points-teacher"  onclick="switchMode('points-teacher')">🟠 點數｜教師給點</button>
+    <button class="mode-btn" data-mode="points-family"   onclick="switchMode('points-family')">🟡 點數｜家長</button>
+  </div>
+
+  <div class="phone-frame">
+
+    <!-- ① 課表 — 教師模式 -->
+    <div class="liff-page active" id="courses-teacher">
+      <div class="sticky-header" id="sh-courses-teacher" style="background:#99D8B9;">
+        <div class="sh-left">
+          <div class="sh-avatar">👤</div>
+          <span class="sh-title">我的授課課表</span>
+        </div>
+        <select class="sh-select"><option>👨‍🏫 我的授課</option></select>
+      </div>
+
+      <div class="full-header" style="background:#99D8B9;">
+        <div class="header-row">
+          <div class="header-left">
+            <div class="header-avatar">👤</div>
+            <div>
+              <div class="header-title">我的授課課表</div>
+              <div class="header-subtitle">未來兩週的授課安排</div>
+            </div>
+          </div>
+          <select class="sh-select"><option>👨‍🏫 我的授課</option></select>
+        </div>
+        <div class="wave"></div>
+        <span class="float-deco" style="top:20px;right:40px;color:#FFDF6F;">🎵</span>
+      </div>
+
+      <div class="main-scroll" id="ms-courses-teacher" onscroll="handleScroll('courses-teacher')">
+        <p class="section-label">本週課程</p>
+        <div class="course-card teacher-mode">
+          <div class="course-card-top">
+            <div class="course-tags"><span class="tag-date">05/06 二</span></div>
+            <span class="course-time" style="color:#99D8B9;">14:00 - 15:00</span>
+          </div>
+          <div class="course-name">鋼琴基礎班 A</div>
+          <div class="course-meta"><span>📍 琴房 1</span></div>
+        </div>
+        <div class="course-card teacher-mode">
+          <div class="course-card-top">
+            <div class="course-tags"><span class="tag-date">05/06 二</span></div>
+            <span class="course-time" style="color:#99D8B9;">15:00 - 16:00</span>
+          </div>
+          <div class="course-name">鋼琴進階班 B</div>
+          <div class="course-meta"><span>📍 琴房 2</span></div>
+        </div>
+        <div class="course-card teacher-mode">
+          <div class="course-card-top">
+            <div class="course-tags"><span class="tag-date">05/07 三</span></div>
+            <span class="course-time" style="color:#99D8B9;">10:00 - 11:00</span>
+          </div>
+          <div class="course-name">小提琴初級</div>
+          <div class="course-meta"><span>📍 演奏廳</span></div>
+        </div>
+        <p class="section-label">下週課程</p>
+        <div class="course-card teacher-mode">
+          <div class="course-card-top">
+            <div class="course-tags"><span class="tag-date">05/13 二</span></div>
+            <span class="course-time" style="color:#99D8B9;">14:00 - 15:00</span>
+          </div>
+          <div class="course-name">鋼琴基礎班 A</div>
+          <div class="course-meta"><span>📍 琴房 1</span></div>
+        </div>
+        <div class="course-card teacher-mode">
+          <div class="course-card-top">
+            <div class="course-tags"><span class="tag-date">05/13 二</span><span class="tag-makeup">補課</span></div>
+            <span class="course-time" style="color:#99D8B9;">16:00 - 17:00</span>
+          </div>
+          <div class="course-name">鋼琴進階班 C（補課）</div>
+          <div class="course-meta"><span>📍 琴房 3</span></div>
+        </div>
+        <div class="course-card teacher-mode">
+          <div class="course-card-top">
+            <div class="course-tags"><span class="tag-date">05/14 三</span></div>
+            <span class="course-time" style="color:#99D8B9;">10:00 - 11:00</span>
+          </div>
+          <div class="course-name">小提琴初級</div>
+          <div class="course-meta"><span>📍 演奏廳</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ② 課表 — 家長模式 -->
+    <div class="liff-page" id="courses-family">
+      <div class="sticky-header" id="sh-courses-family" style="background:#66CCCC;">
+        <div class="sh-left">
+          <div class="sh-avatar">👦</div>
+          <span class="sh-title">小明 的專區</span>
+        </div>
+        <select class="sh-select"><option>👨‍🎓 小明</option><option>👨‍🎓 小花</option></select>
+      </div>
+
+      <div class="full-header" style="background:#66CCCC;">
+        <div class="header-row">
+          <div class="header-left">
+            <div class="header-avatar">👦</div>
+            <div>
+              <div class="header-title">小明 的專區</div>
+              <div class="header-subtitle">隨時掌握學習進度</div>
+            </div>
+          </div>
+          <select class="sh-select"><option>👨‍🎓 小明</option><option>👨‍🎓 小花</option></select>
+        </div>
+        <div class="wave"></div>
+        <span class="float-deco" style="top:20px;right:40px;color:#FFDF6F;">🎵</span>
+      </div>
+
+      <div class="main-scroll" id="ms-courses-family" onscroll="handleScroll('courses-family')">
+        <p class="section-label">本週課程</p>
+        <div class="course-card">
+          <div class="course-card-top">
+            <div class="course-tags"><span class="tag-date">05/07 三</span></div>
+            <span class="course-time" style="color:#66CCCC;">16:00 - 17:00</span>
+          </div>
+          <div class="course-name">鋼琴基礎班 A</div>
+          <div class="course-meta">
+            <span>👤 林老師</span>
+            <span>📍 琴房 1</span>
+          </div>
+        </div>
+        <div class="course-card">
+          <div class="course-card-top">
+            <div class="course-tags"><span class="tag-date">05/09 五</span></div>
+            <span class="course-time" style="color:#66CCCC;">15:00 - 16:00</span>
+          </div>
+          <div class="course-name">鋼琴基礎班 A</div>
+          <div class="course-meta">
+            <span>👤 林老師</span>
+            <span>📍 琴房 1</span>
+          </div>
+        </div>
+        <p class="section-label">下週課程</p>
+        <div class="course-card">
+          <div class="course-card-top">
+            <div class="course-tags"><span class="tag-date">05/13 二</span></div>
+            <span class="course-time" style="color:#66CCCC;">16:00 - 17:00</span>
+          </div>
+          <div class="course-name">鋼琴基礎班 A</div>
+          <div class="course-meta">
+            <span>👤 林老師</span>
+            <span>📍 琴房 1</span>
+          </div>
+        </div>
+        <div class="course-card" style="opacity:.65;background:#f8fafc;filter:grayscale(.2);">
+          <div class="course-card-top">
+            <div class="course-tags"><span class="tag-date">05/05 一</span><span class="tag-done">已完課</span></div>
+            <span class="course-time" style="color:#94a3b8;">14:00 - 15:00</span>
+          </div>
+          <div class="course-name" style="color:#94a3b8;">鋼琴基礎班 A</div>
+          <div class="course-meta">
+            <span>👤 林老師</span>
+            <span>📍 琴房 1</span>
+          </div>
+        </div>
+        <div class="course-card">
+          <div class="course-card-top">
+            <div class="course-tags"><span class="tag-date">05/15 四</span></div>
+            <span class="course-time" style="color:#66CCCC;">16:00 - 17:00</span>
+          </div>
+          <div class="course-name">鋼琴基礎班 A</div>
+          <div class="course-meta">
+            <span>👤 林老師</span>
+            <span>📍 琴房 1</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ③ 點數 — 教師給點 -->
+    <div class="liff-page" id="points-teacher">
+      <div class="sticky-header" id="sh-points-teacher" style="background:#FF9966;">
+        <span class="sh-title">✨ 教師給點中心</span>
+        <select class="sh-select"><option>👨‍🏫 教師給點</option><option>👨‍🎓 小明</option></select>
+      </div>
+
+      <div class="full-header" style="background:#FF9966;">
+        <div class="header-row">
+          <div class="header-left">
+            <div class="header-avatar">✨</div>
+            <div>
+              <div class="header-title">教師給點中心</div>
+              <div class="header-subtitle">為今日上課的學生發放獎勵點數</div>
+            </div>
+          </div>
+          <select class="sh-select"><option>👨‍🏫 教師給點</option><option>👨‍🎓 小明</option></select>
+        </div>
+        <div class="wave"></div>
+        <span class="float-deco" style="top:20px;right:40px;color:#FFDF6F;">✨</span>
+      </div>
+
+      <div class="main-scroll" id="ms-points-teacher" onscroll="handleScroll('points-teacher')">
+        <p class="section-label">今日學生</p>
+        <button class="student-btn selected" onclick="selectStudent(this)">
+          <div style="display:flex;align-items:center;">
+            <div class="student-icon" style="background:#66CCCC;color:#fff;">👨‍🎓</div>
+            <div>
+              <div class="student-name">王小明</div>
+              <div class="student-hint">點擊選擇</div>
+            </div>
+          </div>
+          <div class="check-circle">✓</div>
+        </button>
+        <button class="student-btn" onclick="selectStudent(this)">
+          <div style="display:flex;align-items:center;">
+            <div class="student-icon">👨‍🎓</div>
+            <div>
+              <div class="student-name">陳小花</div>
+              <div class="student-hint">點擊選擇</div>
+            </div>
+          </div>
+        </button>
+        <button class="student-btn" onclick="selectStudent(this)">
+          <div style="display:flex;align-items:center;">
+            <div class="student-icon">👨‍🎓</div>
+            <div>
+              <div class="student-name">李大方</div>
+              <div class="student-hint">點擊選擇</div>
+            </div>
+          </div>
+        </button>
+
+        <p class="section-label" style="margin-top:24px;">發送獎勵</p>
+        <div class="award-form">
+          <label class="form-label">點數數量</label>
+          <div class="amount-row">
+            <button class="amount-btn" onclick="changeAmount(-1)">−</button>
+            <div class="amount-num" id="amount-display">10</div>
+            <button class="amount-btn plus" onclick="changeAmount(1)">+</button>
+          </div>
+          <label class="form-label">獎勵原因（給家長看）</label>
+          <input class="reason-input" type="text" placeholder="例如：上課認真、完成作業">
+          <button class="submit-btn">確認發放獎勵</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ④ 點數 — 家長 -->
+    <div class="liff-page" id="points-family">
+      <div class="sticky-header" id="sh-points-family" style="background:#FFDF6F;">
+        <div class="sh-left">
+          <span class="sh-title" style="color:#F56E4A;">1,234 點</span>
+          <span style="font-size:11px;font-weight:800;color:#F56E4A;margin-left:4px;">小明</span>
+        </div>
+        <select class="sh-select" style="color:#F56E4A;border-color:rgba(245,110,74,.3);background-color:rgba(245,110,74,.1);">
+          <option>👨‍🎓 小明</option><option>👨‍🎓 小花</option>
+        </select>
+      </div>
+
+      <div class="full-header pt-compact" style="background:#FFDF6F;">
+        <div style="position:absolute;top:12px;right:20px;z-index:2;">
+          <select class="sh-select" style="color:#F56E4A;border-color:rgba(245,110,74,.3);background-color:rgba(245,110,74,.1);">
+            <option>👨‍🎓 小明</option><option>👨‍🎓 小花</option>
+          </select>
+        </div>
+        <div class="balance-center">
+          <div class="balance-row">
+            <span class="balance-num">1,234</span>
+            <span class="balance-unit">點</span>
+          </div>
+          <span class="balance-badge">小明 的專區</span>
+        </div>
+        <div class="wave"></div>
+        <span class="float-deco" style="top:20px;left:28px;color:#FE7A7B;">✨</span>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active-all"  onclick="switchTab(this,'all')">全部紀錄</button>
+        <button class="tab-btn"             onclick="switchTab(this,'earn')">獲得點數</button>
+        <button class="tab-btn"             onclick="switchTab(this,'spend')">兌換紀錄</button>
+      </div>
+
+      <div class="main-scroll" id="ms-points-family" onscroll="handleScroll('points-family')">
+        <div class="history-item">
+          <div class="history-icon" style="background:#FF9966;">+</div>
+          <div class="history-info">
+            <div class="history-reason">上課認真表現優異</div>
+            <div class="history-date">2026-05-06</div>
+          </div>
+          <div class="history-amount" style="color:#FF9966;">+10</div>
+        </div>
+        <div class="history-item">
+          <div class="history-icon" style="background:#66CCCC;">−</div>
+          <div class="history-info">
+            <div class="history-reason">兌換小禮物</div>
+            <div class="history-date">2026-05-05</div>
+          </div>
+          <div class="history-amount" style="color:#66CCCC;">50</div>
+        </div>
+        <div class="history-item">
+          <div class="history-icon" style="background:#FF9966;">+</div>
+          <div class="history-info">
+            <div class="history-reason">完成作業</div>
+            <div class="history-date">2026-05-02</div>
+          </div>
+          <div class="history-amount" style="color:#FF9966;">+5</div>
+        </div>
+        <div class="history-item">
+          <div class="history-icon" style="background:#FF9966;">+</div>
+          <div class="history-info">
+            <div class="history-reason">表現良好</div>
+            <div class="history-date">2026-04-30</div>
+          </div>
+          <div class="history-amount" style="color:#FF9966;">+10</div>
+        </div>
+        <div class="history-item">
+          <div class="history-icon" style="background:#66CCCC;">−</div>
+          <div class="history-info">
+            <div class="history-reason">兌換文具組</div>
+            <div class="history-date">2026-04-28</div>
+          </div>
+          <div class="history-amount" style="color:#66CCCC;">30</div>
+        </div>
+        <div class="history-item">
+          <div class="history-icon" style="background:#FF9966;">+</div>
+          <div class="history-info">
+            <div class="history-reason">彈奏練習曲完成</div>
+            <div class="history-date">2026-04-25</div>
+          </div>
+          <div class="history-amount" style="color:#FF9966;">+15</div>
+        </div>
+        <div class="history-item">
+          <div class="history-icon" style="background:#FF9966;">+</div>
+          <div class="history-info">
+            <div class="history-reason">上課認真表現優異</div>
+            <div class="history-date">2026-04-22</div>
+          </div>
+          <div class="history-amount" style="color:#FF9966;">+10</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /phone-frame -->
+
+  <p class="demo-hint">向下捲動內容，超過 <span>80px</span> 後 Compact Sticky Header 會從頂部滑入</p>
+
+  <script>
+    let currentAmount = 10;
+
+    function switchMode(mode) {
+      document.querySelectorAll('.liff-page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(mode).classList.add('active');
+      document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+      // reset scroll
+      const ms = document.getElementById('ms-' + mode);
+      if (ms) ms.scrollTop = 0;
+      const sh = document.getElementById('sh-' + mode);
+      if (sh) sh.classList.remove('visible');
+    }
+
+    function handleScroll(mode) {
+      const ms = document.getElementById('ms-' + mode);
+      const sh = document.getElementById('sh-' + mode);
+      if (!ms || !sh) return;
+      if (ms.scrollTop > 80) {
+        sh.classList.add('visible');
+      } else {
+        sh.classList.remove('visible');
+      }
+    }
+
+    function switchTab(btn, type) {
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active-all','active-earn','active-spend');
+      });
+      btn.classList.add('active-' + type);
+    }
+
+    function selectStudent(btn) {
+      document.querySelectorAll('.student-btn').forEach(b => {
+        b.classList.remove('selected');
+        const icon = b.querySelector('.student-icon');
+        icon.style.background = '#f1f5f9'; icon.style.color = '#94a3b8';
+        const name = b.querySelector('.student-name');
+        name.style.color = '#475569';
+        const check = b.querySelector('.check-circle');
+        if (check) check.remove();
+      });
+      btn.classList.add('selected');
+      const icon = btn.querySelector('.student-icon');
+      icon.style.background = '#66CCCC'; icon.style.color = '#fff';
+      btn.querySelector('.student-name').style.color = '#4EA6A6';
+      if (!btn.querySelector('.check-circle')) {
+        const c = document.createElement('div');
+        c.className = 'check-circle'; c.textContent = '✓';
+        btn.appendChild(c);
+      }
+    }
+
+    function changeAmount(delta) {
+      currentAmount = Math.max(1, currentAmount + delta);
+      document.getElementById('amount-display').textContent = currentAmount;
+    }
+  </script>
+</body>
+</html>
