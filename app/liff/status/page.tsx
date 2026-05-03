@@ -45,7 +45,7 @@ export default function StatusPage() {
     }
   }, [isReady, profile?.userId, fetchStatus])
 
-  const handleUnbind = async (userId: string) => {
+  const handleUnbind = async (userToUnbind: BindLookupUser) => {
     if (!profile?.userId) return
     
     const isConfirmed = await confirm({
@@ -58,15 +58,15 @@ export default function StatusPage() {
 
     if (!isConfirmed) return
 
-    setIsUnbinding(userId)
+    setIsUnbinding(userToUnbind._id)
     try {
       const res = await fetch('/api/line/unbind/self', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id: userId,
+          user_id: userToUnbind._id,
           id_token: idToken,
-          student_name: user.student_name || user.name,
+          student_name: userToUnbind.student_name || userToUnbind.name,
         }),
       })
 
@@ -75,7 +75,7 @@ export default function StatusPage() {
         showToast(result.error, 'error')
       } else {
         // 重新整理清單
-        setBoundUsers((prev) => prev.filter((u) => u._id !== userId))
+        setBoundUsers((prev) => prev.filter((u) => u._id !== userToUnbind._id))
         showToast('已解除綁定', 'success')
       }
     } catch {
@@ -169,7 +169,7 @@ export default function StatusPage() {
                   </p>
                 </div>
                 <button
-                  onClick={() => handleUnbind(user._id)}
+                  onClick={() => handleUnbind(user)}
                   disabled={!!isUnbinding}
                   className="text-xs font-medium text-red-500 hover:text-red-700 disabled:opacity-50"
                 >
