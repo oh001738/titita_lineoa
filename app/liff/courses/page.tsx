@@ -270,6 +270,11 @@ export default function CoursesPage() {
             50% { transform: translateY(-15px) rotate(5deg); }
             100% { transform: translateY(0) rotate(0deg); }
         }
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fade-in 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
         .animate-wave { animation: wave-bg 15s linear infinite; }
         .animate-float-up { animation: float-up 3s ease-in-out infinite; }
       `}} />
@@ -283,8 +288,11 @@ export default function CoursesPage() {
             ) : (
               <div className="w-14 h-14 rounded-[20px] border-4 border-white/40 shadow-sm bg-white/20 text-white flex items-center justify-center text-2xl">👦</div>
             )}
-            <div>
-              <h1 className="text-2xl font-black text-white drop-shadow-sm">
+            <div className="overflow-hidden">
+              <h1 
+                key={isLoading ? 'loading' : 'ready'}
+                className="text-2xl font-black text-white drop-shadow-sm animate-fade-in"
+              >
                 {isTeacherMode ? (
                   '我的授課課表'
                 ) : isLoading ? (

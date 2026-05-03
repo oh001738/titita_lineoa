@@ -252,8 +252,11 @@ export default function PointsPage() {
           .font-nunito { font-family: 'Nunito', sans-serif; }
           .no-scrollbar::-webkit-scrollbar { display: none; }
           .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-          @keyframes wave-bg { 0% { background-position-x: 0; } 100% { background-position-x: 1000px; } }
-          @keyframes float-up { 0% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-15px) rotate(5deg); } 100% { transform: translateY(0) rotate(0deg); } }
+          @keyframes fade-in {
+              from { opacity: 0; transform: translateY(4px); }
+              to { opacity: 1; transform: translateY(0); }
+          }
+          .animate-fade-in { animation: fade-in 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
           .animate-wave { animation: wave-bg 15s linear infinite; }
           .animate-float-up { animation: float-up 3s ease-in-out infinite; }
         `}} />
@@ -394,7 +397,10 @@ export default function PointsPage() {
             </span>
             <span className="text-xl font-black text-white mt-4 drop-shadow-sm">點</span>
           </div>
-          <p className="text-[11px] font-bold text-[#F56E4A]/90 tracking-wide bg-[#F56E4A]/10 inline-block px-3 py-1 rounded-xl min-w-[120px]">
+          <p 
+            key={isLoading ? 'loading' : 'ready'}
+            className="text-[11px] font-bold text-[#F56E4A]/90 tracking-wide bg-[#F56E4A]/10 inline-block px-3 py-1 rounded-xl min-w-[120px] animate-fade-in"
+          >
             {isLoading ? (
               <span className="flex items-center justify-center gap-1">
                 <span className="w-16 h-3 bg-[#F56E4A]/20 animate-pulse rounded-full" />
