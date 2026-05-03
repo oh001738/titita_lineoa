@@ -310,7 +310,7 @@ export default function PointsPage() {
                   backgroundSize: '1000px 100px'
                 }}
               />
-              <div className="absolute top-0 right-[40px] text-3xl text-[#FFDF6F] opacity-90 animate-float-up pointer-events-none drop-shadow-md">✨</div>
+              <div className="absolute top-4 right-[40px] text-3xl text-[#FFDF6F] opacity-90 animate-float-up pointer-events-none drop-shadow-md">✨</div>
             </div>
           </div>
         </header>
@@ -477,7 +477,7 @@ export default function PointsPage() {
                 backgroundSize: '1000px 100px'
               }}
             />
-            <div className="absolute top-0 left-[30px] text-3xl text-[#FE7A7B] opacity-90 animate-float-up pointer-events-none drop-shadow-md">✨</div>
+            <div className="absolute top-4 left-[30px] text-3xl text-[#FE7A7B] opacity-90 animate-float-up pointer-events-none drop-shadow-md">✨</div>
           </div>
         </div>
       </header>
