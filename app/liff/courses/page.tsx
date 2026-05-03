@@ -276,9 +276,8 @@ export default function CoursesPage() {
             100% { background-position-x: 1000px; }
         }
         @keyframes float-up {
-            0% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-15px) rotate(5deg); }
-            100% { transform: translateY(0) rotate(0deg); }
+            0%, 100% { transform: translateY(0) rotate(-6deg) scale(1); }
+            50% { transform: translateY(-12px) rotate(12deg) scale(1.1); }
         }
         @keyframes fade-in {
             from { opacity: 0; transform: translateY(5px); }
@@ -350,7 +349,8 @@ export default function CoursesPage() {
                 backgroundSize: '1000px 100px'
               }}
             />
-            <div className="absolute top-4 right-[40px] text-3xl text-[#FFDF6F] opacity-90 animate-float-up pointer-events-none drop-shadow-md">🎵</div>
+            <div className="absolute top-4 right-[40px] text-3xl text-[#FFDF6F] opacity-90 animate-float-up pointer-events-none drop-shadow-md">♫</div>
+            <div className="absolute top-8 right-[80px] text-2xl text-[#FFDF6F] opacity-70 animate-float-up pointer-events-none drop-shadow-md" style={{ animationDelay: '-1.5s' }}>♩</div>
           </div>
         </div>
       </header>
