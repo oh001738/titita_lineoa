@@ -276,8 +276,12 @@ export default function CoursesPage() {
             100% { background-position-x: 1000px; }
         }
         @keyframes float-up {
-            0%, 100% { transform: translateY(0) rotate(-6deg) scale(1); }
-            50% { transform: translateY(-12px) rotate(12deg) scale(1.1); }
+            0%, 100% { transform: translateY(0) rotate(-4deg) scale(1); }
+            50% { transform: translateY(-10px) rotate(6deg) scale(1.05); }
+        }
+        @keyframes float-up-alt {
+            0%, 100% { transform: translateY(0) rotate(4deg) scale(0.95); }
+            50% { transform: translateY(-12px) rotate(-4deg) scale(1.05); }
         }
         @keyframes fade-in {
             from { opacity: 0; transform: translateY(5px); }
@@ -285,7 +289,8 @@ export default function CoursesPage() {
         }
         .animate-fade-in { animation: fade-in 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
         .animate-wave { animation: wave-bg 15s linear infinite; }
-        .animate-float-up { animation: float-up 3s ease-in-out infinite; }
+        .animate-float-up { animation: float-up 3.5s ease-in-out infinite; }
+        .animate-float-up-alt { animation: float-up-alt 4s ease-in-out infinite; }
       `}} />
 
       {/* ── Single Adaptive Header: expands ↔ compacts on scroll ── */}
@@ -350,7 +355,7 @@ export default function CoursesPage() {
               }}
             />
             <div className="absolute top-4 right-[80px] text-3xl text-[#FFDF6F] opacity-90 animate-float-up pointer-events-none drop-shadow-md">♫</div>
-            <div className="absolute top-8 right-[40px] text-2xl text-[#FFDF6F] opacity-70 animate-float-up pointer-events-none drop-shadow-md" style={{ animationDelay: '-1.5s' }}>♩</div>
+            <div className="absolute top-8 right-[40px] text-2xl text-[#FFDF6F] opacity-70 animate-float-up-alt pointer-events-none drop-shadow-md" style={{ animationDelay: '0.5s' }}>♩</div>
           </div>
         </div>
       </header>
