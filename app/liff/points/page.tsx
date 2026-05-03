@@ -422,78 +422,76 @@ export default function PointsPage() {
         <div className="absolute top-[30px] left-[30px] text-3xl text-[#FE7A7B] opacity-90 z-0 animate-float-up pointer-events-none drop-shadow-md">✨</div>
       </header>
 
-      {/* Tabs */}
-      <div className="sticky top-0 z-20 flex px-5 mt-4 gap-3 bg-slate-50/90 backdrop-blur-md py-3">
-        <button
-          onClick={() => setActiveTab('all')}
-          className={`flex-1 py-3 rounded-[16px] text-[13px] font-black transition-all border-2 ${
-            activeTab === 'all' 
-            ? 'bg-slate-800 text-white border-slate-800 shadow-[0_4px_0_#0f172a]' 
-            : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'
-          }`}
-        >
-          全部紀錄
-        </button>
-        <button
-          onClick={() => setActiveTab('earn')}
-          className={`flex-1 py-3 rounded-[16px] text-[13px] font-black transition-all border-2 ${
-            activeTab === 'earn' 
-            ? 'bg-[#FFF0E5] text-[#FF9966] border-[#FF9966]' 
-            : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'
-          }`}
-        >
-          獲得點數
-        </button>
-        <button
-          onClick={() => setActiveTab('spend')}
-          className={`flex-1 py-3 rounded-[16px] text-[13px] font-black transition-all border-2 ${
-            activeTab === 'spend' 
-            ? 'bg-[#E5F5F5] text-[#66CCCC] border-[#66CCCC]' 
-            : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'
-          }`}
-        >
-          兌換紀錄
-        </button>
-      </div>
+      {/* Tabs & Content — 載入完成後才顯示 */}
+      {!isLoading && (
+        <div className="animate-fade-in flex flex-col flex-1 overflow-hidden">
+          <div className="sticky top-0 z-20 flex px-5 mt-4 gap-3 bg-slate-50/90 backdrop-blur-md py-3">
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`flex-1 py-3 rounded-[16px] text-[13px] font-black transition-all border-2 ${
+                activeTab === 'all' 
+                ? 'bg-slate-800 text-white border-slate-800 shadow-[0_4px_0_#0f172a]' 
+                : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'
+              }`}
+            >
+              全部紀錄
+            </button>
+            <button
+              onClick={() => setActiveTab('earn')}
+              className={`flex-1 py-3 rounded-[16px] text-[13px] font-black transition-all border-2 ${
+                activeTab === 'earn' 
+                ? 'bg-[#FFF0E5] text-[#FF9966] border-[#FF9966]' 
+                : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'
+              }`}
+            >
+              獲得點數
+            </button>
+            <button
+              onClick={() => setActiveTab('spend')}
+              className={`flex-1 py-3 rounded-[16px] text-[13px] font-black transition-all border-2 ${
+                activeTab === 'spend' 
+                ? 'bg-[#E5F5F5] text-[#66CCCC] border-[#66CCCC]' 
+                : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'
+              }`}
+            >
+              兌換紀錄
+            </button>
+          </div>
 
-      {/* History List */}
-      <main className="flex-1 px-5 pb-8 overflow-y-auto no-scrollbar mt-2">
-        {isLoading ? (
-          <div className="space-y-4">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="bg-white rounded-[20px] h-20 animate-pulse shadow-sm border-2 border-slate-100" />
-            ))}
-          </div>
-        ) : filteredHistory.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-[28px] border-2 border-slate-200 shadow-sm mt-4">
-            <span className="text-5xl block mb-4">🎈</span>
-            <p className="text-gray-500 font-bold text-lg">目前沒有任何紀錄</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filteredHistory.map(item => (
-              <div key={item.id} className="bg-white p-4 rounded-[20px] shadow-[0_2px_8px_rgba(0,0,0,0.02)] border-2 border-[#E2E8F0] flex items-center justify-between transition-all hover:border-slate-300">
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-[16px] flex items-center justify-center font-black text-xl shadow-sm ${
-                    item.type === 'earn' ? 'bg-[#FF9966] text-white' : 'bg-[#66CCCC] text-white'
-                  }`}>
-                    {item.type === 'earn' ? '+' : '-'}
-                  </div>
-                  <div>
-                    <p className="text-[15px] font-black text-slate-800 tracking-wide">{item.reason}</p>
-                    <p className="text-[11px] font-bold tracking-widest text-slate-400 mt-1">{item.date}</p>
-                  </div>
-                </div>
-                <div className={`font-black text-xl ${
-                  item.type === 'earn' ? 'text-[#FF9966]' : 'text-[#66CCCC]'
-                }`}>
-                  {item.type === 'earn' ? `+${item.amount}` : item.amount}
-                </div>
+          {/* History List */}
+          <main className="flex-1 px-5 pb-8 overflow-y-auto no-scrollbar mt-2">
+            {filteredHistory.length === 0 ? (
+              <div className="text-center py-12 bg-white rounded-[28px] border-2 border-slate-200 shadow-sm mt-4">
+                <span className="text-5xl block mb-4">🎈</span>
+                <p className="text-gray-500 font-bold text-lg">目前沒有任何紀錄</p>
               </div>
-            ))}
-          </div>
-        )}
-      </main>
+            ) : (
+              <div className="space-y-3">
+                {filteredHistory.map(item => (
+                  <div key={item.id} className="bg-white p-4 rounded-[20px] shadow-[0_2px_8px_rgba(0,0,0,0.02)] border-2 border-[#E2E8F0] flex items-center justify-between transition-all hover:border-slate-300">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-[16px] flex items-center justify-center font-black text-xl shadow-sm ${
+                        item.type === 'earn' ? 'bg-[#FF9966] text-white' : 'bg-[#66CCCC] text-white'
+                      }`}>
+                        {item.type === 'earn' ? '+' : '-'}
+                      </div>
+                      <div>
+                        <p className="text-[15px] font-black text-slate-800 tracking-wide">{item.reason}</p>
+                        <p className="text-[11px] font-bold tracking-widest text-slate-400 mt-1">{item.date}</p>
+                      </div>
+                    </div>
+                    <div className={`font-black text-xl ${
+                      item.type === 'earn' ? 'text-[#FF9966]' : 'text-[#66CCCC]'
+                    }`}>
+                      {item.type === 'earn' ? `+${item.amount}` : item.amount}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </main>
+        </div>
+      )}
     </div>
   )
 }

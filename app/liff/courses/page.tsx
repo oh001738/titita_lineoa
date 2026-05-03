@@ -324,17 +324,13 @@ export default function CoursesPage() {
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto no-scrollbar px-5 pb-8 relative z-20 -mt-6">
-        {isLoading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="bg-white rounded-[20px] h-32 animate-pulse shadow-sm border-2 border-slate-100" />
-            ))}
-          </div>
-        ) : courses.length === 0 ? (
-          <div className="bg-white p-8 rounded-[28px] text-center shadow-sm border-2 border-slate-200 mt-4">
-            <span className="text-5xl block mb-4">🎈</span>
-            <p className="text-gray-500 font-bold text-lg">近兩週沒有安排課程喔！</p>
-          </div>
+        {isLoading ? null : (
+          <div className="animate-fade-in">
+            {courses.length === 0 ? (
+              <div className="bg-white p-8 rounded-[28px] text-center shadow-sm border-2 border-slate-200 mt-4">
+                <span className="text-5xl block mb-4">🎈</span>
+                <p className="text-gray-500 font-bold text-lg">近兩週沒有安排課程喔！</p>
+              </div>
         ) : (
           <div className="space-y-4">
             {courses.map(course => {
@@ -379,6 +375,8 @@ export default function CoursesPage() {
                 </div>
               )
             })}
+          </div>
+        )}
           </div>
         )}
       </main>
