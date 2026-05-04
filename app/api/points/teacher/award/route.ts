@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     // 3. 推播通知給家長 (如果有綁定 LINE 的話)
     if (target_line_user_id) {
       try {
-        const { createPointsAwardFlex } = await import('@/lib/line/flex-templates')
+        const { pointsEarnedMessage } = await import('@/lib/line/templates')
         
         await pushMessage({
           lineUserId: target_line_user_id,
@@ -50,16 +50,14 @@ export async function POST(request: Request) {
           studentName: target_name,
           notifyType: NOTIFY_TYPES.POINTS_EARNED,
           messageContent: `🌟 點數獎勵：【${target_name}】獲得 ${amount} 點！`,
-          messages: [{
-            type: 'flex',
-            altText: `🌟 點數獎勵通知：${target_name} 獲得 ${amount} 點！`,
-            contents: createPointsAwardFlex({
+          messages: [
+            pointsEarnedMessage({
               studentName: target_name,
               amount: Number(amount),
               reason: reason || '表現優異',
-              teacherName: teacher.name
-            }) as any
-          }]
+              teacherName: teacher.name,
+            }),
+          ],
         })
       } catch (pushErr) {
         console.error('[Award Push Error]', pushErr)
