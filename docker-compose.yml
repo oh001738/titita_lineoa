@@ -25,25 +25,6 @@ services:
     networks:
       - titita-network
 
-  github-runner:
-    image: myoung34/github-runner:latest
-    container_name: github-runner
-    restart: unless-stopped
-    environment:
-      - RUNNER_NAME=nas-runner
-      - REPO_URL=${GITHUB_REPO_URL}
-      - RUNNER_TOKEN=${RUNNER_TOKEN}
-      - RUNNER_WORKDIR=/tmp/runner
-      - LABELS=self-hosted
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - runner-data:/tmp/runner
-      - /root/titita_lineoa:/nas-project
-    networks:
-      - titita-network
-
-volumes:
-  runner-data:
 
 networks:
   titita-network:
