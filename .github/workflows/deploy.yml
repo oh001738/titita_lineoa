@@ -11,6 +11,7 @@ jobs:
       - name: Pull and deploy
         run: |
           cd /nas-project
-          git pull origin main
+          git fetch origin main
+          git reset --hard origin/main
           docker compose up -d --build lineoa
           docker image prune -f
