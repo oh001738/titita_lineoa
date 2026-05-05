@@ -1,8 +1,15 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { LiffProvider } from '@/components/liff/LiffProvider'
 import { ToastProvider } from '@/components/liff/Toast'
 import { ConfirmProvider } from '@/components/liff/ConfirmDialog'
 import { SCHOOL_NAME } from '@/lib/site-config'
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+}
 
 export const metadata: Metadata = {
   title: SCHOOL_NAME,
