@@ -40,6 +40,12 @@ export default function CoursesPage() {
   const [hasTeacherRole, setHasTeacherRole] = useState(false)
   const [teacherId, setTeacherId] = useState<string>('')
 
+  // 教師出勤點名（只記缺席）
+  const [attendanceCourse, setAttendanceCourse] = useState<Course | null>(null)
+  const [roster, setRoster] = useState<{ id: string; name: string }[]>([])
+  const [absentIds, setAbsentIds] = useState<string[]>([])
+  const [attendanceLoading, setAttendanceLoading] = useState(false)
+
   // 滾動偵測：Header 縮小
   const [isScrolled, setIsScrolled] = useState(false)
   const mainRef = useRef<HTMLElement>(null)
@@ -178,6 +184,60 @@ export default function CoursesPage() {
       showToast('網路錯誤，請稍後再試', 'error')
     } finally {
       setIsSubmittingLeave(false)
+    }
+  }
+
+  // 教師：開啟某堂課的出勤點名（載入 roster + 目前缺席）
+  const openAttendance = async (course: Course) => {
+    setAttendanceCourse(course)
+    setRoster([])
+    setAbsentIds([])
+    setAttendanceLoading(true)
+    try {
+      const res = await fetch(
+        `/api/internal/lessons/${course.id}/attendance?id_token=${idToken}&teacher_user_id=${teacherId}`
+      )
+      const { data, error } = await res.json()
+      if (error) {
+        showToast(error, 'error')
+        setAttendanceCourse(null)
+        return
+      }
+      setRoster(data?.roster ?? [])
+      setAbsentIds(data?.absent_student_ids ?? [])
+    } catch {
+      showToast('載入名單失敗', 'error')
+      setAttendanceCourse(null)
+    } finally {
+      setAttendanceLoading(false)
+    }
+  }
+
+  // 教師：切換某學生出席／缺席（樂觀更新 + PATCH，失敗還原）
+  const toggleAbsent = async (studentId: string) => {
+    if (!attendanceCourse) return
+    const prev = absentIds
+    const next = prev.includes(studentId)
+      ? prev.filter((x) => x !== studentId)
+      : [...prev, studentId]
+    setAbsentIds(next)
+    try {
+      const res = await fetch(
+        `/api/internal/lessons/${attendanceCourse.id}/attendance?id_token=${idToken}&teacher_user_id=${teacherId}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ absent_student_ids: next }),
+        }
+      )
+      const { error } = await res.json()
+      if (error) {
+        showToast(error, 'error')
+        setAbsentIds(prev)
+      }
+    } catch {
+      showToast('儲存失敗', 'error')
+      setAbsentIds(prev)
     }
   }
 
@@ -380,10 +440,13 @@ export default function CoursesPage() {
             {courses.map(course => {
               const isCompleted = course.status === 'completed'
               return (
-                <div 
-                  key={course.id} 
-                  onClick={() => !isTeacherMode && !isCompleted && setSelectedCourse(course)}
-                  className={`bg-white p-5 rounded-[24px] shadow-[0_4px_10px_rgba(0,0,0,0.03)] border-2 ${!isTeacherMode && !isCompleted ? 'border-[#E2E8F0] cursor-pointer hover:border-[#66CCCC] active:scale-[0.98] active:border-[#66CCCC]' : 'border-slate-100'} transition-all ${isCompleted ? 'opacity-70 bg-slate-50 grayscale-[0.2]' : ''}`}
+                <div
+                  key={course.id}
+                  onClick={() => {
+                    if (isTeacherMode) { if (!isCompleted) openAttendance(course) }
+                    else if (!isCompleted) setSelectedCourse(course)
+                  }}
+                  className={`bg-white p-5 rounded-[24px] shadow-[0_4px_10px_rgba(0,0,0,0.03)] border-2 ${!isCompleted ? (isTeacherMode ? 'border-[#E2E8F0] cursor-pointer hover:border-[#99D8B9] active:scale-[0.98] active:border-[#99D8B9]' : 'border-[#E2E8F0] cursor-pointer hover:border-[#66CCCC] active:scale-[0.98] active:border-[#66CCCC]') : 'border-slate-100'} transition-all ${isCompleted ? 'opacity-70 bg-slate-50 grayscale-[0.2]' : ''}`}
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex gap-2 flex-wrap">
@@ -406,9 +469,14 @@ export default function CoursesPage() {
                     </div>
                   </div>
                   <h3 className="text-lg font-black text-slate-800 mt-1">{course.name}</h3>
-                  <div className="flex gap-4 mt-3 text-[13px] font-bold text-slate-400">
+                  <div className="flex justify-between items-center gap-4 mt-3 text-[13px] font-bold text-slate-400">
                     {isTeacherMode ? (
-                      <span className="flex items-center gap-1"><span className="text-lg">📍</span> {course.room}</span>
+                      <>
+                        <span className="flex items-center gap-1"><span className="text-lg">📍</span> {course.room}</span>
+                        {!isCompleted && (
+                          <span className="text-[#1e4d35] bg-[#99D8B9]/30 px-2.5 py-1 rounded-xl text-[12px] font-black">點此點名 ›</span>
+                        )}
+                      </>
                     ) : (
                       <>
                         <span className="flex items-center gap-1"><span className="text-lg">👤</span> {course.teacher}</span>
@@ -471,6 +539,64 @@ export default function CoursesPage() {
             >
               {isSubmittingLeave ? '處理中...' : '申請請假'}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal：教師出勤點名（只記缺席） */}
+      {attendanceCourse && isTeacherMode && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white w-full max-w-sm rounded-[32px] p-6 shadow-2xl border-4 border-white max-h-[85vh] flex flex-col">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h2 className="text-xl font-black text-gray-800">出勤點名</h2>
+                <p className="text-[13px] font-bold text-slate-400 mt-0.5">{attendanceCourse.date} · {attendanceCourse.name}</p>
+              </div>
+              <button
+                onClick={() => setAttendanceCourse(null)}
+                className="bg-slate-100 text-slate-500 w-10 h-10 rounded-[14px] flex items-center justify-center font-black active:scale-95 transition-transform flex-shrink-0"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[13px] font-bold text-slate-500">點學生標記未到</p>
+              {absentIds.length > 0 && (
+                <p className="text-[13px] font-black text-[#FE7A7B]">缺席 {absentIds.length} 人</p>
+              )}
+            </div>
+
+            <div className="flex-1 overflow-y-auto no-scrollbar -mx-1 px-1">
+              {attendanceLoading ? (
+                <div className="flex items-center justify-center py-10">
+                  <div className="w-7 h-7 border-4 border-[#99D8B9]/40 border-t-[#99D8B9] rounded-full animate-spin" />
+                </div>
+              ) : roster.length === 0 ? (
+                <p className="text-center text-slate-400 font-bold py-10">這堂課沒有選課學生</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {roster.map((stu) => {
+                    const isAbsent = absentIds.includes(stu.id)
+                    return (
+                      <button
+                        key={stu.id}
+                        onClick={() => toggleAbsent(stu.id)}
+                        className={`px-4 py-2.5 rounded-2xl font-black text-sm border-2 transition-all active:scale-95 ${
+                          isAbsent
+                            ? 'bg-[#FE7A7B]/10 border-[#FE7A7B] text-[#FE7A7B] line-through'
+                            : 'bg-slate-50 border-slate-200 text-slate-700'
+                        }`}
+                      >
+                        {isAbsent ? '✕ ' : ''}{stu.name}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            <p className="text-[11px] text-slate-400 font-bold text-center mt-4">預設全部到齊，只需標記未到的學生</p>
           </div>
         </div>
       )}

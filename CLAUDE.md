@@ -179,6 +179,8 @@ titita_lineoa/
 | `/api/internal/users/courses` | GET | 代轉主系統課表查詢 | LIFF |
 | `/api/internal/users/points` | GET | 代轉主系統點數查詢 | LIFF |
 | `/api/internal/users/leave` | POST | 代轉主系統請假申請 | LIFF |
+| `/api/internal/lessons/[id]/attendance` | GET | 代轉：取這堂課 roster + 缺席名單（教師出勤點名用） | LIFF（id_token + verifyOwnership） |
+| `/api/internal/lessons/[id]/attendance` | PATCH | 代轉：標記這堂課缺席學生（只記缺席） | LIFF（id_token + verifyOwnership） |
 | `/api/admin/login` | POST | 管理員登入 | 帳號密碼 |
 | `/api/admin/broadcast` | POST | 管理員廣播推播 | Session |
 | `/api/admin/logs/bind` | GET | 綁定日誌查詢 | Session |
@@ -265,6 +267,7 @@ NEXT_PUBLIC_LIFF_ID      — LIFF App ID（前端使用）
 | LIFF Provider + 綁定頁面 | ✅ |
 | LIFF 綁定狀態頁 | ✅ |
 | LIFF 課表頁（含請假功能） | ✅ |
+| LIFF 教師端出勤點名（課表卡片點開 → roster toggle 標記缺席，proxy 代轉主系統 `lessons/[id]/attendance`，與網頁版共用 `Lesson.absent_student_ids`）⚠ proxy 用 Next 15 async params（`await params`） | ✅ |
 | LIFF 點數頁 | ✅ |
 | 全域 UI 元件 (Toast + ConfirmDialog) | ✅ |
 | 管理員後台 (登入/廣播/日誌/統計) | ✅ |
