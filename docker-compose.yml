@@ -23,9 +23,9 @@ services:
       - ADMIN_USER=${ADMIN_USER}
       - ADMIN_PASS=${ADMIN_PASS}
     networks:
-      - titita-network
+      - titita_onecloud
 
 
 networks:
-  titita-network:
+  titita_onecloud:
     external: true
