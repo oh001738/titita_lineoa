@@ -75,13 +75,12 @@ export default function CoursesPage() {
         .then(res => res.json())
         .then(async (result) => {
           if (result.data?.users && result.data.users.length > 0) {
-            const roles = Array.from(new Set(result.data.users.map((u: any) => u.role))) as string[]
-            const isTeacher = roles.includes('teacher')
-            const isFamily = roles.includes('family')
+            const isTeacher = result.data.users.some((u: any) => u.is_teacher)
+            const isFamily = result.data.users.some((u: any) => u.role === 'family')
             setHasTeacherRole(isTeacher)
 
             if (isTeacher) {
-              const teacher = result.data.users.find((u: any) => u.role === 'teacher')
+              const teacher = result.data.users.find((u: any) => u.is_teacher)
               if (teacher) setTeacherId(teacher._id)
             }
 
