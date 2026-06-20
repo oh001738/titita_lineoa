@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { NextResponse } from 'next/server'
 import { lookupUsersByLineId, awardPoints } from '@/lib/main-system-client'
 import { pushMessage } from '@/lib/line/push'

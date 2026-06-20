@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { NextResponse } from 'next/server'
 import { verifyLineIdToken } from '@/lib/line/verify-id-token'
 import { verifyOwnership } from '@/lib/verify-ownership'
