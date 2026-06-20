@@ -29,6 +29,8 @@ export const NOTIFY_TYPES = {
   LEAVE_REJECTED: 'leave_rejected',
   MAKEUP_ARRANGED: 'makeup_arranged',
   COURSE_CHANGE: 'course_change',
+  NEW_TERM: 'new_term',
+  TERM_EXPIRING: 'term_expiring',
   TUITION_REMINDER: 'tuition_reminder',
   TUITION_RECEIVED: 'tuition_received',
   TUITION_NOTICE: 'tuition_notice',

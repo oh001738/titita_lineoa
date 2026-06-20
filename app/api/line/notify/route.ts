@@ -118,6 +118,14 @@ export async function POST(request: Request) {
         lineMessages = [generalNotifyMessage(student_name, '上課提醒', message)]
         break;
 
+      case NOTIFY_TYPES.NEW_TERM:
+        lineMessages = [generalNotifyMessage(student_name, '期繳開課通知', message)]
+        break;
+
+      case NOTIFY_TYPES.TERM_EXPIRING:
+        lineMessages = [generalNotifyMessage(student_name, '課程到期提醒', message)]
+        break;
+
       case NOTIFY_TYPES.COURSE_CHANGE:
         if (payload?.courseName || payload?.originalDate || payload?.newDate) {
           lineMessages = [courseChangeMessage({

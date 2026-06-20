@@ -18,6 +18,8 @@ const NOTIFY_TYPE_LABELS: Record<string, string> = {
   leave_rejected: '請假駁回通知',
   makeup_arranged: '補課安排通知',
   course_change: '課程異動通知',
+  new_term: '期繳開課通知',
+  term_expiring: '期繳到期提醒',
   tuition_reminder: '學費繳費提醒',
   tuition_received: '學費收訖通知',
   tuition_notice: '學費繳費單通知',

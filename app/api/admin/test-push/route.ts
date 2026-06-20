@@ -100,6 +100,22 @@ export async function POST(request: Request) {
         })]
         break
 
+      case NOTIFY_TYPES.NEW_TERM:
+        messages = [generalNotifyMessage(
+          student_name,
+          '期繳開課通知（試發）',
+          '【開課通知】您的課程「鋼琴基礎班」已展開第 2 期。\n期間：2026-09-01 ～ 2026-11-17\n時段：週三 16:00–17:00',
+        )]
+        break
+
+      case NOTIFY_TYPES.TERM_EXPIRING:
+        messages = [generalNotifyMessage(
+          student_name,
+          '課程到期提醒（試發）',
+          '【課程到期提醒】您的課程「鋼琴基礎班」第 1 期將於 2026-08-30 上完，請至系統確認是否續開下一期。',
+        )]
+        break
+
       default:
         messages = [generalNotifyMessage(student_name, '廣播公告（試發）', '這是一則測試訊息，確認推播功能正常運作。')]
     }

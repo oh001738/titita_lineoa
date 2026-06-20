@@ -24,6 +24,8 @@ export async function GET() {
       leave_rejected: true,
       makeup_arranged: true,
       course_change: true,
+      new_term: true,
+      term_expiring: true,
       tuition_reminder: true,
       tuition_received: true,
       points_earned: true,

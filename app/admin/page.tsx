@@ -20,6 +20,8 @@ export default function AdminDashboard() {
     leave_rejected: true,
     makeup_arranged: true,
     course_change: true,
+    new_term: true,
+    term_expiring: true,
     tuition_reminder: true,
     tuition_received: true,
     points_earned: true,
@@ -58,7 +60,8 @@ export default function AdminDashboard() {
       .then(result => {
         if (result.data) {
           setIsPushEnabled(result.data.is_push_enabled)
-          setEnabledNotifies(result.data.enabled_notifies || {})
+          // 與預設合併：DB 缺少的新類型 key 退回預設 true，避免新開關誤顯示為關
+          setEnabledNotifies(prev => ({ ...prev, ...(result.data.enabled_notifies || {}) }))
         }
       })
       .finally(() => setIsLoading(false))
@@ -102,6 +105,8 @@ export default function AdminDashboard() {
     leave_rejected: '請假審核駁回',
     makeup_arranged: '補課安排通知',
     course_change: '課程變動通知',
+    new_term: '期繳開課通知',
+    term_expiring: '期繳到期提醒',
     tuition_reminder: '繳費提醒',
     tuition_received: '繳費確認回報',
     tuition_notice: '學費繳費通知',
