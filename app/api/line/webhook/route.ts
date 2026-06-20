@@ -179,7 +179,7 @@ async function handlePostback(event: WebhookEvent): Promise<void> {
 
     case 'courses':
       await replyMessage(event.replyToken, [
-        liffGuideMessage({ liffId, path: '/liff/courses', title: '課表查詢', icon: '📅', description: '查看未來兩週的課程安排，也可以直接申請請假。', buttonLabel: '查看課表' }),
+        liffGuideMessage({ liffId, path: '/liff/courses', title: '課表查詢', icon: '📅', description: '查看未來一個月的課程安排，也可以直接申請請假。', buttonLabel: '查看課表' }),
       ])
       break
 

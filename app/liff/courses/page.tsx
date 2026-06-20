@@ -45,6 +45,11 @@ export default function CoursesPage() {
   const [roster, setRoster] = useState<{ id: string; name: string }[]>([])
   const [absentIds, setAbsentIds] = useState<string[]>([])
   const [attendanceLoading, setAttendanceLoading] = useState(false)
+  // 缺席學生「需補課」登記（本次課堂由老師建立的請假補課單）
+  const [makeupIds, setMakeupIds] = useState<string[]>([])
+  const [makeupBusyId, setMakeupBusyId] = useState<string | null>(null)
+  // 已在後台請假/調課的學生 → 名單反灰標示（student_id → 'leave' | 'adjustment'）
+  const [excused, setExcused] = useState<Record<string, 'leave' | 'adjustment'>>({})
 
   // 滾動偵測：Header 縮小
   const [isScrolled, setIsScrolled] = useState(false)
@@ -191,6 +196,8 @@ export default function CoursesPage() {
     setAttendanceCourse(course)
     setRoster([])
     setAbsentIds([])
+    setMakeupIds([])
+    setExcused({})
     setAttendanceLoading(true)
     try {
       const res = await fetch(
@@ -204,6 +211,7 @@ export default function CoursesPage() {
       }
       setRoster(data?.roster ?? [])
       setAbsentIds(data?.absent_student_ids ?? [])
+      setExcused(data?.excused ?? {})
     } catch {
       showToast('載入名單失敗', 'error')
       setAttendanceCourse(null)
@@ -212,11 +220,45 @@ export default function CoursesPage() {
     }
   }
 
+  // 教師：為缺席學生登記／取消「需補課」（建立或移除請假補課單）
+  const toggleMakeup = async (studentId: string) => {
+    if (!attendanceCourse || makeupBusyId) return
+    const isRequested = makeupIds.includes(studentId)
+    const action = isRequested ? 'cancel' : 'create'
+    setMakeupBusyId(studentId)
+    try {
+      const res = await fetch(`/api/internal/lessons/${attendanceCourse.id}/request-makeup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id_token: idToken,
+          teacher_user_id: teacherId,
+          student_id: studentId,
+          action,
+        }),
+      })
+      const { error } = await res.json()
+      if (error) {
+        showToast(error, 'error')
+        return
+      }
+      setMakeupIds((prev) =>
+        isRequested ? prev.filter((x) => x !== studentId) : [...prev, studentId]
+      )
+      showToast(isRequested ? '已取消補課登記' : '已登記需補課，請至後台安排', 'success')
+    } catch {
+      showToast('儲存失敗', 'error')
+    } finally {
+      setMakeupBusyId(null)
+    }
+  }
+
   // 教師：切換某學生出席／缺席（樂觀更新 + PATCH，失敗還原）
   const toggleAbsent = async (studentId: string) => {
     if (!attendanceCourse) return
     const prev = absentIds
-    const next = prev.includes(studentId)
+    const becomingPresent = prev.includes(studentId) // 由缺席→出席
+    const next = becomingPresent
       ? prev.filter((x) => x !== studentId)
       : [...prev, studentId]
     setAbsentIds(next)
@@ -233,6 +275,24 @@ export default function CoursesPage() {
       if (error) {
         showToast(error, 'error')
         setAbsentIds(prev)
+        return
+      }
+      // 改回出席時，若先前已登記需補課（且仍 pending），一併取消避免後台殘留孤兒單
+      if (becomingPresent && makeupIds.includes(studentId)) {
+        try {
+          const cancelRes = await fetch(`/api/internal/lessons/${attendanceCourse.id}/request-makeup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              id_token: idToken,
+              teacher_user_id: teacherId,
+              student_id: studentId,
+              action: 'cancel',
+            }),
+          })
+          const { error: cancelErr } = await cancelRes.json()
+          if (!cancelErr) setMakeupIds((m) => m.filter((x) => x !== studentId))
+        } catch { /* best-effort，失敗則由後台處理 */ }
       }
     } catch {
       showToast('儲存失敗', 'error')
@@ -319,7 +379,7 @@ export default function CoursesPage() {
   const displayName = isLoading ? '...' : (studentName || '學生')
   
   const headerTitle = isTeacherMode ? '我的授課課表' : `${displayName} 的專區`
-  const headerSubtitle = isTeacherMode ? '未來兩週的授課安排' : '隨時掌握學習進度'
+  const headerSubtitle = isTeacherMode ? '未來一個月的授課安排' : '隨時掌握學習進度'
   const headerBgColor = isTeacherMode ? 'bg-[#99D8B9]' : 'bg-[#66CCCC]'
   const waveSvgFill = '%23F8FAFC' // slate-50
 
@@ -432,7 +492,7 @@ export default function CoursesPage() {
             {courses.length === 0 ? (
               <div className="bg-white p-8 rounded-[28px] text-center shadow-sm border-2 border-slate-200 mt-4">
                 <span className="text-5xl block mb-4">🎈</span>
-                <p className="text-gray-500 font-bold text-lg">近兩週沒有安排課程喔！</p>
+                <p className="text-gray-500 font-bold text-lg">近一個月沒有安排課程喔！</p>
               </div>
         ) : (
           <div className="space-y-4">
@@ -574,28 +634,89 @@ export default function CoursesPage() {
               ) : roster.length === 0 ? (
                 <p className="text-center text-slate-400 font-bold py-10">這堂課沒有選課學生</p>
               ) : (
-                <div className="flex flex-wrap gap-2">
-                  {roster.map((stu) => {
-                    const isAbsent = absentIds.includes(stu.id)
+                <>
+                  <div className="flex flex-wrap gap-2">
+                    {roster.map((stu) => {
+                      const ex = excused[stu.id] // 'leave' | 'adjustment' | undefined
+                      // 已在後台請假/調課 → 反灰、不可點（狀態由後台決定）
+                      if (ex) {
+                        return (
+                          <div
+                            key={stu.id}
+                            className="px-4 py-2.5 rounded-2xl font-black text-sm border-2 bg-slate-100 border-slate-200 text-slate-400 cursor-default select-none"
+                          >
+                            {stu.name}
+                            <span className="ml-1 text-[10px] font-bold">
+                              {ex === 'leave' ? '・已請假' : '・已調課'}
+                            </span>
+                          </div>
+                        )
+                      }
+                      const isAbsent = absentIds.includes(stu.id)
+                      return (
+                        <button
+                          key={stu.id}
+                          onClick={() => toggleAbsent(stu.id)}
+                          className={`px-4 py-2.5 rounded-2xl font-black text-sm border-2 transition-all active:scale-95 ${
+                            isAbsent
+                              ? 'bg-[#FE7A7B]/10 border-[#FE7A7B] text-[#FE7A7B] line-through'
+                              : 'bg-slate-50 border-slate-200 text-slate-700'
+                          }`}
+                        >
+                          {isAbsent ? '✕ ' : ''}{stu.name}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {/* 缺席學生補課登記：僅列「老師標記缺席且後台尚未請假/調課」者 */}
+                  {(() => {
+                    const needMakeup = roster.filter((stu) => absentIds.includes(stu.id) && !excused[stu.id])
+                    if (needMakeup.length === 0) return null
                     return (
-                      <button
-                        key={stu.id}
-                        onClick={() => toggleAbsent(stu.id)}
-                        className={`px-4 py-2.5 rounded-2xl font-black text-sm border-2 transition-all active:scale-95 ${
-                          isAbsent
-                            ? 'bg-[#FE7A7B]/10 border-[#FE7A7B] text-[#FE7A7B] line-through'
-                            : 'bg-slate-50 border-slate-200 text-slate-700'
-                        }`}
-                      >
-                        {isAbsent ? '✕ ' : ''}{stu.name}
-                      </button>
+                      <div className="mt-5 pt-4 border-t-2 border-dashed border-slate-100">
+                        <p className="text-[13px] font-bold text-slate-500 mb-3">缺席學生補課登記</p>
+                        <div className="space-y-2">
+                          {needMakeup.map((stu) => {
+                            const requested = makeupIds.includes(stu.id)
+                            const busy = makeupBusyId === stu.id
+                            return (
+                              <div
+                                key={stu.id}
+                                className="flex items-center justify-between bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 py-2.5"
+                              >
+                                <span className="font-black text-sm text-slate-700">{stu.name}</span>
+                                <button
+                                  onClick={() => toggleMakeup(stu.id)}
+                                  disabled={busy}
+                                  className={`px-3.5 py-1.5 rounded-xl font-black text-[12px] border-2 transition-all active:scale-95 disabled:opacity-50 ${
+                                    requested
+                                      ? 'bg-[#66CCCC]/15 border-[#66CCCC] text-[#3A9D9D]'
+                                      : 'bg-white border-slate-200 text-slate-500'
+                                  }`}
+                                >
+                                  {busy ? '處理中…' : requested ? '✓ 已登記補課' : '＋ 需補課'}
+                                </button>
+                              </div>
+                            )
+                          })}
+                        </div>
+                        <p className="text-[11px] text-slate-400 font-bold mt-3">
+                          登記後請至網頁後台「請假補課」頁安排補課或結算
+                        </p>
+                      </div>
                     )
-                  })}
-                </div>
+                  })()}
+                </>
               )}
             </div>
 
-            <p className="text-[11px] text-slate-400 font-bold text-center mt-4">預設全部到齊，只需標記未到的學生</p>
+            <div className="text-[11px] text-slate-400 font-bold text-center mt-4 space-y-1">
+              <p>預設全部到齊，只需標記未到的學生</p>
+              {Object.keys(excused).length > 0 && (
+                <p className="text-slate-300">灰色學生已在後台請假／調課，無需處理</p>
+              )}
+            </div>
           </div>
         </div>
       )}
