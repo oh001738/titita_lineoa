@@ -3,8 +3,14 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import mongoose from 'mongoose'
 import { connectDB } from '@/lib/db/mongoose'
+import { checkAdminAuth } from '@/lib/admin-session'
 
 export async function GET() {
+  const adminId = await checkAdminAuth()
+  if (!adminId) {
+    return NextResponse.json({ data: null, error: '未經授權' }, { status: 401 })
+  }
+
   try {
     // 1. 檢查 MongoDB 狀態
     await connectDB()
