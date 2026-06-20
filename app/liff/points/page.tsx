@@ -69,9 +69,8 @@ export default function PointsPage() {
         .then(res => res.json())
         .then(async (result) => {
           if (result.data?.users && result.data.users.length > 0) {
-            const roles = Array.from(new Set(result.data.users.map((u: any) => u.role))) as string[]
-            const isTeacher = roles.includes('teacher')
-            const isFamily = roles.includes('family')
+            const isTeacher = result.data.users.some((u: any) => u.is_teacher)
+            const isFamily = result.data.users.some((u: any) => u.role === 'family')
             setHasTeacherRole(isTeacher)
 
             // 並行載入所有資料，讓切換時不用等待
