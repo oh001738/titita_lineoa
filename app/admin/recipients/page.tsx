@@ -222,9 +222,11 @@ export default function RecipientsPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                          user.role === 'teacher' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'
+                          user.role === 'teacher' ? 'bg-amber-100 text-amber-700'
+                          : user.role === 'admin' ? 'bg-orange-100 text-orange-700'
+                          : 'bg-indigo-100 text-indigo-700'
                         }`}>
-                          {user.role === 'teacher' ? '教師' : '家長/學生'}
+                          {user.role === 'teacher' ? '教師' : user.role === 'admin' ? '主系統管理員' : '家長/學生'}
                         </span>
                         {user.is_admin && (
                           <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-purple-100 text-purple-700">
@@ -240,7 +242,7 @@ export default function RecipientsPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        {user.role === 'teacher' && (
+                        {(user.role === 'teacher' || user.role === 'admin') && (
                           <button
                             onClick={() => handleToggleAdmin(user)}
                             disabled={adminBusy === user._id}
