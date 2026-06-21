@@ -32,7 +32,10 @@ export async function POST(request: Request) {
           return Response.json({ data: null, error: '請完成安全驗證' }, { status: 400 })
         }
         try {
+          // 新版 ALTCHA widget payload 是 base64(JSON(Payload))
+          // Payload 結構：{ challenge: { parameters, signature }, solution: { counter, derivedKey } }
           const decoded = JSON.parse(Buffer.from(altcha, 'base64').toString())
+
           const result = await verifySolution({
             challenge: decoded.challenge,
             solution: decoded.solution,

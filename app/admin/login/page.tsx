@@ -223,7 +223,7 @@ export default function AdminLoginPage() {
             } as React.CSSProperties}>
               <altcha-widget
                 ref={altchaRef}
-                challenge="/api/admin/captcha"
+                challenge="/api/captcha"
                 auto="onload"
               />
             </div>
