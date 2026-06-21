@@ -42,7 +42,15 @@ async function callInternal<T>(
       'X-Internal-Key': getInternalKey(),
     },
     body: body ? JSON.stringify(body) : undefined,
+    signal: AbortSignal.timeout(10_000),
   })
+
+  const contentType = res.headers.get('content-type') || ''
+  if (!contentType.includes('application/json')) {
+    console.error(`[callInternal] Non-JSON response from ${path}: HTTP ${res.status}`)
+    return { data: null, error: `主系統回應異常 (HTTP ${res.status})` }
+  }
+
   return res.json() as Promise<InternalApiResponse<T>>
 }
 

@@ -229,7 +229,7 @@ INTERNAL_API_KEY         — 內部 API 金鑰（雙向驗證）
 LINE_CHANNEL_ID          — LINE Channel ID
 LINE_CHANNEL_SECRET      — LINE Channel Secret
 LINE_CHANNEL_ACCESS_TOKEN — LINE Channel Access Token
-NEXT_PUBLIC_LIFF_ID      — LIFF App ID（前端使用）
+LIFF_ID                  — LIFF App ID（server-side only，前端透過 /api/line/config 取得）
 ```
 
 ---

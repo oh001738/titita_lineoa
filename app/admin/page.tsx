@@ -27,6 +27,8 @@ export default function AdminDashboard() {
     points_earned: true,
     broadcast: true,
     bind_success: true,
+    tuition_notice: true,
+    class_reminder: true,
   })
   const [isUpdating, setIsUpdating] = useState(false)
   const [systemStatus, setSystemStatus] = useState({

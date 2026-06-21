@@ -30,7 +30,9 @@ export async function GET() {
       tuition_received: true,
       points_earned: true,
       broadcast: true,
-      bind_success: true
+      bind_success: true,
+      tuition_notice: true,
+      class_reminder: true,
     })
     
     return Response.json({

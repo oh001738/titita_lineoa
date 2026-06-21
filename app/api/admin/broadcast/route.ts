@@ -46,8 +46,12 @@ export async function POST(request: Request) {
       )
     }
 
-    const isPushEnabled = await getSetting('is_push_enabled', true)
-    if (!isPushEnabled) {
+    const [isPushEnabled, enabledNotifies] = await Promise.all([
+      getSetting('is_push_enabled', true),
+      getSetting('enabled_notifies', {} as Record<string, boolean>),
+    ])
+    const isBroadcastEnabled = enabledNotifies[notify_type] !== false
+    if (!isPushEnabled || !isBroadcastEnabled) {
       return Response.json({
         data: { total: recipients.length, success: 0, failed: 0, skipped: recipients.length },
         error: null,
@@ -80,6 +84,8 @@ export async function POST(request: Request) {
       const lineUserIds = recipients.map((r: Recipient) => r.line_user_id)
       const flexMsg = generalNotifyMessage('各位家長/學員', broadcastTitle, message)
 
+      const failedLineUserIds = new Set<string>()
+
       for (let i = 0; i < lineUserIds.length; i += MULTICAST_BATCH_SIZE) {
         const batch = lineUserIds.slice(i, i + MULTICAST_BATCH_SIZE)
         try {
@@ -90,6 +96,7 @@ export async function POST(request: Request) {
           const apiError = err.originalError?.response?.data
           console.error('[Admin Broadcast Multicast] Batch failed:', apiError || err)
           failCount += batch.length
+          batch.forEach(id => failedLineUserIds.add(id))
         }
       }
 
@@ -99,7 +106,7 @@ export async function POST(request: Request) {
         student_name: r.student_name,
         notify_type,
         message_content: `[${broadcastTitle}] ${message}`,
-        status: failCount === 0 ? NOTIFY_STATUS.SENT : NOTIFY_STATUS.FAILED,
+        status: failedLineUserIds.has(r.line_user_id) ? NOTIFY_STATUS.FAILED : NOTIFY_STATUS.SENT,
       }))
       await LineNotifyLog.insertMany(logDocs, { ordered: false })
     }

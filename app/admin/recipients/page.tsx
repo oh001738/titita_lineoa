@@ -10,6 +10,7 @@ interface BoundUser {
   line_bound_at: string
   student_name: string | null
   line_name?: string | null
+  is_admin?: boolean
 }
 
 export default function RecipientsPage() {
@@ -17,14 +18,33 @@ export default function RecipientsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSyncing, setIsSyncing] = useState(false)
   const [filter, setFilter] = useState('')
+  const [adminBusy, setAdminBusy] = useState<string | null>(null)
 
-  const fetchUsers = async () => {
+  const fetchData = async () => {
     setIsLoading(true)
     try {
-      const res = await fetch('/api/admin/recipients')
-      const result = await res.json()
-      if (result.data?.users) setUsers(result.data.users)
-    } catch (err) {
+      const [recipientsRes, adminsRes] = await Promise.all([
+        fetch('/api/admin/recipients'),
+        fetch('/api/admin/admins'),
+      ])
+      const [recipientsResult, adminsResult] = await Promise.all([
+        recipientsRes.json(),
+        adminsRes.json(),
+      ])
+
+      const adminIds = new Set<string>(
+        (adminsResult.data || []).map((a: any) => a.line_user_id)
+      )
+
+      if (recipientsResult.data?.users) {
+        setUsers(
+          recipientsResult.data.users.map((u: BoundUser) => ({
+            ...u,
+            is_admin: adminIds.has(u.line_user_id),
+          }))
+        )
+      }
+    } catch {
       alert('載入失敗')
     } finally {
       setIsLoading(false)
@@ -40,14 +60,14 @@ export default function RecipientsPage() {
       const res = await fetch('/api/admin/recipients/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ line_user_ids: lineIds })
+        body: JSON.stringify({ line_user_ids: lineIds }),
       })
       const result = await res.json()
       if (result.data) {
-        await fetchUsers()
+        await fetchData()
         alert('同步完成')
       }
-    } catch (err) {
+    } catch {
       alert('同步失敗')
     } finally {
       setIsSyncing(false)
@@ -55,7 +75,7 @@ export default function RecipientsPage() {
   }
 
   useEffect(() => {
-    fetchUsers()
+    fetchData()
   }, [])
 
   const handleUnbind = async (user: BoundUser) => {
@@ -68,23 +88,49 @@ export default function RecipientsPage() {
         body: JSON.stringify({
           user_id: user._id,
           line_user_id: user.line_user_id,
-          name: user.student_name || user.name
-        })
+          name: user.student_name || user.name,
+        }),
       })
       const result = await res.json()
       if (result.data?.success) {
-        setUsers(users.filter(u => u._id !== user._id))
+        setUsers(prev => prev.filter(u => u._id !== user._id))
         alert('已解除綁定')
       } else {
         alert(result.error || '解綁失敗')
       }
-    } catch (err) {
+    } catch {
       alert('網路錯誤')
     }
   }
 
-  const filteredUsers = users.filter(u => 
-    u.name.toLowerCase().includes(filter.toLowerCase()) || 
+  const handleToggleAdmin = async (user: BoundUser) => {
+    const action = user.is_admin ? '移除管理員權限' : '設為管理員'
+    if (!confirm(`確定要${action}：${user.name}？`)) return
+
+    setAdminBusy(user._id)
+    try {
+      const res = await fetch('/api/admin/admins', {
+        method: user.is_admin ? 'DELETE' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ line_user_id: user.line_user_id, name: user.name }),
+      })
+      const result = await res.json()
+      if (result.data?.success) {
+        setUsers(prev =>
+          prev.map(u => u._id === user._id ? { ...u, is_admin: !user.is_admin } : u)
+        )
+      } else {
+        alert(result.error || '操作失敗')
+      }
+    } catch {
+      alert('網路錯誤')
+    } finally {
+      setAdminBusy(null)
+    }
+  }
+
+  const filteredUsers = users.filter(u =>
+    u.name.toLowerCase().includes(filter.toLowerCase()) ||
     u.student_name?.toLowerCase().includes(filter.toLowerCase())
   )
 
@@ -99,16 +145,16 @@ export default function RecipientsPage() {
         <div className="p-4 border-b border-gray-100 flex items-center justify-between gap-4">
           <div className="relative flex-1">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
-            <input 
-              type="text" 
-              placeholder="搜尋姓名、學生..." 
+            <input
+              type="text"
+              placeholder="搜尋姓名、學生..."
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"
             />
           </div>
           <div className="flex items-center gap-3">
-            <button 
+            <button
               onClick={handleSync}
               disabled={isSyncing || isLoading}
               className="flex items-center gap-2 px-3 py-2 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold hover:bg-indigo-100 disabled:opacity-50 transition-all"
@@ -118,8 +164,8 @@ export default function RecipientsPage() {
               ) : '🔄'}
               同步最新資訊
             </button>
-            <button 
-              onClick={fetchUsers}
+            <button
+              onClick={fetchData}
               className="text-gray-400 hover:text-indigo-600 transition-colors"
               title="重新整理"
             >
@@ -174,11 +220,18 @@ export default function RecipientsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                        user.role === 'teacher' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'
-                      }`}>
-                        {user.role === 'teacher' ? '教師' : '家長/學生'}
-                      </span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                          user.role === 'teacher' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'
+                        }`}>
+                          {user.role === 'teacher' ? '教師' : '家長/學生'}
+                        </span>
+                        {user.is_admin && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-purple-100 text-purple-700">
+                            管理員
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-xs text-gray-500">
@@ -186,12 +239,27 @@ export default function RecipientsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button 
-                        onClick={() => handleUnbind(user)}
-                        className="text-xs font-bold text-red-500 hover:text-red-700 bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
-                      >
-                        解除綁定
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        {user.role === 'teacher' && (
+                          <button
+                            onClick={() => handleToggleAdmin(user)}
+                            disabled={adminBusy === user._id}
+                            className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 ${
+                              user.is_admin
+                                ? 'text-purple-600 hover:text-purple-800 bg-purple-50 hover:bg-purple-100'
+                                : 'text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100'
+                            }`}
+                          >
+                            {adminBusy === user._id ? '處理中...' : user.is_admin ? '移除管理員' : '設為管理員'}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleUnbind(user)}
+                          className="text-xs font-bold text-red-500 hover:text-red-700 bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
+                        >
+                          解除綁定
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
