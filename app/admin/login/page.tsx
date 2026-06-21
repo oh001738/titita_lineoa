@@ -1,20 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useLiff } from '@/components/liff/LiffProvider'
-
-declare module 'react' {
-  namespace JSX {
-    interface IntrinsicElements {
-      'altcha-widget': React.HTMLAttributes<HTMLElement> & {
-        challenge?: string
-        auto?: 'off' | 'onfocus' | 'onload' | 'onsubmit'
-        name?: string
-        ref?: React.Ref<HTMLElement>
-      }
-    }
-  }
-}
 
 export default function AdminLoginPage() {
   const { liff, profile, idToken, isReady, error: liffError } = useLiff()
@@ -22,30 +9,8 @@ export default function AdminLoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [altchaPayload, setAltchaPayload] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const altchaRef = useRef<HTMLElement>(null)
 
-  // 載入 ALTCHA web component
-  useEffect(() => {
-    import('altcha').catch(console.error)
-  }, [])
-
-  // 監聽 ALTCHA 驗證狀態
-  useEffect(() => {
-    const el = altchaRef.current
-    if (!el) return
-    const handleStateChange = (ev: Event) => {
-      const detail = (ev as CustomEvent).detail as { state: string; payload?: string }
-      if (detail?.state === 'verified' && detail.payload) {
-        setAltchaPayload(detail.payload)
-      } else {
-        setAltchaPayload(null)
-      }
-    }
-    el.addEventListener('statechange', handleStateChange)
-    return () => el.removeEventListener('statechange', handleStateChange)
-  }, [isReady]) // 在 LIFF ready 後才掛 (避免 SSR)
 
   const handleLogin = useCallback(async (type: 'line' | 'manual') => {
     setIsLoading(true)
@@ -63,7 +28,6 @@ export default function AdminLoginPage() {
       } else {
         payload.username = username
         payload.password = password
-        if (altchaPayload) payload.altcha = altchaPayload
       }
 
       const res = await fetch('/api/admin/login', {
@@ -79,9 +43,6 @@ export default function AdminLoginPage() {
         } else {
           setError(result.error)
         }
-        // 重置 ALTCHA 讓用戶重新驗證
-        setAltchaPayload(null)
-        ;(altchaRef.current as any)?.reset?.()
       } else {
         window.location.href = '/admin'
       }
@@ -90,7 +51,7 @@ export default function AdminLoginPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [idToken, liff, username, password, altchaPayload])
+  }, [idToken, liff, username, password])
 
   // 已有 session 直接跳轉
   useEffect(() => {
@@ -178,7 +139,7 @@ export default function AdminLoginPage() {
             </>
           )}
 
-          {/* 帳密 + ALTCHA */}
+          {/* 帳密 */}
           <div className="space-y-3">
             {error && (
               <p className="text-sm text-[#FE7A7B] font-bold bg-[#FE7A7B]/10 rounded-xl px-3 py-2 text-center">
@@ -214,23 +175,9 @@ export default function AdminLoginPage() {
               </button>
             </div>
 
-            {/* ALTCHA 驗證元件 */}
-            <div style={{
-              '--altcha-color-primary': '#66CCCC',
-              '--altcha-border-radius': '12px',
-              '--altcha-color-base': '#F8FAFC',
-              '--altcha-border-color': '#E5E1E0',
-            } as React.CSSProperties}>
-              <altcha-widget
-                ref={altchaRef}
-                challenge="/api/captcha"
-                auto="onload"
-              />
-            </div>
-
             <button
               onClick={() => handleLogin('manual')}
-              disabled={isLoading || !username || !password || !altchaPayload}
+              disabled={isLoading || !username || !password}
               className="w-full h-12 rounded-2xl bg-[#66CCCC] text-white font-black text-base shadow-[0_4px_0_#4EA6A6] hover:translate-y-[2px] hover:shadow-[0_2px_0_#4EA6A6] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:translate-y-0 disabled:shadow-[0_4px_0_#4EA6A6]"
             >
               {isLoading ? (
