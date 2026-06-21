@@ -1,12 +1,19 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLiff } from '@/components/liff/LiffProvider'
 
-function generateCaptcha() {
-  const a = Math.floor(Math.random() * 9) + 1
-  const b = Math.floor(Math.random() * 9) + 1
-  return { question: `${a} + ${b}`, answer: a + b }
+declare module 'react' {
+  namespace JSX {
+    interface IntrinsicElements {
+      'altcha-widget': React.HTMLAttributes<HTMLElement> & {
+        challenge?: string
+        auto?: 'off' | 'onfocus' | 'onload' | 'onsubmit'
+        name?: string
+        ref?: React.Ref<HTMLElement>
+      }
+    }
+  }
 }
 
 export default function AdminLoginPage() {
@@ -15,14 +22,30 @@ export default function AdminLoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [captcha, setCaptcha] = useState(generateCaptcha)
-  const [captchaInput, setCaptchaInput] = useState('')
+  const [altchaPayload, setAltchaPayload] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const altchaRef = useRef<HTMLElement>(null)
 
-  const resetCaptcha = useCallback(() => {
-    setCaptcha(generateCaptcha())
-    setCaptchaInput('')
+  // 載入 ALTCHA web component
+  useEffect(() => {
+    import('altcha').catch(console.error)
   }, [])
+
+  // 監聽 ALTCHA 驗證狀態
+  useEffect(() => {
+    const el = altchaRef.current
+    if (!el) return
+    const handleStateChange = (ev: Event) => {
+      const detail = (ev as CustomEvent).detail as { state: string; payload?: string }
+      if (detail?.state === 'verified' && detail.payload) {
+        setAltchaPayload(detail.payload)
+      } else {
+        setAltchaPayload(null)
+      }
+    }
+    el.addEventListener('statechange', handleStateChange)
+    return () => el.removeEventListener('statechange', handleStateChange)
+  }, [isReady]) // 在 LIFF ready 後才掛 (避免 SSR)
 
   const handleLogin = useCallback(async (type: 'line' | 'manual') => {
     setIsLoading(true)
@@ -38,14 +61,9 @@ export default function AdminLoginPage() {
         }
         payload.id_token = idToken
       } else {
-        if (parseInt(captchaInput) !== captcha.answer) {
-          setError('驗證碼錯誤，請重新計算')
-          resetCaptcha()
-          setIsLoading(false)
-          return
-        }
         payload.username = username
         payload.password = password
+        if (altchaPayload) payload.altcha = altchaPayload
       }
 
       const res = await fetch('/api/admin/login', {
@@ -61,7 +79,9 @@ export default function AdminLoginPage() {
         } else {
           setError(result.error)
         }
-        resetCaptcha()
+        // 重置 ALTCHA 讓用戶重新驗證
+        setAltchaPayload(null)
+        ;(altchaRef.current as any)?.reset?.()
       } else {
         window.location.href = '/admin'
       }
@@ -70,7 +90,7 @@ export default function AdminLoginPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [idToken, liff, username, password, captchaInput, captcha.answer, resetCaptcha])
+  }, [idToken, liff, username, password, altchaPayload])
 
   // 已有 session 直接跳轉
   useEffect(() => {
@@ -85,8 +105,6 @@ export default function AdminLoginPage() {
       handleLogin('line')
     }
   }, [isReady, idToken, profile, isLoading, error, handleLogin])
-
-  const isInLine = isReady && !liffError && !!profile
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-[#FFDF6F] overflow-hidden px-4 py-10">
@@ -119,15 +137,23 @@ export default function AdminLoginPage() {
           </div>
 
           {/* LINE 登入 */}
-          {isInLine && (
+          {!isReady ? (
+            <div className="mb-5 flex justify-center py-3">
+              <span className="w-6 h-6 border-2 border-[#06C755]/30 border-t-[#06C755] rounded-full animate-spin" />
+            </div>
+          ) : liffError ? (
+            <p className="text-xs text-gray-400 text-center mb-5">LINE 登入在此環境無法使用</p>
+          ) : (
             <>
               <div className="mb-5">
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border-2 border-[#E5E1E0] mb-3">
-                  {profile.pictureUrl && (
-                    <img src={profile.pictureUrl} className="w-8 h-8 rounded-full" alt="" />
-                  )}
-                  <p className="text-sm font-bold text-gray-700 truncate">{profile.displayName}</p>
-                </div>
+                {profile && (
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border-2 border-[#E5E1E0] mb-3">
+                    {profile.pictureUrl && (
+                      <img src={profile.pictureUrl} className="w-8 h-8 rounded-full" alt="" />
+                    )}
+                    <p className="text-sm font-bold text-gray-700 truncate">{profile.displayName}</p>
+                  </div>
+                )}
                 <button
                   onClick={() => handleLogin('line')}
                   disabled={isLoading}
@@ -152,7 +178,7 @@ export default function AdminLoginPage() {
             </>
           )}
 
-          {/* 帳密 + 驗證碼 */}
+          {/* 帳密 + ALTCHA */}
           <div className="space-y-3">
             {error && (
               <p className="text-sm text-[#FE7A7B] font-bold bg-[#FE7A7B]/10 rounded-xl px-3 py-2 text-center">
@@ -188,32 +214,23 @@ export default function AdminLoginPage() {
               </button>
             </div>
 
-            {/* 圖形驗證碼（數學題） */}
-            <div className="bg-[#F8FAFC] rounded-xl border-2 border-[#E5E1E0] px-4 py-3 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 flex-1">
-                <span className="text-xs text-gray-500 font-bold whitespace-nowrap">請計算：</span>
-                <span className="text-base font-black text-gray-800 tracking-wider">{captcha.question} = ?</span>
-              </div>
-              <input
-                type="number"
-                placeholder="答案"
-                value={captchaInput}
-                onChange={(e) => setCaptchaInput(e.target.value)}
-                className="w-20 h-9 px-3 rounded-lg border-2 border-[#E5E1E0] focus:outline-none focus:border-[#66CCCC] text-sm font-bold text-center text-gray-700"
+            {/* ALTCHA 驗證元件 */}
+            <div style={{
+              '--altcha-color-primary': '#66CCCC',
+              '--altcha-border-radius': '12px',
+              '--altcha-color-base': '#F8FAFC',
+              '--altcha-border-color': '#E5E1E0',
+            } as React.CSSProperties}>
+              <altcha-widget
+                ref={altchaRef}
+                challenge="/api/admin/captcha"
+                auto="onload"
               />
-              <button
-                type="button"
-                onClick={resetCaptcha}
-                title="換一題"
-                className="text-gray-400 hover:text-[#66CCCC] transition-colors text-lg leading-none"
-              >
-                🔄
-              </button>
             </div>
 
             <button
               onClick={() => handleLogin('manual')}
-              disabled={isLoading || !username || !password || !captchaInput}
+              disabled={isLoading || !username || !password || !altchaPayload}
               className="w-full h-12 rounded-2xl bg-[#66CCCC] text-white font-black text-base shadow-[0_4px_0_#4EA6A6] hover:translate-y-[2px] hover:shadow-[0_2px_0_#4EA6A6] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:translate-y-0 disabled:shadow-[0_4px_0_#4EA6A6]"
             >
               {isLoading ? (

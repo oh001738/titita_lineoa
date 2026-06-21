@@ -6,6 +6,7 @@ import type { ApiResponse } from '@/types'
 import { cookies } from 'next/headers'
 import { isRateLimited } from '@/lib/rate-limit'
 import { RATE_LIMIT } from '@/lib/constants'
+import { verifySolution, sha } from 'altcha/lib'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,7 +16,7 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(request: Request) {
   try {
-    const { id_token, username, password } = await request.json()
+    const { id_token, username, password, altcha } = await request.json()
 
     // ── 0. 速率限制 ──
     const rateLimitKey = username ? `login_${username}` : `login_token_${id_token?.slice(-10)}`
@@ -25,6 +26,27 @@ export async function POST(request: Request) {
 
     // ── 1. 帳密手動登入 ──
     if (username && password) {
+      const hmacKey = process.env.ALTCHA_HMAC_KEY
+      if (hmacKey) {
+        if (!altcha) {
+          return Response.json({ data: null, error: '請完成安全驗證' }, { status: 400 })
+        }
+        try {
+          const decoded = JSON.parse(Buffer.from(altcha, 'base64').toString())
+          const result = await verifySolution({
+            challenge: decoded.challenge,
+            solution: decoded.solution,
+            deriveKey: sha.deriveKey,
+            hmacSignatureSecret: hmacKey,
+          })
+          if (!result.verified || result.expired) {
+            return Response.json({ data: null, error: '安全驗證失敗，請重新整理後再試' }, { status: 400 })
+          }
+        } catch {
+          return Response.json({ data: null, error: '安全驗證解析失敗，請重試' }, { status: 400 })
+        }
+      }
+
       const envUser = process.env.ADMIN_USER
       const envPass = process.env.ADMIN_PASS
 
