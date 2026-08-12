@@ -389,6 +389,7 @@ export default function BindPage() {
               {users.map((user) => (
                 <label
                   key={user._id}
+                  onClick={() => toggleUser(user._id)}
                   className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-colors ${selectedIds.has(user._id)
                       ? 'border-[#66CCCC] bg-[#66CCCC]/10'
                       : 'border-[#E5E1E0] hover:border-[#66CCCC]/50 bg-white'
