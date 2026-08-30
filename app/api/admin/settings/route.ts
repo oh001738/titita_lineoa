@@ -22,6 +22,7 @@ export async function GET() {
     const enabledNotifies = await getSetting('enabled_notifies', {
       leave_approved: true,
       leave_rejected: true,
+      leave_requested: true,
       makeup_arranged: true,
       course_change: true,
       new_term: true,

@@ -25,6 +25,7 @@ export type BindOperator = typeof BIND_OPERATORS[keyof typeof BIND_OPERATORS]
 
 // ── LINE 推播通知類型 ──
 export const NOTIFY_TYPES = {
+  LEAVE_REQUESTED: 'leave_requested',  // 學生送出請假 → 通知授課老師與管理員
   LEAVE_APPROVED: 'leave_approved',
   LEAVE_REJECTED: 'leave_rejected',
   MAKEUP_ARRANGED: 'makeup_arranged',

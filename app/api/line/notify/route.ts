@@ -58,6 +58,11 @@ export async function POST(request: Request) {
     let lineMessages: any[] = []
 
     switch (notify_type) {
+      // 收件人是老師/管理員（非家長），student_name 帶的是收件人名，訊息本文已含請假學生姓名
+      case NOTIFY_TYPES.LEAVE_REQUESTED:
+        lineMessages = [generalNotifyMessage(student_name, '請假申請通知', message)]
+        break;
+
       case NOTIFY_TYPES.LEAVE_APPROVED:
       case NOTIFY_TYPES.LEAVE_REJECTED:
       case NOTIFY_TYPES.MAKEUP_ARRANGED:

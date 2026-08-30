@@ -15,6 +15,7 @@ interface Recipient {
 
 const NOTIFY_TYPE_LABELS: Record<string, string> = {
   leave_approved: '請假核准通知',
+  leave_requested: '請假申請通知（老師／管理員）',
   leave_rejected: '請假駁回通知',
   makeup_arranged: '補課安排通知',
   course_change: '課程異動通知',

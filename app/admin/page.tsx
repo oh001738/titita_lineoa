@@ -16,6 +16,7 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [isPushEnabled, setIsPushEnabled] = useState(true)
   const [enabledNotifies, setEnabledNotifies] = useState<Record<string, boolean>>({
+    leave_requested: true,
     leave_approved: true,
     leave_rejected: true,
     makeup_arranged: true,
@@ -103,6 +104,7 @@ export default function AdminDashboard() {
   }
 
   const notifyLabels: Record<string, string> = {
+    leave_requested: '請假申請通知（老師／管理員）',
     leave_approved: '請假審核通過',
     leave_rejected: '請假審核駁回',
     makeup_arranged: '補課安排通知',
