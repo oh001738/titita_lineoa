@@ -153,6 +153,7 @@ titita_lineoa/
 | `/api/internal/users/courses` | GET | 查詢學生/教師課表 | liff/courses |
 | `/api/internal/users/points` | GET | 查詢學生點數餘額與歷史 | liff/points |
 | `/api/internal/users/leave` | POST | 提交請假申請 | liff/courses（請假） |
+| `/api/internal/users/leave` | GET | 查詢近期請假單與處理進度（最近 20 筆） | liff/courses（我的請假分頁） |
 | `/api/internal/users/teacher-students` | GET | 查詢教師的學生清單 | points/teacher |
 | `/api/internal/points/award` | POST | 教師獎勵點數 | points/teacher/award |
 
@@ -179,6 +180,7 @@ titita_lineoa/
 | `/api/internal/users/courses` | GET | 代轉主系統課表查詢 | LIFF |
 | `/api/internal/users/points` | GET | 代轉主系統點數查詢 | LIFF |
 | `/api/internal/users/leave` | POST | 代轉主系統請假申請 | LIFF |
+| `/api/internal/users/leave` | GET | 代轉主系統請假進度查詢 | LIFF（id_token + verifyOwnership） |
 | `/api/internal/lessons/[id]/attendance` | GET | 代轉：取這堂課 roster + 缺席名單（教師出勤點名用） | LIFF（id_token + verifyOwnership） |
 | `/api/internal/lessons/[id]/attendance` | PATCH | 代轉：標記這堂課缺席學生（只記缺席） | LIFF（id_token + verifyOwnership） |
 | `/api/admin/login` | POST | 管理員登入 | 帳號密碼 |
@@ -267,12 +269,14 @@ LIFF_ID                  — LIFF App ID（server-side only，前端透過 /api/
 | LIFF Provider + 綁定頁面 | ✅ |
 | LIFF 綁定狀態頁 | ✅ |
 | LIFF 課表頁（含請假功能） | ✅ |
+| LIFF 課表頁「我的請假」分頁（2026-08-30）：家長送出請假後那堂課會從課表消失，原本無從得知進度。分頁顯示最近 20 筆請假單與六種狀態（審核中／已安排補課／已准假（不補課）／未通過／補課完成／取消請假），已安排補課時附補課日期時段與老師教室。切到該分頁才 fetch；切換身分或小孩時自動跳回課程分頁避免資料殘留；教師模式不顯示此分頁 | ✅ |
 | LIFF 教師端出勤點名（課表卡片點開 → roster toggle 標記缺席，proxy 代轉主系統 `lessons/[id]/attendance`，與網頁版共用 `Lesson.absent_student_ids`）⚠ proxy 用 Next 15 async params（`await params`） | ✅ |
 | LIFF 點數頁 | ✅ |
 | 全域 UI 元件 (Toast + ConfirmDialog) | ✅ |
 | 管理員後台 (登入/廣播/日誌/統計) | ✅ |
 | 請假 API 主系統串接 | ✅ |
 | 主系統 Internal API 全部串接 | ✅ |
+| 上課提醒（`class_reminder`）**實際開始運作**（2026-08-30）：本系統的推播類型、訊息模板、後台開關（預設開啟）與試發功能一直都在，但**主系統從未送出過**——該類型只存在於主系統的型別宣告，沒有觸發點。主系統已補上每日台灣 08:00 的 cron 推播當天課程，**本系統零改動**，後台那個開關從此真的有作用 | ✅ |
 | 健康檢查 API | ✅ |
 | Docker 部署設定 | ✅ |
 | TypeScript 編譯 0 errors | ✅ |
