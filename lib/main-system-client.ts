@@ -163,6 +163,50 @@ export async function submitLeaveRequest(data: {
   return callInternal<LeaveRequestResult>('/api/internal/users/leave', 'POST', data)
 }
 
+export interface LeaveRequestRecord {
+  id: string
+  status: 'pending' | 'makeup_arranged' | 'no_makeup' | 'rejected' | 'completed' | 'attendance_confirmed'
+  reason: string
+  decision_note: string
+  course_name: string
+  original_date: string | null
+  original_start_time: string | null
+  original_end_time: string | null
+  makeup: { date: string; start_time: string; end_time: string; teacher: string; room: string } | null
+  created_at: string | null
+}
+
+/** 查詢學生近期請假單與處理進度（LIFF 課表頁「我的請假」分頁） */
+export async function getLeaveRequests(
+  userId: string
+): Promise<InternalApiResponse<LeaveRequestRecord[]>> {
+  if (isMockMode()) {
+    return {
+      data: [
+        {
+          id: 'mock_lr_1', status: 'makeup_arranged', reason: '感冒', decision_note: '',
+          course_name: '進階鋼琴課',
+          original_date: '2026-04-24', original_start_time: '18:00', original_end_time: '19:00',
+          makeup: { date: '2026-05-08', start_time: '18:00', end_time: '19:00', teacher: '張老師', room: 'A教室' },
+          created_at: '2026-04-20T02:00:00.000Z',
+        },
+        {
+          id: 'mock_lr_2', status: 'pending', reason: '家裡有事', decision_note: '',
+          course_name: '基礎樂理',
+          original_date: '2026-05-03', original_start_time: '14:00', original_end_time: '15:30',
+          makeup: null,
+          created_at: '2026-04-28T02:00:00.000Z',
+        },
+      ],
+      error: null,
+    }
+  }
+  return callInternal<LeaveRequestRecord[]>(
+    `/api/internal/users/leave?user_id=${encodeURIComponent(userId)}`,
+    'GET'
+  )
+}
+
 export async function awardPoints(data: {
   teacher_id: string
   user_id: string

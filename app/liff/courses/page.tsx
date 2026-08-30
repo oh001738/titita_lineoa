@@ -22,6 +22,28 @@ interface BoundStudent {
   student_name: string
 }
 
+interface LeaveRecord {
+  id: string
+  status: 'pending' | 'makeup_arranged' | 'no_makeup' | 'rejected' | 'completed' | 'attendance_confirmed'
+  reason: string
+  decision_note: string
+  course_name: string
+  original_date: string | null
+  original_start_time: string | null
+  original_end_time: string | null
+  makeup: { date: string; start_time: string; end_time: string; teacher: string; room: string } | null
+}
+
+// 家長視角的請假狀態外觀（沿用果凍風硬陰影色票）
+const LEAVE_STATUS_META: Record<LeaveRecord['status'], { label: string; cls: string }> = {
+  pending:              { label: '審核中',        cls: 'bg-[#FFDF6F] text-[#7a5c00] shadow-[0_2px_0_#D4B33E]' },
+  makeup_arranged:      { label: '已安排補課',    cls: 'bg-[#99D8B9] text-[#1e4d35] shadow-[0_2px_0_#2B7A54]' },
+  no_makeup:            { label: '已准假（不補課）', cls: 'bg-[#66CCCC] text-[#0f4a4a] shadow-[0_2px_0_#4EA6A6]' },
+  rejected:             { label: '未通過',        cls: 'bg-[#FE7A7B] text-white shadow-[0_2px_0_#C85455]' },
+  completed:            { label: '補課完成',      cls: 'bg-slate-200 text-slate-600' },
+  attendance_confirmed: { label: '取消請假',      cls: 'bg-slate-200 text-slate-600' },
+}
+
 export default function CoursesPage() {
   const { profile, idToken, isReady, error: liffError } = useLiff()
   const { showToast } = useToast()
@@ -50,6 +72,11 @@ export default function CoursesPage() {
   const [makeupBusyId, setMakeupBusyId] = useState<string | null>(null)
   // 已在後台請假/調課的學生 → 名單反灰標示（student_id → 'leave' | 'adjustment'）
   const [excused, setExcused] = useState<Record<string, 'leave' | 'adjustment'>>({})
+
+  // 家長分頁：課程 / 我的請假（教師模式不顯示）
+  const [view, setView] = useState<'courses' | 'leaves'>('courses')
+  const [leaves, setLeaves] = useState<LeaveRecord[]>([])
+  const [leavesLoading, setLeavesLoading] = useState(false)
 
   // 滾動偵測：Header 縮小
   const [isScrolled, setIsScrolled] = useState(false)
@@ -148,6 +175,28 @@ export default function CoursesPage() {
         .finally(() => setIsLoading(false))
     }
   }, [idToken, userRole, teacherId, selectedStudentId])
+
+  // 3. 切到「我的請假」分頁時才載入；換小孩時重新取
+  const loadLeaves = useCallback(async () => {
+    if (!idToken || !selectedStudentId) return
+    setLeavesLoading(true)
+    try {
+      const res = await fetch(`/api/internal/users/leave?id_token=${idToken}&user_id=${selectedStudentId}`)
+      const result = await res.json()
+      setLeaves(result.data ?? [])
+    } catch {
+      setLeaves([])
+    } finally {
+      setLeavesLoading(false)
+    }
+  }, [idToken, selectedStudentId])
+
+  useEffect(() => {
+    if (view === 'leaves' && userRole === 'family') loadLeaves()
+  }, [view, userRole, loadLeaves])
+
+  // 切換身分/小孩時回到課程分頁，避免看到上一位的請假資料殘留
+  useEffect(() => { setView('courses') }, [userRole, selectedStudentId])
 
 
   const handleLeaveRequest = async () => {
@@ -487,7 +536,89 @@ export default function CoursesPage() {
 
       {/* Main Content */}
       <main ref={mainRef} onScroll={handleScroll} className="flex-1 overflow-y-auto no-scrollbar px-5 pb-8">
-        {isLoading ? null : (
+        {/* 家長分頁切換（教師模式沒有請假進度可看） */}
+        {!isTeacherMode && (
+          <div className="flex gap-2 mt-4 mb-1">
+            {([
+              { key: 'courses', label: '課程' },
+              { key: 'leaves',  label: '我的請假' },
+            ] as const).map(t => (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => setView(t.key)}
+                className={`flex-1 py-2.5 rounded-[18px] text-sm font-black border-2 transition-all active:scale-[0.97] ${
+                  view === t.key
+                    ? 'bg-[#66CCCC] text-white border-[#66CCCC] shadow-[0_3px_0_#4EA6A6]'
+                    : 'bg-white text-slate-500 border-[#E2E8F0]'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {!isTeacherMode && view === 'leaves' ? (
+          <div className="animate-fade-in mt-3">
+            {leavesLoading ? (
+              <div className="bg-white p-8 rounded-[28px] text-center shadow-sm border-2 border-slate-200">
+                <p className="text-gray-400 font-bold">載入中…</p>
+              </div>
+            ) : leaves.length === 0 ? (
+              <div className="bg-white p-8 rounded-[28px] text-center shadow-sm border-2 border-slate-200">
+                <span className="text-5xl block mb-4">📝</span>
+                <p className="text-gray-500 font-bold text-lg">目前沒有請假紀錄</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {leaves.map(lr => {
+                  const meta = LEAVE_STATUS_META[lr.status]
+                  return (
+                    <div key={lr.id} className="bg-white p-5 rounded-[24px] shadow-[0_4px_10px_rgba(0,0,0,0.03)] border-2 border-[#E2E8F0]">
+                      <div className="flex justify-between items-start gap-2 mb-3">
+                        <div className="bg-slate-800 text-white text-[11px] font-black tracking-wider px-3 py-1 rounded-xl shadow-[0_2px_0_#0f172a]">
+                          {lr.original_date ?? '—'}
+                        </div>
+                        <div className={`text-[11px] font-black tracking-wider px-3 py-1 rounded-xl shrink-0 ${meta.cls}`}>
+                          {meta.label}
+                        </div>
+                      </div>
+
+                      <p className="font-black text-slate-800 text-lg leading-tight">{lr.course_name}</p>
+                      {lr.original_start_time && (
+                        <p className="text-sm font-bold text-slate-400 mt-0.5">
+                          {lr.original_start_time}–{lr.original_end_time}
+                        </p>
+                      )}
+                      {lr.reason && (
+                        <p className="text-sm font-bold text-slate-500 mt-2">請假原因：{lr.reason}</p>
+                      )}
+
+                      {lr.makeup && (
+                        <div className="mt-3 pt-3 border-t-2 border-dashed border-slate-100">
+                          <p className="text-[11px] font-black text-[#2B7A54] tracking-wider mb-1">補課安排</p>
+                          <p className="text-sm font-bold text-slate-700">
+                            {lr.makeup.date} {lr.makeup.start_time}–{lr.makeup.end_time}
+                          </p>
+                          <p className="text-xs font-bold text-slate-400 mt-0.5">
+                            {[lr.makeup.teacher, lr.makeup.room].filter(Boolean).join('・')}
+                          </p>
+                        </div>
+                      )}
+
+                      {lr.status === 'rejected' && lr.decision_note && (
+                        <div className="mt-3 pt-3 border-t-2 border-dashed border-slate-100">
+                          <p className="text-sm font-bold text-[#C85455]">說明：{lr.decision_note}</p>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        ) : isLoading ? null : (
           <div className="animate-fade-in">
             {courses.length === 0 ? (
               <div className="bg-white p-8 rounded-[28px] text-center shadow-sm border-2 border-slate-200 mt-4">
