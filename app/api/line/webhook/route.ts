@@ -1,3 +1,5 @@
+import { after } from 'next/server'
+import { handleTermRenewal } from '@/lib/line/term-renewal'
 import { validateSignature } from '@/lib/line/signature'
 import { lookupUsersByLineId, updateLineBinding } from '@/lib/main-system-client'
 import { replyMessage } from '@/lib/line/push'
@@ -29,23 +31,21 @@ export async function POST(request: Request) {
   let events
   try {
     const parsed = JSON.parse(body)
-    events = parsed.events || []
+    events = Array.isArray(parsed.events) ? parsed.events : []
   } catch {
     console.error('[Webhook] Failed to parse body')
     return Response.json({ status: 'ok' })
   }
 
-  // 非同步處理，不阻塞回應（Webhook 鐵則：先回 200）
-  Promise.all(
-    events.map(async (event: WebhookEvent) => {
+  // 回應後由 Next.js 管理工作生命週期，避免續期在回應送出後被中斷。
+  after(async () => {
+    await Promise.all(events.map(async (event: WebhookEvent) => {
       try {
         await handleEvent(event)
       } catch (err) {
         console.error('[Webhook] Event handling error:', err)
       }
-    })
-  ).catch((err) => {
-    console.error('[Webhook] Batch processing error:', err)
+    }))
   })
 
   return Response.json({ status: 'ok' })
@@ -163,6 +163,16 @@ async function handlePostback(event: WebhookEvent): Promise<void> {
   const liffId = process.env.LIFF_ID
 
   console.log(`[Webhook] Postback from ${lineUserId}: action=${action}`)
+
+  // Only allow renewal in the teacher's private chat; do not expose confirmations in groups.
+  if (action === 'renew_term' || action === 'renew_term_confirm') {
+    if (event.source?.type !== 'user') {
+      await replyMessage(event.replyToken, [{ type: 'text', text: '請在與官方帳號的一對一聊天室操作續期。' }])
+      return
+    }
+    await handleTermRenewal(lineUserId, event.replyToken, params)
+    return
+  }
 
   if (!liffId) return
 

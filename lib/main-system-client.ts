@@ -216,3 +216,25 @@ export async function awardPoints(data: {
   if (isMockMode()) return { data: { success: true, log_id: 'mock_log_award' }, error: null }
   return callInternal<AwardPointsResult>('/api/internal/points/award', 'POST', data)
 }
+
+// Only the signature-verified LINE webhook may supply line_user_id for this operation.
+export interface TermRenewalResult {
+  course_name: string
+  term_seq: number
+  start_date: string
+  end_date: string
+  lessons_per_term: number
+  schedule_summary: string
+  already_renewed: boolean
+  confirmation_token?: string
+}
+
+export async function renewCourseTerm(courseId: string, body: {
+  line_user_id: string
+  expected_term_seq: number
+  action: 'preview' | 'confirm'
+  confirmation_token?: string
+}) {
+  if (isMockMode()) return { data: null, error: '測試模式不提供正式課程續期，請至主系統操作。' }
+  return callInternal<TermRenewalResult>(`/api/internal/courses/${encodeURIComponent(courseId)}/new-term`, 'POST', body)
+}

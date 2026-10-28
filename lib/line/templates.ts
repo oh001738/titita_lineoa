@@ -608,3 +608,40 @@ export function courseChangeMessage(params: {
     }
   }
 }
+
+// Renewal uses postbacks so no public main-system URL or LIFF login is needed.
+export function termExpiringMessage(params: {
+  teacherName: string; courseId: string; courseName: string; termSeq: number; endDate: string; message: string
+}): messagingApi.FlexMessage {
+  return termActionMessage('期繳到期提醒', params.teacherName, params.message, '續開下一期',
+    new URLSearchParams({ action: 'renew_term', course_id: params.courseId, term_seq: String(params.termSeq) }).toString())
+}
+
+export function termRenewalConfirmationMessage(params: {
+  course_id: string; expected_term_seq: number; course_name: string; term_seq: number;
+  start_date: string; end_date: string; lessons_per_term: number; schedule_summary: string; confirmation_token?: string
+}): messagingApi.FlexMessage {
+  const message = `課程：${params.course_name}\n第 ${params.term_seq} 期：${params.start_date} ～ ${params.end_date}\n一期 ${params.lessons_per_term} 堂\n時段：${params.schedule_summary}\n\n沿用原老師、教室及學生名單，不會自動出帳。請確認後再續開；若需調整，請至主系統操作。`
+  return termActionMessage('確認續開下一期', params.course_name, message, '確認續開',
+    new URLSearchParams({ action: 'renew_term_confirm', course_id: params.course_id,
+      term_seq: String(params.expected_term_seq), token: params.confirmation_token ?? '' }).toString())
+}
+
+function termActionMessage(title: string, target: string, text: string, label: string, data: string): messagingApi.FlexMessage {
+  return {
+    type: 'flex', altText: `${title}：${target}`,
+    contents: {
+      type: 'bubble', size: 'mega',
+      header: { type: 'box', layout: 'vertical', backgroundColor: '#FFDF6F', paddingAll: '20px', contents: [
+        { type: 'text', text: `📢 ${title}`, color: '#F56E4A', weight: 'bold', size: 'lg', wrap: true },
+      ] },
+      body: { type: 'box', layout: 'vertical', paddingAll: '20px', contents: [
+        createRow('對象', target),
+        { type: 'text', text, size: 'sm', color: '#334155', wrap: true, margin: 'lg' },
+      ] },
+      footer: { type: 'box', layout: 'vertical', contents: [
+        { type: 'button', style: 'primary', color: '#F56E4A', action: { type: 'postback', label, data } },
+      ] },
+    },
+  }
+}

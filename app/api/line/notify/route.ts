@@ -1,3 +1,4 @@
+import { termExpiringMessage } from '@/lib/line/templates'
 import { connectDB } from '@/lib/db/mongoose'
 import LineNotifyLog from '@/lib/models/LineNotifyLog'
 import { pushMessage } from '@/lib/line/push'
@@ -58,6 +59,19 @@ export async function POST(request: Request) {
     let lineMessages: any[] = []
 
     switch (notify_type) {
+      case NOTIFY_TYPES.TERM_EXPIRING:
+        if (/^[a-f0-9]{24}$/i.test(payload?.course_id ?? '') &&
+            Number.isSafeInteger(payload?.term_seq) && payload.term_seq > 0) {
+          lineMessages = [termExpiringMessage({
+            teacherName: student_name, courseId: payload.course_id, courseName: payload.course_name ?? '',
+            termSeq: payload.term_seq, endDate: payload.end_date ?? '', message,
+          })]
+        } else {
+          // Older main-system deployments omit course_id; keep their reminders readable.
+          lineMessages = [generalNotifyMessage(student_name, '期繳到期提醒', message)]
+        }
+        break;
+
       // 收件人是老師/管理員（非家長），student_name 帶的是收件人名，訊息本文已含請假學生姓名
       case NOTIFY_TYPES.LEAVE_REQUESTED:
         lineMessages = [generalNotifyMessage(student_name, '請假申請通知', message)]
